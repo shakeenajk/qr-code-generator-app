@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Completed 01-foundation 01-04-PLAN.md
-last_updated: "2026-03-09T08:02:30.706Z"
-last_activity: 2026-03-06 — Roadmap created; all 36 v1 requirements mapped to 4 phases
+status: executing
+stopped_at: Completed 01-foundation 01-05-PLAN.md
+last_updated: "2026-03-09T12:00:00.000Z"
+last_activity: 2026-03-09 — Phase 1 Plan 5 complete; all 11 Playwright smoke tests green, human verification approved
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 5
-  completed_plans: 4
-  percent: 0
+  completed_plans: 5
+  percent: 20
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 ## Current Position
 
 Phase: 1 of 4 (Foundation)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-03-06 — Roadmap created; all 36 v1 requirements mapped to 4 phases
+Plan: 5 of 5 in Phase 1 (Phase 1 COMPLETE)
+Status: Phase 1 complete — ready to begin Phase 2
+Last activity: 2026-03-09 — Phase 1 Plan 5 complete; all 11 Playwright smoke tests green, human verification approved
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [##░░░░░░░░] 20%
 
 ## Performance Metrics
 
@@ -54,6 +54,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01-foundation P02 | 1 | 1 tasks | 1 files |
 | Phase 01-foundation P03 | 1 | 2 tasks | 2 files |
 | Phase 01-foundation P04 | 2 | 2 tasks | 5 files |
+| Phase 01-foundation P05 | continuation | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -75,6 +76,9 @@ Recent decisions affecting current work:
 - [Phase 01-foundation]: Logo uses fill=currentColor so text-[#2563EB] class on SVG element drives all dot fills
 - [Phase 01-foundation]: OG image generated via Playwright screenshot (already installed) from HTML template — no new image dependency
 - [Phase 01-foundation]: CTA button links to #qr-generator-root anchor (same-page smooth scroll)
+- [Phase 01-foundation P05]: div#qr-generator-root in Hero.astro is stable mount point — Phase 2 drops React island here
+- [Phase 01-foundation P05]: FAQ_ITEMS used in both JSON-LD FAQPage schema and visible FAQ component — single source of truth prevents Google schema/content drift
+- [Phase 01-foundation P05]: data-faq-question attr on each FAQ dt is the Playwright smoke test selector, must not be removed
 
 ### Pending Todos
 
@@ -88,6 +92,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-09T08:02:30.703Z
-Stopped at: Completed 01-foundation 01-04-PLAN.md
+Last session: 2026-03-09T12:00:00.000Z
+Stopped at: Completed 01-foundation 01-05-PLAN.md (Phase 1 COMPLETE)
 Resume file: None

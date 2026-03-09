@@ -12,7 +12,7 @@ QRCraft is built in four coarse phases that mirror how the product layers onto i
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation** - Static site, branding, and full SEO instrumentation deployed
+- [x] **Phase 1: Foundation** - Static site, branding, and full SEO instrumentation deployed
 - [ ] **Phase 2: Core Generator** - Live QR preview for all four content types
 - [ ] **Phase 3: Customization** - Full visual customization and logo embedding
 - [ ] **Phase 4: Export and Launch** - Export pipeline, dark mode, and Lighthouse 90+ performance
@@ -32,11 +32,11 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 5 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Astro project scaffold, all npm deps, robots.txt, Playwright install
-- [ ] 01-02-PLAN.md — Playwright smoke test suite for all BRAND and SEO requirements
-- [ ] 01-03-PLAN.md — Layout.astro with SEO head meta, OG tags, both JSON-LD schemas + FAQ data file
-- [ ] 01-04-PLAN.md — SVG logo, Header, Footer components + OG image
-- [ ] 01-05-PLAN.md — Page assembly (index.astro, Hero, Features, FAQ) + smoke tests green + human verify
+- [x] 01-01-PLAN.md — Astro project scaffold, all npm deps, robots.txt, Playwright install
+- [x] 01-02-PLAN.md — Playwright smoke test suite for all BRAND and SEO requirements
+- [x] 01-03-PLAN.md — Layout.astro with SEO head meta, OG tags, both JSON-LD schemas + FAQ data file
+- [x] 01-04-PLAN.md — SVG logo, Header, Footer components + OG image
+- [x] 01-05-PLAN.md — Page assembly (index.astro, Hero, Features, FAQ) + smoke tests green + human verify
 
 ### Phase 2: Core Generator
 **Goal**: A user can enter content and instantly see a live QR code — for all four content types — without submitting a form or pressing a button.
@@ -80,7 +80,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 4/5 | In Progress|  |
+| 1. Foundation | 5/5 | Complete | 2026-03-09 |
 | 2. Core Generator | 0/TBD | Not started | - |
 | 3. Customization | 0/TBD | Not started | - |
 | 4. Export and Launch | 0/TBD | Not started | - |
