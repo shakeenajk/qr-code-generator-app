@@ -1,0 +1,27 @@
+---
+// src/components/FAQ.astro
+import { FAQ_ITEMS } from '../data/faq';
+---
+
+<section class="bg-white py-16 sm:py-20" id="faq" aria-labelledby="faq-heading">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+    <h2 id="faq-heading" class="text-3xl font-bold text-gray-900 text-center mb-12">
+      Frequently Asked Questions
+    </h2>
+    <dl class="space-y-6">
+      {FAQ_ITEMS.map((item) => (
+        <div class="border border-gray-200 rounded-xl p-6 bg-gray-50">
+          <dt
+            class="text-base font-semibold text-gray-900 mb-2"
+            data-faq-question
+          >
+            {item.question}
+          </dt>
+          <dd class="text-gray-600 text-sm leading-relaxed">
+            {item.answer}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  </div>
+</section>
