@@ -79,7 +79,7 @@ test.describe('Phase 1: Foundation', () => {
     });
     expect(faqSchema).toBeTruthy();
     const parsed = JSON.parse(faqSchema!);
-    expect(parsed['mainEntity']).toHaveLength(expect.any(Number));
+    expect(Array.isArray(parsed['mainEntity'])).toBe(true);
     expect(parsed['mainEntity'].length).toBeGreaterThanOrEqual(4);
   });
 
