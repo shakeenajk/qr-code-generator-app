@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-foundation 01-02-PLAN.md
-last_updated: "2026-03-09T08:01:23.551Z"
+stopped_at: Completed 01-foundation 01-04-PLAN.md
+last_updated: "2026-03-09T08:02:30.706Z"
 last_activity: 2026-03-06 — Roadmap created; all 36 v1 requirements mapped to 4 phases
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 5
-  completed_plans: 2
+  completed_plans: 4
   percent: 0
 ---
 
@@ -52,6 +52,8 @@ Progress: [░░░░░░░░░░] 0%
 *Updated after each plan completion*
 | Phase 01-foundation P01 | 4 | 2 tasks | 6 files |
 | Phase 01-foundation P02 | 1 | 1 tasks | 1 files |
+| Phase 01-foundation P03 | 1 | 2 tasks | 2 files |
+| Phase 01-foundation P04 | 2 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -68,6 +70,11 @@ Recent decisions affecting current work:
 - [Phase 01-foundation]: Playwright webServer uses npm run preview (not dev server) on port 4321
 - [Phase 01-foundation]: Tests are intentionally failing (TDD RED) — smoke tests written before implementation, will pass after Plans 03/04
 - [Phase 01-foundation]: Used @smoke embedded in test name for compatibility with --grep @smoke CLI flag
+- [Phase 01-foundation]: JSON-LD set:html pattern required — Astro escapes quotes in raw interpolation, producing invalid JSON-LD
+- [Phase 01-foundation]: FAQ_ITEMS single source of truth: same array used in FAQPage schema and visible FAQ component to prevent schema/content drift
+- [Phase 01-foundation]: Logo uses fill=currentColor so text-[#2563EB] class on SVG element drives all dot fills
+- [Phase 01-foundation]: OG image generated via Playwright screenshot (already installed) from HTML template — no new image dependency
+- [Phase 01-foundation]: CTA button links to #qr-generator-root anchor (same-page smooth scroll)
 
 ### Pending Todos
 
@@ -81,6 +88,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-09T08:01:23.548Z
-Stopped at: Completed 01-foundation 01-02-PLAN.md
+Last session: 2026-03-09T08:02:30.703Z
+Stopped at: Completed 01-foundation 01-04-PLAN.md
 Resume file: None
