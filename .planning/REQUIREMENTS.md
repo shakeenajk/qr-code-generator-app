@@ -57,8 +57,8 @@
 - [ ] **SEO-03**: Page includes JSON-LD structured data: WebApplication schema
 - [ ] **SEO-04**: Page includes JSON-LD structured data: FAQPage schema
 - [ ] **SEO-05**: Page has a visible FAQ section targeting long-tail QR search queries
-- [ ] **SEO-06**: Site has a sitemap.xml
-- [ ] **SEO-07**: Site has a robots.txt
+- [x] **SEO-06**: Site has a sitemap.xml
+- [x] **SEO-07**: Site has a robots.txt
 - [ ] **SEO-08**: Page uses semantic HTML (h1, h2, main, section, article, nav) correctly
 - [ ] **SEO-09**: Page achieves Lighthouse performance score 90+ on mobile
 
@@ -134,8 +134,8 @@
 | SEO-03 | Phase 1 | Pending |
 | SEO-04 | Phase 1 | Pending |
 | SEO-05 | Phase 1 | Pending |
-| SEO-06 | Phase 1 | Pending |
-| SEO-07 | Phase 1 | Pending |
+| SEO-06 | Phase 1 | Complete |
+| SEO-07 | Phase 1 | Complete |
 | SEO-08 | Phase 1 | Pending |
 | SEO-09 | Phase 4 | Pending |
 
