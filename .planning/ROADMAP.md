@@ -29,7 +29,14 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. A visible FAQ section targeting QR code generator queries renders on the page
   4. sitemap.xml and robots.txt are accessible at their canonical URLs
   5. Page uses semantic HTML landmarks (main, nav, section, h1, h2) with no layout errors on mobile
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Astro project scaffold, all npm deps, robots.txt, Playwright install
+- [ ] 01-02-PLAN.md — Playwright smoke test suite for all BRAND and SEO requirements
+- [ ] 01-03-PLAN.md — Layout.astro with SEO head meta, OG tags, both JSON-LD schemas + FAQ data file
+- [ ] 01-04-PLAN.md — SVG logo, Header, Footer components + OG image
+- [ ] 01-05-PLAN.md — Page assembly (index.astro, Hero, Features, FAQ) + smoke tests green + human verify
 
 ### Phase 2: Core Generator
 **Goal**: A user can enter content and instantly see a live QR code — for all four content types — without submitting a form or pressing a button.
