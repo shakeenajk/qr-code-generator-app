@@ -45,21 +45,21 @@
 
 ### Branding & UX
 
-- [ ] **BRAND-01**: Site displays the QRCraft SVG logo — letter "Q" built from QR dot grid pattern
-- [ ] **BRAND-02**: Site design uses clean white base with bold accent color (primary brand color)
-- [ ] **BRAND-03**: Site is fully responsive and usable on mobile devices
+- [x] **BRAND-01**: Site displays the QRCraft SVG logo — letter "Q" built from QR dot grid pattern
+- [x] **BRAND-02**: Site design uses clean white base with bold accent color (primary brand color)
+- [x] **BRAND-03**: Site is fully responsive and usable on mobile devices
 - [ ] **BRAND-04**: Site supports dark mode based on system preference
 
 ### SEO
 
-- [ ] **SEO-01**: Page has optimized title tag and meta description targeting QR code generator queries
-- [ ] **SEO-02**: Page has Open Graph tags (og:title, og:description, og:image) for social sharing
-- [ ] **SEO-03**: Page includes JSON-LD structured data: WebApplication schema
-- [ ] **SEO-04**: Page includes JSON-LD structured data: FAQPage schema
-- [ ] **SEO-05**: Page has a visible FAQ section targeting long-tail QR search queries
+- [x] **SEO-01**: Page has optimized title tag and meta description targeting QR code generator queries
+- [x] **SEO-02**: Page has Open Graph tags (og:title, og:description, og:image) for social sharing
+- [x] **SEO-03**: Page includes JSON-LD structured data: WebApplication schema
+- [x] **SEO-04**: Page includes JSON-LD structured data: FAQPage schema
+- [x] **SEO-05**: Page has a visible FAQ section targeting long-tail QR search queries
 - [x] **SEO-06**: Site has a sitemap.xml
 - [x] **SEO-07**: Site has a robots.txt
-- [ ] **SEO-08**: Page uses semantic HTML (h1, h2, main, section, article, nav) correctly
+- [x] **SEO-08**: Page uses semantic HTML (h1, h2, main, section, article, nav) correctly
 - [ ] **SEO-09**: Page achieves Lighthouse performance score 90+ on mobile
 
 ## v2 Requirements
@@ -125,18 +125,18 @@
 | EXPO-02 | Phase 4 | Pending |
 | EXPO-03 | Phase 4 | Pending |
 | EXPO-04 | Phase 4 | Pending |
-| BRAND-01 | Phase 1 | Pending |
-| BRAND-02 | Phase 1 | Pending |
-| BRAND-03 | Phase 1 | Pending |
+| BRAND-01 | Phase 1 | Complete |
+| BRAND-02 | Phase 1 | Complete |
+| BRAND-03 | Phase 1 | Complete |
 | BRAND-04 | Phase 4 | Pending |
-| SEO-01 | Phase 1 | Pending |
-| SEO-02 | Phase 1 | Pending |
-| SEO-03 | Phase 1 | Pending |
-| SEO-04 | Phase 1 | Pending |
-| SEO-05 | Phase 1 | Pending |
+| SEO-01 | Phase 1 | Complete |
+| SEO-02 | Phase 1 | Complete |
+| SEO-03 | Phase 1 | Complete |
+| SEO-04 | Phase 1 | Complete |
+| SEO-05 | Phase 1 | Complete |
 | SEO-06 | Phase 1 | Complete |
 | SEO-07 | Phase 1 | Complete |
-| SEO-08 | Phase 1 | Pending |
+| SEO-08 | Phase 1 | Complete |
 | SEO-09 | Phase 4 | Pending |
 
 **Coverage:**

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-foundation 01-01-PLAN.md
-last_updated: "2026-03-09T07:58:10.380Z"
+stopped_at: Completed 01-foundation 01-02-PLAN.md
+last_updated: "2026-03-09T08:01:23.551Z"
 last_activity: 2026-03-06 — Roadmap created; all 36 v1 requirements mapped to 4 phases
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 5
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -51,6 +51,7 @@ Progress: [░░░░░░░░░░] 0%
 
 *Updated after each plan completion*
 | Phase 01-foundation P01 | 4 | 2 tasks | 6 files |
+| Phase 01-foundation P02 | 1 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -65,6 +66,8 @@ Recent decisions affecting current work:
 - [Phase 01-foundation]: Used @tailwindcss/vite for Tailwind v4 (not deprecated @astrojs/tailwind)
 - [Phase 01-foundation]: Astro 5.17.1 and Tailwind v4.2.1 both confirmed stable at scaffold time
 - [Phase 01-foundation]: Playwright webServer uses npm run preview (not dev server) on port 4321
+- [Phase 01-foundation]: Tests are intentionally failing (TDD RED) — smoke tests written before implementation, will pass after Plans 03/04
+- [Phase 01-foundation]: Used @smoke embedded in test name for compatibility with --grep @smoke CLI flag
 
 ### Pending Todos
 
@@ -78,6 +81,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-09T07:58:10.377Z
-Stopped at: Completed 01-foundation 01-01-PLAN.md
+Last session: 2026-03-09T08:01:23.548Z
+Stopped at: Completed 01-foundation 01-02-PLAN.md
 Resume file: None
