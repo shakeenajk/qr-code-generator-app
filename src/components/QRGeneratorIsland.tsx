@@ -102,7 +102,7 @@ export default function QRGeneratorIsland() {
   }, []);
 
   return (
-    <div id="qr-generator-root" className="w-full">
+    <div className="w-full">
       <div className="flex flex-col lg:flex-row gap-8 items-start">
 
         {/* Form panel — 60% on desktop */}
