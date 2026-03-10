@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 02-01-PLAN.md
-last_updated: "2026-03-10T13:05:17.567Z"
+stopped_at: Completed 02-core-generator 02-02-PLAN.md
+last_updated: "2026-03-10T13:07:15.931Z"
 last_activity: 2026-03-09 — Phase 1 Plan 5 complete; all 11 Playwright smoke tests green, human verification approved
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 8
-  completed_plans: 6
+  completed_plans: 7
   percent: 20
 ---
 
@@ -56,6 +56,7 @@ Progress: [##░░░░░░░░] 20%
 | Phase 01-foundation P04 | 2 | 2 tasks | 5 files |
 | Phase 01-foundation P05 | continuation | 3 tasks | 4 files |
 | Phase 02-core-generator P01 | 1 | 2 tasks | 3 files |
+| Phase 02-core-generator P02 | 5min | 7 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -82,6 +83,8 @@ Recent decisions affecting current work:
 - [Phase 01-foundation P05]: data-faq-question attr on each FAQ dt is the Playwright smoke test selector, must not be removed
 - [Phase 02-core-generator]: qr-code-styling@1.9.2 installed (latest compatible, plan estimated 1.8.3)
 - [Phase 02-core-generator]: Wave 0 stub pattern: write failing tests first, define data-* selector contract, implement in Wave 3
+- [Phase 02-core-generator]: Encoding centralized in lib/qrEncoding.ts — tab components are dumb controlled components, island owns encoding logic
+- [Phase 02-core-generator]: Ghost placeholder uses absolute overlay + opacity toggle, not conditional render — prevents layout shift and qr-code-styling remount
 
 ### Pending Todos
 
@@ -95,6 +98,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T13:05:17.564Z
-Stopped at: Completed 02-01-PLAN.md
+Last session: 2026-03-10T13:07:15.928Z
+Stopped at: Completed 02-core-generator 02-02-PLAN.md
 Resume file: None
