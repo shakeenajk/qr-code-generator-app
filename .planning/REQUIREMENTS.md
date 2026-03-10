@@ -7,17 +7,17 @@
 
 ### Content Types
 
-- [ ] **CONT-01**: User can generate a QR code from a URL/website link
-- [ ] **CONT-02**: User can generate a QR code from plain text
-- [ ] **CONT-03**: User can generate a QR code from WiFi credentials (SSID, password, security type)
-- [ ] **CONT-04**: User can generate a QR code from vCard contact info (name, phone, email, organization)
-- [ ] **CONT-05**: User can switch between content types without losing other settings
+- [x] **CONT-01**: User can generate a QR code from a URL/website link
+- [x] **CONT-02**: User can generate a QR code from plain text
+- [x] **CONT-03**: User can generate a QR code from WiFi credentials (SSID, password, security type)
+- [x] **CONT-04**: User can generate a QR code from vCard contact info (name, phone, email, organization)
+- [x] **CONT-05**: User can switch between content types without losing other settings
 
 ### Live Preview
 
-- [ ] **PREV-01**: QR code preview updates in real time as user edits content or settings (debounced)
-- [ ] **PREV-02**: Preview container is fixed size (no layout shift as QR version changes)
-- [ ] **PREV-03**: Preview shows an empty/placeholder state when no content is entered
+- [x] **PREV-01**: QR code preview updates in real time as user edits content or settings (debounced)
+- [x] **PREV-02**: Preview container is fixed size (no layout shift as QR version changes)
+- [x] **PREV-03**: Preview shows an empty/placeholder state when no content is entered
 
 ### Visual Customization
 
@@ -102,14 +102,14 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CONT-01 | Phase 2 | Pending |
-| CONT-02 | Phase 2 | Pending |
-| CONT-03 | Phase 2 | Pending |
-| CONT-04 | Phase 2 | Pending |
-| CONT-05 | Phase 2 | Pending |
-| PREV-01 | Phase 2 | Pending |
-| PREV-02 | Phase 2 | Pending |
-| PREV-03 | Phase 2 | Pending |
+| CONT-01 | Phase 2 | Complete |
+| CONT-02 | Phase 2 | Complete |
+| CONT-03 | Phase 2 | Complete |
+| CONT-04 | Phase 2 | Complete |
+| CONT-05 | Phase 2 | Complete |
+| PREV-01 | Phase 2 | Complete |
+| PREV-02 | Phase 2 | Complete |
+| PREV-03 | Phase 2 | Complete |
 | CUST-01 | Phase 3 | Pending |
 | CUST-02 | Phase 3 | Pending |
 | CUST-03 | Phase 3 | Pending |
