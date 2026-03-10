@@ -21,13 +21,13 @@
 
 ### Visual Customization
 
-- [ ] **CUST-01**: User can set foreground (dot) color via color picker
-- [ ] **CUST-02**: User can set background color via color picker
-- [ ] **CUST-03**: User can apply a gradient to the QR dots (linear or radial)
+- [x] **CUST-01**: User can set foreground (dot) color via color picker
+- [x] **CUST-02**: User can set background color via color picker
+- [x] **CUST-03**: User can apply a gradient to the QR dots (linear or radial)
 - [ ] **CUST-04**: User can choose dot/module shape (square, rounded, dots, classy)
 - [ ] **CUST-05**: User can choose corner eye frame style
 - [ ] **CUST-06**: User can choose corner eye pupil style
-- [ ] **CUST-07**: Color contrast between fg and bg is validated to ensure QR scannability
+- [x] **CUST-07**: Color contrast between fg and bg is validated to ensure QR scannability
 
 ### Logo Embedding
 
@@ -110,13 +110,13 @@
 | PREV-01 | Phase 2 | Complete |
 | PREV-02 | Phase 2 | Complete |
 | PREV-03 | Phase 2 | Complete |
-| CUST-01 | Phase 3 | Pending |
-| CUST-02 | Phase 3 | Pending |
-| CUST-03 | Phase 3 | Pending |
+| CUST-01 | Phase 3 | Complete |
+| CUST-02 | Phase 3 | Complete |
+| CUST-03 | Phase 3 | Complete |
 | CUST-04 | Phase 3 | Pending |
 | CUST-05 | Phase 3 | Pending |
 | CUST-06 | Phase 3 | Pending |
-| CUST-07 | Phase 3 | Pending |
+| CUST-07 | Phase 3 | Complete |
 | LOGO-01 | Phase 3 | Complete |
 | LOGO-02 | Phase 3 | Complete |
 | LOGO-03 | Phase 3 | Complete |
