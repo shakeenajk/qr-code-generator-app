@@ -1,5 +1,6 @@
 ---
 // src/components/Hero.astro
+import QRGeneratorIsland from "./QRGeneratorIsland";
 ---
 
 <section class="bg-white py-16 sm:py-24">
@@ -12,13 +13,13 @@
       No signup, no limits — download as PNG or SVG instantly.
     </p>
 
-    <!-- Generator island mount point — Phase 2 drops React island here. DO NOT remove this div. -->
+    <!-- Generator island mount point -->
     <div
       id="qr-generator-root"
-      class="min-h-[400px] bg-gray-50 rounded-xl border border-gray-200 flex items-center justify-center"
+      class="bg-gray-50 rounded-xl border border-gray-200 p-6 text-left"
       aria-label="QR code generator"
     >
-      <p class="text-gray-400 text-sm">QR generator loads here</p>
+      <QRGeneratorIsland client:load />
     </div>
   </div>
 </section>
