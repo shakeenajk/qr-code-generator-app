@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Phase 3 context gathered
-last_updated: "2026-03-10T14:23:49.611Z"
+stopped_at: Completed 03-04-PLAN.md
+last_updated: "2026-03-10T20:42:43.223Z"
 last_activity: 2026-03-09 — Phase 1 Plan 5 complete; all 11 Playwright smoke tests green, human verification approved
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 8
-  completed_plans: 8
+  total_plans: 13
+  completed_plans: 9
   percent: 20
 ---
 
@@ -57,6 +57,7 @@ Progress: [##░░░░░░░░] 20%
 | Phase 01-foundation P05 | continuation | 3 tasks | 4 files |
 | Phase 02-core-generator P01 | 1 | 2 tasks | 3 files |
 | Phase 02-core-generator P02 | 5min | 7 tasks | 7 files |
+| Phase 03-customization P04 | 2 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -85,6 +86,8 @@ Recent decisions affecting current work:
 - [Phase 02-core-generator]: Wave 0 stub pattern: write failing tests first, define data-* selector contract, implement in Wave 3
 - [Phase 02-core-generator]: Encoding centralized in lib/qrEncoding.ts — tab components are dumb controlled components, island owns encoding logic
 - [Phase 02-core-generator]: Ghost placeholder uses absolute overlay + opacity toggle, not conditional render — prevents layout shift and qr-code-styling remount
+- [Phase 03-customization]: LogoSection: ECL=H and imageSize=0.25 cap delegated to QRGeneratorIsland — component only manages data URI + filename + visual state
+- [Phase 03-customization]: LogoSection: single local isDragging state; all logo data (logoSrc, logoFilename) lifted to parent via controlled props
 
 ### Pending Todos
 
@@ -98,6 +101,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T14:23:49.606Z
-Stopped at: Phase 3 context gathered
-Resume file: .planning/phases/03-customization/03-CONTEXT.md
+Last session: 2026-03-10T20:42:43.220Z
+Stopped at: Completed 03-04-PLAN.md
+Resume file: None

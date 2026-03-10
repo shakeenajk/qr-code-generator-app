@@ -31,10 +31,10 @@
 
 ### Logo Embedding
 
-- [ ] **LOGO-01**: User can upload a local image file to embed in the center of the QR code
-- [ ] **LOGO-02**: Logo upload automatically sets error correction level to H
-- [ ] **LOGO-03**: Logo size is capped at 25% of total QR area to preserve scannability
-- [ ] **LOGO-04**: User can remove the uploaded logo
+- [x] **LOGO-01**: User can upload a local image file to embed in the center of the QR code
+- [x] **LOGO-02**: Logo upload automatically sets error correction level to H
+- [x] **LOGO-03**: Logo size is capped at 25% of total QR area to preserve scannability
+- [x] **LOGO-04**: User can remove the uploaded logo
 
 ### Export
 
@@ -117,10 +117,10 @@
 | CUST-05 | Phase 3 | Pending |
 | CUST-06 | Phase 3 | Pending |
 | CUST-07 | Phase 3 | Pending |
-| LOGO-01 | Phase 3 | Pending |
-| LOGO-02 | Phase 3 | Pending |
-| LOGO-03 | Phase 3 | Pending |
-| LOGO-04 | Phase 3 | Pending |
+| LOGO-01 | Phase 3 | Complete |
+| LOGO-02 | Phase 3 | Complete |
+| LOGO-03 | Phase 3 | Complete |
+| LOGO-04 | Phase 3 | Complete |
 | EXPO-01 | Phase 4 | Pending |
 | EXPO-02 | Phase 4 | Pending |
 | EXPO-03 | Phase 4 | Pending |
