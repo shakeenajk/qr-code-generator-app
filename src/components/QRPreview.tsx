@@ -10,20 +10,21 @@ const QRPreview = forwardRef<HTMLDivElement, QRPreviewProps>(
   ({ isEmpty, isPulsing }, ref) => {
     return (
       <div
-        data-testid="qr-preview"
-        className="relative w-64 h-64 overflow-hidden rounded-lg bg-white shadow-sm border border-gray-100"
+        className="relative w-64 h-64 overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-gray-100"
       >
         {/* qr-code-styling renders SVG/canvas into this div */}
+        {/* data-testid="qr-preview" is on this div so tests find only the QR SVG */}
         {/* IMPORTANT: always in DOM — qr-code-styling needs it mounted */}
         <div
           ref={ref}
+          data-testid="qr-preview"
           className={`w-full h-full transition-opacity duration-150 ${
             isPulsing ? "opacity-50 animate-pulse" : "opacity-100"
           }`}
         />
 
-        {/* Ghost placeholder — absolute overlay, always in DOM, opacity toggled */}
-        {/* Using absolute overlay (not conditional render) prevents layout shift */}
+        {/* Ghost placeholder — absolute overlay sibling, always in DOM, opacity toggled */}
+        {/* Sibling of qr-preview (not nested inside) so tests don't find ghost SVG via qr-preview */}
         <div
           data-testid="qr-placeholder"
           aria-hidden="true"
