@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 03-01-PLAN.md (Wave 0 smoke stubs)
-last_updated: "2026-03-10T20:47:03.522Z"
+stopped_at: "Checkpoint: Task 2 human-verify for 03-05 (customization wiring)"
+last_updated: "2026-03-10T21:28:47.742Z"
 last_activity: 2026-03-09 — Phase 1 Plan 5 complete; all 11 Playwright smoke tests green, human verification approved
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 13
-  completed_plans: 12
+  completed_plans: 13
   percent: 20
 ---
 
@@ -61,6 +61,7 @@ Progress: [##░░░░░░░░] 20%
 | Phase 03-customization P02 | 2min | 2 tasks | 2 files |
 | Phase 03-customization P03 | 10min | 1 tasks | 1 files |
 | Phase 03-customization P01 | 5min | 1 tasks | 1 files |
+| Phase 03-customization P05 | 10min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -98,6 +99,8 @@ Recent decisions affecting current work:
 - [Phase 03-customization P03]: Dynamic testid via template literal (dot-shape-${type}) covers all 12 selectors from 3 type arrays
 - [Phase 03-customization]: LOGO-03 excluded from automated tests: logo size ratio not DOM-inspectable via Playwright, manual-only verification
 - [Phase 03-customization]: Wave 0 selector contract established in tests/customization.spec.ts before any component implementation
+- [Phase 03-customization]: Single merged update effect replaces the previous data-only effect — prevents double renders and ordering bugs
+- [Phase 03-customization]: Customize h2 heading visually separates content tabs from customization controls per CONTEXT.md locked decision
 
 ### Pending Todos
 
@@ -111,6 +114,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T20:47:03.519Z
-Stopped at: Completed 03-01-PLAN.md (Wave 0 smoke stubs)
+Last session: 2026-03-10T21:28:47.738Z
+Stopped at: Checkpoint: Task 2 human-verify for 03-05 (customization wiring)
 Resume file: None
