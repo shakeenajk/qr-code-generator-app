@@ -64,7 +64,7 @@ Plans:
 Plans:
 - [ ] 03-01-PLAN.md — Failing smoke test stubs (TDD Wave 0): customization.spec.ts covering CUST-01 through CUST-07, LOGO-01 through LOGO-04
 - [ ] 03-02-PLAN.md — contrastUtils.ts (WCAG) + ColorSection component (colors, gradient, contrast warning)
-- [ ] 03-03-PLAN.md — ShapeSection component (dot shape grid, corner frame row, corner pupil row)
+- [x] 03-03-PLAN.md — ShapeSection component (dot shape grid, corner frame row, corner pupil row)
 - [ ] 03-04-PLAN.md — LogoSection component (drag-and-drop upload, thumbnail, ECL notice, Remove)
 - [ ] 03-05-PLAN.md — Wire all sub-components into QRGeneratorIsland + human verification checkpoint
 
