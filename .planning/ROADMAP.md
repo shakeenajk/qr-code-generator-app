@@ -59,7 +59,14 @@ Plans:
   3. User can select from at least four dot shapes and two corner eye styles/pupil styles, with each choice updating the preview immediately
   4. User can upload a local image file as a center logo; the error correction level automatically switches to H and the logo is capped at 25% of QR area
   5. User can remove an uploaded logo and the QR returns to its previous error correction level
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Failing smoke test stubs (TDD Wave 0): customization.spec.ts covering CUST-01 through CUST-07, LOGO-01 through LOGO-04
+- [ ] 03-02-PLAN.md — contrastUtils.ts (WCAG) + ColorSection component (colors, gradient, contrast warning)
+- [ ] 03-03-PLAN.md — ShapeSection component (dot shape grid, corner frame row, corner pupil row)
+- [ ] 03-04-PLAN.md — LogoSection component (drag-and-drop upload, thumbnail, ECL notice, Remove)
+- [ ] 03-05-PLAN.md — Wire all sub-components into QRGeneratorIsland + human verification checkpoint
 
 ### Phase 4: Export and Launch
 **Goal**: A user can take the QR code they built and download or copy it in any format — and the site loads fast enough to rank well on mobile search.
@@ -82,5 +89,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Foundation | 5/5 | Complete | 2026-03-09 |
 | 2. Core Generator | 2/3 | In Progress|  |
-| 3. Customization | 0/TBD | Not started | - |
+| 3. Customization | 0/5 | Not started | - |
 | 4. Export and Launch | 0/TBD | Not started | - |
