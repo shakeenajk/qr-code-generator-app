@@ -1,4 +1,5 @@
 import QRCodeStyling from "qr-code-styling";
+import type { DotType, CornerSquareType, CornerDotType } from "qr-code-styling";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useDebounce } from "../hooks/useDebounce";
 import {
@@ -13,6 +14,9 @@ import UrlTab from "./tabs/UrlTab";
 import TextTab from "./tabs/TextTab";
 import WifiTab from "./tabs/WifiTab";
 import VCardTab from "./tabs/VCardTab";
+import { ColorSection, type ColorSectionState } from "./customize/ColorSection";
+import { ShapeSection, type ShapeSectionState } from "./customize/ShapeSection";
+import { LogoSection, type LogoSectionState } from "./customize/LogoSection";
 
 type TabId = "url" | "text" | "wifi" | "vcard";
 
@@ -67,8 +71,34 @@ export default function QRGeneratorIsland() {
     }
   }, [activeTab, urlValue, textValue, wifiValue, vcardValue]);
 
+  // Customization state — defaults match Phase 2 initial options (no visual change on launch)
+  const [colorOptions, setColorOptions] = useState<ColorSectionState>({
+    dotColor: "#1e293b",
+    bgColor: "#ffffff",
+    gradientEnabled: false,
+    gradientType: "linear",
+    gradientStop1: "#1e293b",
+    gradientStop2: "#4f46e5",
+  });
+
+  const [shapeOptions, setShapeOptions] = useState<ShapeSectionState>({
+    dotType: "rounded",
+    cornerSquareType: "extra-rounded",
+    cornerDotType: "square",
+  });
+
+  const [logoOptions, setLogoOptions] = useState<LogoSectionState>({
+    logoSrc: null,
+    logoFilename: null,
+  });
+
   // Debounce for 300ms — PREV-01
   const debouncedContent = useDebounce(rawContent, 300);
+
+  // Debounced customization options
+  const debouncedColor = useDebounce(colorOptions, 300);
+  const debouncedShape = useDebounce(shapeOptions, 300);
+  const debouncedLogo = useDebounce(logoOptions, 300);
 
   // isPulsing: true during the debounce window (rawContent updated, debouncedContent not yet)
   const isPulsing = rawContent !== debouncedContent;
@@ -87,15 +117,42 @@ export default function QRGeneratorIsland() {
     }
   }, []); // empty deps — run once on mount
 
-  // Update effect — fires whenever debouncedContent changes
+  // Update effect — single merged effect for content + all customization options
   useEffect(() => {
     if (!qrCodeRef.current || isEmpty) return; // don't update QR when empty — let placeholder show
     try {
-      qrCodeRef.current.update({ data: debouncedContent });
+      const { dotColor, bgColor, gradientEnabled, gradientType, gradientStop1, gradientStop2 } = debouncedColor;
+      const { dotType, cornerSquareType, cornerDotType } = debouncedShape;
+      const { logoSrc } = debouncedLogo;
+
+      const dotsOptions = gradientEnabled
+        ? {
+            type: dotType,
+            gradient: {
+              type: gradientType,
+              rotation: Math.PI / 4,
+              colorStops: [
+                { offset: 0, color: gradientStop1 },
+                { offset: 1, color: gradientStop2 },
+              ],
+            },
+          }
+        : { type: dotType, color: dotColor };
+
+      qrCodeRef.current.update({
+        data: debouncedContent,
+        dotsOptions,
+        backgroundOptions: { color: bgColor },
+        cornersSquareOptions: { type: cornerSquareType },
+        cornersDotOptions: { type: cornerDotType },
+        ...(logoSrc ? { image: logoSrc } : {}),
+        imageOptions: { imageSize: 0.25, hideBackgroundDots: true, margin: 4 },
+        qrOptions: { errorCorrectionLevel: logoSrc ? "H" : "Q" },
+      });
     } catch {
-      // Content too long or encoding error — handled silently (no inline error in Phase 2 scope)
+      // Content too long or encoding error — handled silently
     }
-  }, [debouncedContent, isEmpty]);
+  }, [debouncedContent, debouncedColor, debouncedShape, debouncedLogo, isEmpty]);
 
   const handleTabChange = useCallback((tabId: TabId) => {
     setActiveTab(tabId);
@@ -173,6 +230,14 @@ export default function QRGeneratorIsland() {
             className={activeTab === "vcard" ? "" : "hidden"}
           >
             <VCardTab value={vcardValue} onChange={setVcardValue} />
+          </div>
+
+          {/* Customization section — CUST-01 through CUST-07, LOGO-01 through LOGO-04 */}
+          <div className="mt-8 border-t border-gray-200 pt-6 space-y-6">
+            <h2 className="text-base font-semibold text-gray-900">Customize</h2>
+            <ColorSection value={colorOptions} onChange={setColorOptions} />
+            <ShapeSection value={shapeOptions} onChange={setShapeOptions} />
+            <LogoSection value={logoOptions} onChange={setLogoOptions} />
           </div>
         </div>
 
