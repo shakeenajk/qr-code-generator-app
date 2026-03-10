@@ -78,7 +78,13 @@ Plans:
   3. Clicking "Copy to Clipboard" copies the QR as a PNG image; on unsupported browsers a clear fallback message appears
   4. The site renders correctly in dark mode when the OS dark mode preference is active
   5. Lighthouse mobile performance score is 90 or higher on a production build
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — Wave 0 TDD stubs: tests/export.spec.ts covering EXPO-01 through EXPO-04 and BRAND-04
+- [ ] 04-02-PLAN.md — ExportButtons component + wire into QRGeneratorIsland (3x PNG, vector SVG, clipboard copy/fallback)
+- [ ] 04-03-PLAN.md — Dark mode: dark: Tailwind classes on Layout, Header, Hero, Footer, QRGeneratorIsland
+- [ ] 04-04-PLAN.md — client:visible hydration switch + human verify (exports, dark mode, Lighthouse >= 90)
 
 ## Progress
 
@@ -90,4 +96,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. Foundation | 5/5 | Complete | 2026-03-09 |
 | 2. Core Generator | 2/3 | In Progress|  |
 | 3. Customization | 5/5 | Complete   | 2026-03-10 |
-| 4. Export and Launch | 0/TBD | Not started | - |
+| 4. Export and Launch | 0/4 | Not started | - |
