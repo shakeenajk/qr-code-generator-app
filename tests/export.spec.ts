@@ -93,7 +93,9 @@ test.describe('Copy to Clipboard @smoke', () => {
   });
 
   // EXPO-03: Copy shows "Copied!" on success
-  test('@smoke export-copy shows Copied! on success', async ({ page, context }) => {
+  // clipboard-write permission grant is Chromium-only; skipped on Firefox/WebKit
+  test('@smoke export-copy shows Copied! on success', async ({ page, context, browserName }) => {
+    test.skip(browserName !== 'chromium', 'clipboard-write permission grant is Chromium-only');
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     await page.goto('/');
     await page.fill('[data-testid="url-input"]', 'https://example.com');
@@ -151,11 +153,12 @@ test.describe('Dark Mode @smoke', () => {
     const context = await browser.newContext({ colorScheme: 'dark' });
     const page = await context.newPage();
     await page.goto('/');
-    const previewBg = await page.locator('[data-testid="qr-preview"]').evaluate(
-      (el) => window.getComputedStyle(el).backgroundColor
+    // Check the outer wrapper (parent of qr-preview) — it has bg-white and must NOT receive dark:bg override
+    const containerBg = await page.locator('[data-testid="qr-preview"]').evaluate(
+      (el) => window.getComputedStyle(el.parentElement!).backgroundColor
     );
-    // QR preview must remain white regardless of OS dark mode — locked decision
-    expect(previewBg).toBe('rgb(255, 255, 255)');
+    // QR preview container must remain white regardless of OS dark mode — locked decision
+    expect(containerBg).toBe('rgb(255, 255, 255)');
     await context.close();
   });
 });
