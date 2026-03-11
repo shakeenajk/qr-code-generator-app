@@ -17,7 +17,7 @@
 
 - [x] **PREV-01**: QR code preview updates in real time as user edits content or settings (debounced)
 - [x] **PREV-02**: Preview container is fixed size (no layout shift as QR version changes)
-- [x] **PREV-03**: Preview shows an empty/placeholder state when no content is entered
+- [ ] **PREV-03**: Preview shows an empty/placeholder state when no content is entered
 
 ### Visual Customization
 
@@ -60,7 +60,7 @@
 - [x] **SEO-06**: Site has a sitemap.xml
 - [x] **SEO-07**: Site has a robots.txt
 - [x] **SEO-08**: Page uses semantic HTML (h1, h2, main, section, article, nav) correctly
-- [x] **SEO-09**: Page achieves Lighthouse performance score 90+ on mobile
+- [ ] **SEO-09**: Page achieves Lighthouse performance score 90+ on mobile
 
 ## v2 Requirements
 
@@ -109,7 +109,7 @@
 | CONT-05 | Phase 2 | Complete |
 | PREV-01 | Phase 2 | Complete |
 | PREV-02 | Phase 2 | Complete |
-| PREV-03 | Phase 2 | Complete |
+| PREV-03 | Phase 6 | Pending |
 | CUST-01 | Phase 3 | Complete |
 | CUST-02 | Phase 3 | Complete |
 | CUST-03 | Phase 3 | Complete |
@@ -128,7 +128,7 @@
 | BRAND-01 | Phase 1 | Complete |
 | BRAND-02 | Phase 1 | Complete |
 | BRAND-03 | Phase 1 | Complete |
-| BRAND-04 | Phase 4 | Pending |
+| BRAND-04 | Phase 5 | Pending |
 | SEO-01 | Phase 1 | Complete |
 | SEO-02 | Phase 1 | Complete |
 | SEO-03 | Phase 1 | Complete |
@@ -137,7 +137,7 @@
 | SEO-06 | Phase 1 | Complete |
 | SEO-07 | Phase 1 | Complete |
 | SEO-08 | Phase 1 | Complete |
-| SEO-09 | Phase 4 | Complete |
+| SEO-09 | Phase 6 | Pending |
 
 **Coverage:**
 - v1 requirements: 36 total
@@ -146,4 +146,4 @@
 
 ---
 *Requirements defined: 2026-03-06*
-*Last updated: 2026-03-06 after roadmap creation — traceability confirmed, count corrected to 36*
+*Last updated: 2026-03-11 after v1.0 milestone audit — PREV-03 reassigned to Phase 6, BRAND-04 reassigned to Phase 5, SEO-09 reassigned to Phase 6 for gap closure*

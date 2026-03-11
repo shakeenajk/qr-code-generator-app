@@ -86,10 +86,34 @@ Plans:
 - [ ] 04-03-PLAN.md — Dark mode: dark: Tailwind classes on Layout, Header, Hero, Footer, QRGeneratorIsland
 - [ ] 04-04-PLAN.md — client:visible hydration switch + human verify (exports, dark mode, Lighthouse >= 90)
 
+### Phase 5: Complete Dark Mode
+**Goal**: The entire page renders correctly in dark mode — Features and FAQ sections styled to match the dark chrome applied in Phase 4.
+**Depends on**: Phase 4
+**Requirements**: BRAND-04
+**Gap Closure**: Closes BRAND-04 and INT-01 gaps from v1.0 milestone audit
+**Success Criteria** (what must be TRUE):
+  1. Features section (`bg-gray-50` cards) renders with dark background and legible text when OS dark mode is active
+  2. FAQ section items render with dark background and legible text in dark mode
+  3. Playwright smoke tests for dark mode cover Features and FAQ sections (not just body/header)
+  4. REQUIREMENTS.md BRAND-04 checkbox updated to `[x]`
+**Plans**: TBD
+
+### Phase 6: Fix Ghost Placeholder + Lighthouse Attestation
+**Goal**: The QR preview shows a ghost placeholder on all four tabs when no content is entered — and the Lighthouse mobile performance score is confirmed ≥ 90.
+**Depends on**: Phase 5
+**Requirements**: PREV-03, SEO-09
+**Gap Closure**: Closes PREV-03 and INT-02 gaps from v1.0 milestone audit; attests SEO-09
+**Success Criteria** (what must be TRUE):
+  1. WiFi tab with all fields blank shows ghost placeholder (not a protocol-string QR)
+  2. vCard tab with all fields blank shows ghost placeholder (not an empty-skeleton QR)
+  3. URL and Text tab empty-state behavior unchanged
+  4. Lighthouse mobile performance score confirmed ≥ 90 by human audit
+**Plans**: TBD
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -97,3 +121,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 2. Core Generator | 2/3 | In Progress|  |
 | 3. Customization | 5/5 | Complete   | 2026-03-10 |
 | 4. Export and Launch | 1/4 | In Progress|  |
+| 5. Complete Dark Mode | 0/TBD | Pending | |
+| 6. Fix Ghost Placeholder + Lighthouse | 0/TBD | Pending | |
