@@ -60,7 +60,7 @@
 - [x] **SEO-06**: Site has a sitemap.xml
 - [x] **SEO-07**: Site has a robots.txt
 - [x] **SEO-08**: Page uses semantic HTML (h1, h2, main, section, article, nav) correctly
-- [ ] **SEO-09**: Page achieves Lighthouse performance score 90+ on mobile
+- [x] **SEO-09**: Page achieves Lighthouse performance score 90+ on mobile
 
 ## v2 Requirements
 
@@ -137,7 +137,7 @@
 | SEO-06 | Phase 1 | Complete |
 | SEO-07 | Phase 1 | Complete |
 | SEO-08 | Phase 1 | Complete |
-| SEO-09 | Phase 4 | Pending |
+| SEO-09 | Phase 4 | Complete |
 
 **Coverage:**
 - v1 requirements: 36 total
