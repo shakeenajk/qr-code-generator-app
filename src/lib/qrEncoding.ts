@@ -43,3 +43,19 @@ export function encodeVCard(state: VCardState): string {
 export function isContentEmpty(data: string): boolean {
   return !data.trim();
 }
+
+// Pre-encoding emptiness checks for structured tab types
+// SSID is the canonical required field for WiFi — blank SSID = no scannable QR
+export function isWifiEmpty(state: WifiState): boolean {
+  return !state.ssid.trim();
+}
+
+// vCard: any non-blank field produces a meaningful QR — all blank = empty
+export function isVCardEmpty(state: VCardState): boolean {
+  return (
+    !state.name.trim() &&
+    !state.phone.trim() &&
+    !state.email.trim() &&
+    !state.org.trim()
+  );
+}
