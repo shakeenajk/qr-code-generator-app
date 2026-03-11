@@ -17,7 +17,7 @@
 
 - [x] **PREV-01**: QR code preview updates in real time as user edits content or settings (debounced)
 - [x] **PREV-02**: Preview container is fixed size (no layout shift as QR version changes)
-- [ ] **PREV-03**: Preview shows an empty/placeholder state when no content is entered
+- [x] **PREV-03**: Preview shows an empty/placeholder state when no content is entered
 
 ### Visual Customization
 
@@ -109,7 +109,7 @@
 | CONT-05 | Phase 2 | Complete |
 | PREV-01 | Phase 2 | Complete |
 | PREV-02 | Phase 2 | Complete |
-| PREV-03 | Phase 6 | Pending |
+| PREV-03 | Phase 6 | Complete |
 | CUST-01 | Phase 3 | Complete |
 | CUST-02 | Phase 3 | Complete |
 | CUST-03 | Phase 3 | Complete |

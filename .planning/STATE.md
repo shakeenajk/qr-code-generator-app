@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 05-complete-dark-mode 05-03-PLAN.md
-last_updated: "2026-03-11T17:29:18.988Z"
+stopped_at: Completed 06-fix-ghost-placeholder 06-01-PLAN.md
+last_updated: "2026-03-11T17:56:58.871Z"
 last_activity: 2026-03-09 — Phase 1 Plan 5 complete; all 11 Playwright smoke tests green, human verification approved
 progress:
   total_phases: 6
   completed_phases: 5
-  total_plans: 20
-  completed_plans: 20
+  total_plans: 23
+  completed_plans: 21
   percent: 20
 ---
 
@@ -68,6 +68,7 @@ Progress: [##░░░░░░░░] 20%
 | Phase 05-complete-dark-mode P01 | 5min | 1 tasks | 1 files |
 | Phase 05-complete-dark-mode P02 | 4min | 3 tasks | 2 files |
 | Phase 05-complete-dark-mode P03 | 5min | 2 tasks | 0 files |
+| Phase 06-fix-ghost-placeholder P01 | 5min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -116,6 +117,8 @@ Recent decisions affecting current work:
 - [Phase 05-complete-dark-mode]: Negative assertion dark mode stub pattern: NOT white AND NOT gray-50 (both RGB and OKLCH variants) so tests fail until dark: classes applied
 - [Phase 05-complete-dark-mode]: FAQ section maps bg-white to dark:bg-[#0f172a] (blends with body) — NOT dark:bg-slate-900 reserved for elevated Hero surface
 - [Phase 05-complete-dark-mode]: BRAND-04 was already marked [x] and Complete in REQUIREMENTS.md by Plan 02 — Plan 03 Task 1 was a verification-only no-op
+- [Phase 06-fix-ghost-placeholder]: Playwright 1.58 isVisible() does not detect opacity:0 — use computed opacity assertion for opacity-toggle placeholders
+- [Phase 06-fix-ghost-placeholder]: TDD RED wait time = debounce (300ms) + CSS transition (200ms) + margin = 600ms to avoid false positives mid-animation
 
 ### Pending Todos
 
@@ -129,6 +132,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-11T17:26:02.504Z
-Stopped at: Completed 05-complete-dark-mode 05-03-PLAN.md
+Last session: 2026-03-11T17:56:58.868Z
+Stopped at: Completed 06-fix-ghost-placeholder 06-01-PLAN.md
 Resume file: None
