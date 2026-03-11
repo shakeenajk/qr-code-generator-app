@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 06-fix-ghost-placeholder 06-01-PLAN.md
-last_updated: "2026-03-11T17:56:58.871Z"
+stopped_at: Completed 06-fix-ghost-placeholder 06-02-PLAN.md
+last_updated: "2026-03-11T18:04:05.810Z"
 last_activity: 2026-03-09 — Phase 1 Plan 5 complete; all 11 Playwright smoke tests green, human verification approved
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 23
-  completed_plans: 21
+  completed_plans: 22
   percent: 20
 ---
 
@@ -69,6 +69,7 @@ Progress: [##░░░░░░░░] 20%
 | Phase 05-complete-dark-mode P02 | 4min | 3 tasks | 2 files |
 | Phase 05-complete-dark-mode P03 | 5min | 2 tasks | 0 files |
 | Phase 06-fix-ghost-placeholder P01 | 5min | 1 tasks | 1 files |
+| Phase 06-fix-ghost-placeholder P02 | 4min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -119,6 +120,9 @@ Recent decisions affecting current work:
 - [Phase 05-complete-dark-mode]: BRAND-04 was already marked [x] and Complete in REQUIREMENTS.md by Plan 02 — Plan 03 Task 1 was a verification-only no-op
 - [Phase 06-fix-ghost-placeholder]: Playwright 1.58 isVisible() does not detect opacity:0 — use computed opacity assertion for opacity-toggle placeholders
 - [Phase 06-fix-ghost-placeholder]: TDD RED wait time = debounce (300ms) + CSS transition (200ms) + margin = 600ms to avoid false positives mid-animation
+- [Phase 06-fix-ghost-placeholder]: URL/text isEmpty uses debouncedContent (not raw value) to avoid race where update effect runs with empty debouncedContent before debounce settles
+- [Phase 06-fix-ghost-placeholder]: WiFi/vCard isEmpty uses raw field state via isWifiEmpty/isVCardEmpty — encoders always produce non-empty protocol strings even with blank fields, making debouncedContent unusable for empty detection
+- [Phase 06-fix-ghost-placeholder]: isWifiEmpty checks SSID only (canonical required field); isVCardEmpty requires all four fields blank
 
 ### Pending Todos
 
@@ -132,6 +136,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-11T17:56:58.868Z
-Stopped at: Completed 06-fix-ghost-placeholder 06-01-PLAN.md
+Last session: 2026-03-11T18:04:05.807Z
+Stopped at: Completed 06-fix-ghost-placeholder 06-02-PLAN.md
 Resume file: None
