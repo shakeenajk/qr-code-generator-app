@@ -25,12 +25,12 @@ function ColorPicker({
 }) {
   return (
     <label className="flex items-center gap-2">
-      <span className="text-sm text-gray-700 w-24">{label}</span>
+      <span className="text-sm text-gray-700 w-24 dark:text-slate-300">{label}</span>
       <input
         type="color"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-8 h-8 rounded cursor-pointer border border-gray-200"
+        className="w-8 h-8 rounded cursor-pointer border border-gray-200 dark:border-slate-600"
       />
       <input
         type="text"
@@ -39,7 +39,7 @@ function ColorPicker({
           if (/^#[0-9a-fA-F]{6}$/.test(e.target.value)) onChange(e.target.value);
         }}
         maxLength={7}
-        className="w-24 font-mono text-sm border border-gray-200 rounded px-2 py-1 focus:ring-2 focus:ring-blue-600 focus:outline-none"
+        className="w-24 font-mono text-sm border border-gray-200 rounded px-2 py-1 focus:ring-2 focus:ring-blue-600 focus:outline-none dark:bg-slate-800 dark:text-slate-100 dark:border-slate-600"
       />
     </label>
   );
@@ -52,7 +52,7 @@ export function ColorSection({ value, onChange }: ColorSectionProps) {
 
   return (
     <section aria-labelledby="colors-heading">
-      <h3 id="colors-heading" className="text-sm font-semibold text-gray-900 mb-3">
+      <h3 id="colors-heading" className="text-sm font-semibold text-gray-900 mb-3 dark:text-white">
         Colors
       </h3>
 
@@ -95,7 +95,7 @@ export function ColorSection({ value, onChange }: ColorSectionProps) {
             onChange={(e) => onChange({ ...value, gradientEnabled: e.target.checked })}
             className="w-4 h-4 accent-blue-600"
           />
-          <span className="text-sm text-gray-700">Enable gradient</span>
+          <span className="text-sm text-gray-700 dark:text-slate-300">Enable gradient</span>
         </label>
 
         {value.gradientEnabled && (
@@ -109,7 +109,7 @@ export function ColorSection({ value, onChange }: ColorSectionProps) {
                   gradientType: e.target.value as "linear" | "radial",
                 })
               }
-              className="text-sm border border-gray-200 rounded px-2 py-1 focus:ring-2 focus:ring-blue-600 focus:outline-none"
+              className="text-sm border border-gray-200 rounded px-2 py-1 focus:ring-2 focus:ring-blue-600 focus:outline-none dark:bg-slate-800 dark:text-slate-100 dark:border-slate-600"
             >
               <option value="linear">Linear</option>
               <option value="radial">Radial</option>

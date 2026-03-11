@@ -167,13 +167,13 @@ export function ShapeSection({ value, onChange }: ShapeSectionProps) {
     <section aria-labelledby="shapes-heading">
       <h3
         id="shapes-heading"
-        className="text-sm font-semibold text-gray-900 mb-3"
+        className="text-sm font-semibold text-gray-900 mb-3 dark:text-white"
       >
         Shapes
       </h3>
 
       {/* Dot shape grid (CUST-04) */}
-      <p className="text-xs text-gray-500 mb-2">Dot style</p>
+      <p className="text-xs text-gray-500 mb-2 dark:text-slate-400">Dot style</p>
       <div className="grid grid-cols-6 gap-2 mb-4">
         {DOT_SHAPES.map(({ type, label, icon }) => (
           <button
@@ -183,7 +183,7 @@ export function ShapeSection({ value, onChange }: ShapeSectionProps) {
             className={`p-2 rounded-lg border-2 flex items-center justify-center transition-colors ${
               value.dotType === type
                 ? "border-blue-600 bg-blue-50 text-blue-600"
-                : "border-gray-200 bg-white hover:border-gray-300 text-gray-600"
+                : "border-gray-200 bg-white hover:border-gray-300 text-gray-600 dark:border-slate-600 dark:bg-slate-700 dark:hover:border-slate-500 dark:text-slate-300"
             }`}
             title={label}
             aria-label={`${label} dot style`}
@@ -195,7 +195,7 @@ export function ShapeSection({ value, onChange }: ShapeSectionProps) {
       </div>
 
       {/* Corner frame row (CUST-05) */}
-      <p className="text-xs text-gray-500 mb-2">Corner frame</p>
+      <p className="text-xs text-gray-500 mb-2 dark:text-slate-400">Corner frame</p>
       <div className="flex gap-2 mb-4">
         {CORNER_FRAMES.map(({ type, label, icon }) => (
           <button
@@ -205,7 +205,7 @@ export function ShapeSection({ value, onChange }: ShapeSectionProps) {
             className={`p-2 rounded-lg border-2 flex items-center justify-center transition-colors ${
               value.cornerSquareType === type
                 ? "border-blue-600 bg-blue-50 text-blue-600"
-                : "border-gray-200 bg-white hover:border-gray-300 text-gray-600"
+                : "border-gray-200 bg-white hover:border-gray-300 text-gray-600 dark:border-slate-600 dark:bg-slate-700 dark:hover:border-slate-500 dark:text-slate-300"
             }`}
             title={label}
             aria-label={`${label} corner frame`}
@@ -217,7 +217,7 @@ export function ShapeSection({ value, onChange }: ShapeSectionProps) {
       </div>
 
       {/* Corner pupil row (CUST-06) */}
-      <p className="text-xs text-gray-500 mb-2">Corner pupil</p>
+      <p className="text-xs text-gray-500 mb-2 dark:text-slate-400">Corner pupil</p>
       <div className="flex gap-2">
         {CORNER_PUPILS.map(({ type, label, icon }) => (
           <button
@@ -227,7 +227,7 @@ export function ShapeSection({ value, onChange }: ShapeSectionProps) {
             className={`p-2 rounded-lg border-2 flex items-center justify-center transition-colors ${
               value.cornerDotType === type
                 ? "border-blue-600 bg-blue-50 text-blue-600"
-                : "border-gray-200 bg-white hover:border-gray-300 text-gray-600"
+                : "border-gray-200 bg-white hover:border-gray-300 text-gray-600 dark:border-slate-600 dark:bg-slate-700 dark:hover:border-slate-500 dark:text-slate-300"
             }`}
             title={label}
             aria-label={`${label} corner pupil`}

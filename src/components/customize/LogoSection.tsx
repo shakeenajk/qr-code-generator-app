@@ -39,7 +39,7 @@ export function LogoSection({ value, onChange }: LogoSectionProps) {
 
   return (
     <section aria-labelledby="logo-heading">
-      <h3 id="logo-heading" className="text-sm font-semibold text-gray-900 mb-3">
+      <h3 id="logo-heading" className="text-sm font-semibold text-gray-900 mb-3 dark:text-white">
         Logo
       </h3>
 
@@ -61,14 +61,14 @@ export function LogoSection({ value, onChange }: LogoSectionProps) {
           className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
             isDragging
               ? "border-blue-600 bg-blue-50"
-              : "border-gray-200 bg-gray-50 hover:border-gray-300"
+              : "border-gray-200 bg-gray-50 hover:border-gray-300 dark:border-slate-600 dark:bg-slate-700 dark:hover:border-slate-500"
           }`}
           role="button"
           tabIndex={0}
           aria-label="Upload logo image"
         >
-          <p className="text-sm text-gray-500">Drop image or click to upload</p>
-          <p className="text-xs text-gray-400 mt-1">PNG, JPEG, SVG, WebP</p>
+          <p className="text-sm text-gray-500 dark:text-slate-400">Drop image or click to upload</p>
+          <p className="text-xs text-gray-400 mt-1 dark:text-slate-500">PNG, JPEG, SVG, WebP</p>
           <input
             ref={fileInputRef}
             type="file"
@@ -81,7 +81,7 @@ export function LogoSection({ value, onChange }: LogoSectionProps) {
 
       {/* Thumbnail + remove — shown when logo is uploaded */}
       {value.logoSrc && (
-        <div className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg bg-white">
+        <div className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg bg-white dark:bg-slate-700 dark:border-slate-600">
           <img
             data-testid="logo-thumbnail"
             src={value.logoSrc}
@@ -89,7 +89,7 @@ export function LogoSection({ value, onChange }: LogoSectionProps) {
             className="w-12 h-12 object-contain rounded border border-gray-100"
           />
           <div className="flex-1 min-w-0">
-            <p className="text-xs text-gray-700 truncate">{value.logoFilename}</p>
+            <p className="text-xs text-gray-700 truncate dark:text-slate-300">{value.logoFilename}</p>
             <button
               data-testid="logo-remove"
               onClick={handleRemoveLogo}
