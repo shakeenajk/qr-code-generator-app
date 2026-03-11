@@ -48,7 +48,7 @@
 - [x] **BRAND-01**: Site displays the QRCraft SVG logo — letter "Q" built from QR dot grid pattern
 - [x] **BRAND-02**: Site design uses clean white base with bold accent color (primary brand color)
 - [x] **BRAND-03**: Site is fully responsive and usable on mobile devices
-- [ ] **BRAND-04**: Site supports dark mode based on system preference
+- [x] **BRAND-04**: Site supports dark mode based on system preference
 
 ### SEO
 
@@ -128,7 +128,7 @@
 | BRAND-01 | Phase 1 | Complete |
 | BRAND-02 | Phase 1 | Complete |
 | BRAND-03 | Phase 1 | Complete |
-| BRAND-04 | Phase 5 | Pending |
+| BRAND-04 | Phase 5 | Complete |
 | SEO-01 | Phase 1 | Complete |
 | SEO-02 | Phase 1 | Complete |
 | SEO-03 | Phase 1 | Complete |

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 04-export-and-launch 04-04-PLAN.md
-last_updated: "2026-03-11T02:47:50.677Z"
+stopped_at: Completed 05-complete-dark-mode 05-01-PLAN.md
+last_updated: "2026-03-11T17:17:52.169Z"
 last_activity: 2026-03-09 — Phase 1 Plan 5 complete; all 11 Playwright smoke tests green, human verification approved
 progress:
-  total_phases: 4
+  total_phases: 6
   completed_phases: 4
-  total_plans: 17
-  completed_plans: 17
+  total_plans: 20
+  completed_plans: 18
   percent: 20
 ---
 
@@ -65,6 +65,7 @@ Progress: [##░░░░░░░░] 20%
 | Phase 03-customization P05 | 10min | 2 tasks | 1 files |
 | Phase 04-export-and-launch P02 | 4min | 2 tasks | 7 files |
 | Phase 04 P04 | 5min | 2 tasks | 1 files |
+| Phase 05-complete-dark-mode P01 | 5min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -109,6 +110,8 @@ Recent decisions affecting current work:
 - [Phase 04-export-and-launch]: ExportButtons receives debouncedColor/Shape/Logo (not raw state) so exported PNG matches QR preview exactly
 - [Phase 04-export-and-launch]: 3x PNG uses fresh 768x768 canvas QRCodeStyling instance — not canvas scaling — to preserve custom dot shapes and gradients
 - [Phase 04-export-and-launch]: client:visible applied to QRGeneratorIsland: defers React + qr-code-styling JS hydration until element enters viewport, reducing TBT on mobile to achieve Lighthouse >= 90
+- [Phase 05-complete-dark-mode]: Tailwind v4 outputs OKLCH colors for gray-50 (oklch(0.985 0.002 247.839)) — use not.toMatch(/oklch\(0\.98/) assertion in dark mode tests
+- [Phase 05-complete-dark-mode]: Negative assertion dark mode stub pattern: NOT white AND NOT gray-50 (both RGB and OKLCH variants) so tests fail until dark: classes applied
 
 ### Pending Todos
 
@@ -122,6 +125,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-11T02:43:16.764Z
-Stopped at: Completed 04-export-and-launch 04-04-PLAN.md
+Last session: 2026-03-11T17:17:52.166Z
+Stopped at: Completed 05-complete-dark-mode 05-01-PLAN.md
 Resume file: None
