@@ -15,7 +15,7 @@ export default function WifiTab({ value, onChange }: WifiTabProps) {
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <label htmlFor="ssid-input" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="ssid-input" className="block text-sm font-medium text-gray-700 dark:text-slate-300">
           Network Name (SSID)
         </label>
         <input
@@ -25,12 +25,12 @@ export default function WifiTab({ value, onChange }: WifiTabProps) {
           value={value.ssid}
           onChange={(e) => update("ssid", e.target.value)}
           placeholder="MyNetwork"
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-800 dark:text-slate-100 dark:border-slate-600 dark:placeholder-slate-400"
         />
       </div>
 
       <div className="space-y-2">
-        <label htmlFor="security-input" className="block text-sm font-medium text-gray-700">
+        <label htmlFor="security-input" className="block text-sm font-medium text-gray-700 dark:text-slate-300">
           Security Type
         </label>
         <select
@@ -38,7 +38,7 @@ export default function WifiTab({ value, onChange }: WifiTabProps) {
           name="security"
           value={value.security}
           onChange={(e) => update("security", e.target.value as WifiState["security"])}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-800 dark:text-slate-100 dark:border-slate-600"
         >
           <option value="WPA">WPA/WPA2</option>
           <option value="WEP">WEP</option>
@@ -48,7 +48,7 @@ export default function WifiTab({ value, onChange }: WifiTabProps) {
 
       {value.security !== "nopass" && (
         <div className="space-y-2">
-          <label htmlFor="password-input" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="password-input" className="block text-sm font-medium text-gray-700 dark:text-slate-300">
             Password
           </label>
           <div className="relative">
@@ -59,12 +59,12 @@ export default function WifiTab({ value, onChange }: WifiTabProps) {
               value={value.password}
               onChange={(e) => update("password", e.target.value)}
               placeholder="Network password"
-              className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-800 dark:text-slate-100 dark:border-slate-600 dark:placeholder-slate-400"
             />
             <button
               type="button"
               onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 hover:text-gray-700"
+              className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? (
