@@ -168,4 +168,31 @@ test.describe('Dark Mode @smoke', () => {
     expect(containerBg).toBe('rgb(255, 255, 255)');
     await context.close();
   });
+
+  // BRAND-04: Features section has dark background in dark mode
+  test('@smoke features section has dark background in dark mode', async ({ browser }) => {
+    const context = await browser.newContext({ colorScheme: 'dark' });
+    const page = await context.newPage();
+    await page.goto('/');
+    const bg = await page.locator('section#features').evaluate(
+      (el) => window.getComputedStyle(el).backgroundColor
+    );
+    expect(bg).not.toBe('rgb(255, 255, 255)');             // not white
+    expect(bg).not.toBe('rgb(249, 250, 251)');             // not gray-50 (RGB — legacy Tailwind)
+    expect(bg).not.toMatch(/oklch\(0\.98/);                // not gray-50 (OKLCH — Tailwind v4 value)
+    await context.close();
+  });
+
+  // BRAND-04: FAQ section has dark background in dark mode
+  test('@smoke faq section has dark background in dark mode', async ({ browser }) => {
+    const context = await browser.newContext({ colorScheme: 'dark' });
+    const page = await context.newPage();
+    await page.goto('/');
+    const bg = await page.locator('section#faq').evaluate(
+      (el) => window.getComputedStyle(el).backgroundColor
+    );
+    expect(bg).not.toBe('rgb(255, 255, 255)');   // not white
+    expect(bg).not.toBe('rgb(249, 250, 251)');   // not gray-50 (light mode value)
+    await context.close();
+  });
 });
