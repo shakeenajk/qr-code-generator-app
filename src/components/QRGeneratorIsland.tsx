@@ -10,6 +10,7 @@ import {
   type VCardState,
 } from "../lib/qrEncoding";
 import QRPreview from "./QRPreview";
+import { ExportButtons } from "./ExportButtons";
 import UrlTab from "./tabs/UrlTab";
 import TextTab from "./tabs/TextTab";
 import WifiTab from "./tabs/WifiTab";
@@ -169,7 +170,7 @@ export default function QRGeneratorIsland() {
           <div
             role="tablist"
             aria-label="Content type"
-            className="flex border-b border-gray-200 mb-6"
+            className="flex border-b border-gray-200 mb-6 dark:border-slate-700"
           >
             {TABS.map((tab) => (
               <button
@@ -183,7 +184,7 @@ export default function QRGeneratorIsland() {
                 className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
                   activeTab === tab.id
                     ? "border-blue-600 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-slate-400 dark:hover:text-gray-200 dark:hover:border-slate-500"
                 }`}
               >
                 {tab.label}
@@ -233,8 +234,8 @@ export default function QRGeneratorIsland() {
           </div>
 
           {/* Customization section — CUST-01 through CUST-07, LOGO-01 through LOGO-04 */}
-          <div className="mt-8 border-t border-gray-200 pt-6 space-y-6">
-            <h2 className="text-base font-semibold text-gray-900">Customize</h2>
+          <div className="mt-8 border-t border-gray-200 pt-6 space-y-6 dark:border-slate-700">
+            <h2 className="text-base font-semibold text-gray-900 dark:text-white">Customize</h2>
             <ColorSection value={colorOptions} onChange={setColorOptions} />
             <ShapeSection value={shapeOptions} onChange={setShapeOptions} />
             <LogoSection value={logoOptions} onChange={setLogoOptions} />
@@ -242,11 +243,19 @@ export default function QRGeneratorIsland() {
         </div>
 
         {/* Preview panel — 40% on desktop, sticky */}
-        <div className="w-full lg:w-2/5 lg:sticky lg:top-8 flex justify-center lg:justify-start">
+        <div className="w-full lg:w-2/5 lg:sticky lg:top-8 flex flex-col items-center lg:items-start gap-4">
           <QRPreview
             ref={previewRef}
             isEmpty={isEmpty}
             isPulsing={isPulsing}
+          />
+          <ExportButtons
+            qrCodeRef={qrCodeRef}
+            isEmpty={isEmpty}
+            colorOptions={debouncedColor}
+            shapeOptions={debouncedShape}
+            logoOptions={debouncedLogo}
+            debouncedContent={debouncedContent}
           />
         </div>
 
