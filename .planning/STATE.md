@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Phase 4 context gathered
-last_updated: "2026-03-10T22:03:37.792Z"
+stopped_at: Completed 04-export-and-launch 04-02-PLAN.md
+last_updated: "2026-03-11T02:05:24.751Z"
 last_activity: 2026-03-09 — Phase 1 Plan 5 complete; all 11 Playwright smoke tests green, human verification approved
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 13
-  completed_plans: 13
+  total_plans: 17
+  completed_plans: 14
   percent: 20
 ---
 
@@ -63,6 +63,7 @@ Progress: [##░░░░░░░░] 20%
 | Phase 03-customization P01 | 5min | 1 tasks | 1 files |
 | Phase 03-customization P05 | 10min | 1 tasks | 1 files |
 | Phase 03-customization P05 | 10min | 2 tasks | 1 files |
+| Phase 04-export-and-launch P02 | 4min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -104,6 +105,8 @@ Recent decisions affecting current work:
 - [Phase 03-customization]: Customize h2 heading visually separates content tabs from customization controls per CONTEXT.md locked decision
 - [Phase 03-customization]: Single merged update effect replaces the previous data-only effect — prevents double renders and ordering bugs
 - [Phase 03-customization]: Customize h2 heading visually separates content tabs from customization controls per CONTEXT.md locked decision
+- [Phase 04-export-and-launch]: ExportButtons receives debouncedColor/Shape/Logo (not raw state) so exported PNG matches QR preview exactly
+- [Phase 04-export-and-launch]: 3x PNG uses fresh 768x768 canvas QRCodeStyling instance — not canvas scaling — to preserve custom dot shapes and gradients
 
 ### Pending Todos
 
@@ -117,6 +120,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T22:03:37.788Z
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-export-and-launch/04-CONTEXT.md
+Last session: 2026-03-11T02:05:24.745Z
+Stopped at: Completed 04-export-and-launch 04-02-PLAN.md
+Resume file: None

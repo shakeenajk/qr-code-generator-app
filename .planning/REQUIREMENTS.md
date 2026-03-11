@@ -38,10 +38,10 @@
 
 ### Export
 
-- [ ] **EXPO-01**: User can download the QR code as PNG (3x resolution for print quality)
-- [ ] **EXPO-02**: User can download the QR code as true vector SVG (not raster-in-SVG)
-- [ ] **EXPO-03**: User can copy the QR code to clipboard as PNG image
-- [ ] **EXPO-04**: Clipboard copy shows graceful fallback/message when browser does not support it
+- [x] **EXPO-01**: User can download the QR code as PNG (3x resolution for print quality)
+- [x] **EXPO-02**: User can download the QR code as true vector SVG (not raster-in-SVG)
+- [x] **EXPO-03**: User can copy the QR code to clipboard as PNG image
+- [x] **EXPO-04**: Clipboard copy shows graceful fallback/message when browser does not support it
 
 ### Branding & UX
 
@@ -121,10 +121,10 @@
 | LOGO-02 | Phase 3 | Complete |
 | LOGO-03 | Phase 3 | Complete |
 | LOGO-04 | Phase 3 | Complete |
-| EXPO-01 | Phase 4 | Pending |
-| EXPO-02 | Phase 4 | Pending |
-| EXPO-03 | Phase 4 | Pending |
-| EXPO-04 | Phase 4 | Pending |
+| EXPO-01 | Phase 4 | Complete |
+| EXPO-02 | Phase 4 | Complete |
+| EXPO-03 | Phase 4 | Complete |
+| EXPO-04 | Phase 4 | Complete |
 | BRAND-01 | Phase 1 | Complete |
 | BRAND-02 | Phase 1 | Complete |
 | BRAND-03 | Phase 1 | Complete |
