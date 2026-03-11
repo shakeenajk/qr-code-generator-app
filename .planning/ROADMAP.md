@@ -96,7 +96,12 @@ Plans:
   2. FAQ section items render with dark background and legible text in dark mode
   3. Playwright smoke tests for dark mode cover Features and FAQ sections (not just body/header)
   4. REQUIREMENTS.md BRAND-04 checkbox updated to `[x]`
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 05-01-PLAN.md — Wave 0 TDD stubs: two failing @smoke tests in export.spec.ts Dark Mode describe block for Features and FAQ sections
+- [ ] 05-02-PLAN.md — Add dark: classes to Features.astro and FAQ.astro (turns stubs GREEN)
+- [ ] 05-03-PLAN.md — Update REQUIREMENTS.md BRAND-04 checkbox [x] + human visual verification checkpoint
 
 ### Phase 6: Fix Ghost Placeholder + Lighthouse Attestation
 **Goal**: The QR preview shows a ghost placeholder on all four tabs when no content is entered — and the Lighthouse mobile performance score is confirmed ≥ 90.
@@ -121,5 +126,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. Core Generator | 2/3 | In Progress|  |
 | 3. Customization | 5/5 | Complete   | 2026-03-10 |
 | 4. Export and Launch | 1/4 | In Progress|  |
-| 5. Complete Dark Mode | 0/TBD | Pending | |
+| 5. Complete Dark Mode | 0/3 | Pending | |
 | 6. Fix Ghost Placeholder + Lighthouse | 0/TBD | Pending | |
