@@ -6,6 +6,8 @@ import {
   encodeWifi,
   encodeVCard,
   isContentEmpty,
+  isWifiEmpty,
+  isVCardEmpty,
   type WifiState,
   type VCardState,
 } from "../lib/qrEncoding";
@@ -105,8 +107,17 @@ export default function QRGeneratorIsland() {
   const isPulsing = rawContent !== debouncedContent;
 
   // isEmpty drives ghost placeholder — PREV-03
-  // Use debouncedContent for isEmpty so placeholder doesn't flicker during debounce
-  const isEmpty = isContentEmpty(debouncedContent);
+  // URL/text: use debouncedContent (string is empty iff field is empty — safe to debounce).
+  // WiFi/vCard: use raw field state — encoders always produce non-empty strings even when fields
+  // are blank, so debouncedContent cannot be used; raw check gives immediate placeholder on tab switch.
+  const isEmpty = useMemo(() => {
+    switch (activeTab) {
+      case "url":   return isContentEmpty(debouncedContent);
+      case "text":  return isContentEmpty(debouncedContent);
+      case "wifi":  return isWifiEmpty(wifiValue);
+      case "vcard": return isVCardEmpty(vcardValue);
+    }
+  }, [activeTab, debouncedContent, wifiValue, vcardValue]);
 
   // Mount effect — create QR instance client-side only and append to preview div
   // useEffect never runs during SSR, so qr-code-styling's window access is safe
