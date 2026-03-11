@@ -104,7 +104,7 @@ Plans:
 - [ ] 05-03-PLAN.md — Update REQUIREMENTS.md BRAND-04 checkbox [x] + human visual verification checkpoint
 
 ### Phase 6: Fix Ghost Placeholder + Lighthouse Attestation
-**Goal**: The QR preview shows a ghost placeholder on all four tabs when no content is entered — and the Lighthouse mobile performance score is confirmed ≥ 90.
+**Goal**: The QR preview shows a ghost placeholder on all four tabs when no content is entered — and the Lighthouse mobile performance score is confirmed >= 90.
 **Depends on**: Phase 5
 **Requirements**: PREV-03, SEO-09
 **Gap Closure**: Closes PREV-03 and INT-02 gaps from v1.0 milestone audit; attests SEO-09
@@ -112,8 +112,13 @@ Plans:
   1. WiFi tab with all fields blank shows ghost placeholder (not a protocol-string QR)
   2. vCard tab with all fields blank shows ghost placeholder (not an empty-skeleton QR)
   3. URL and Text tab empty-state behavior unchanged
-  4. Lighthouse mobile performance score confirmed ≥ 90 by human audit
-**Plans**: TBD
+  4. Lighthouse mobile performance score confirmed >= 90 by human audit
+**Plans**: 3 plans
+
+Plans:
+- [ ] 06-01-PLAN.md — Wave 0 TDD stubs: two failing @smoke tests for WiFi and vCard empty-state (PREV-03b, PREV-03c)
+- [ ] 06-02-PLAN.md — Fix isWifiEmpty + isVCardEmpty in qrEncoding.ts; update isEmpty useMemo in QRGeneratorIsland.tsx
+- [ ] 06-03-PLAN.md — Lighthouse attestation human checkpoint + mark PREV-03 and SEO-09 complete in REQUIREMENTS.md
 
 ## Progress
 
@@ -127,4 +132,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Customization | 5/5 | Complete   | 2026-03-10 |
 | 4. Export and Launch | 1/4 | In Progress|  |
 | 5. Complete Dark Mode | 3/3 | Complete   | 2026-03-11 |
-| 6. Fix Ghost Placeholder + Lighthouse | 0/TBD | Pending | |
+| 6. Fix Ghost Placeholder + Lighthouse | 0/3 | Pending | |
