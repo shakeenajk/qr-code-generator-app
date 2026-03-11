@@ -103,4 +103,28 @@ test.describe('QR Generator @smoke', () => {
     await expect(page.locator('[data-testid="qr-placeholder"]')).toBeVisible();
   });
 
+  // PREV-03b gap: WiFi tab shows ghost placeholder when all fields blank
+  test('PREV-03b: WiFi tab with no input shows ghost placeholder @smoke', async ({ page }) => {
+    await page.waitForSelector('[data-tab="wifi"]');
+    await page.click('[data-tab="wifi"]');
+    await page.waitForTimeout(600); // debounce (300ms) + opacity transition (200ms) + margin
+    // Placeholder uses opacity toggle (not display:none) — check computed opacity is 1 (fully visible)
+    const opacity = await page.locator('[data-testid="qr-placeholder"]').evaluate(
+      (el) => window.getComputedStyle(el).opacity
+    );
+    expect(Number(opacity)).toBeGreaterThan(0.9);
+  });
+
+  // PREV-03c gap: vCard tab shows ghost placeholder when all fields blank
+  test('PREV-03c: vCard tab with no input shows ghost placeholder @smoke', async ({ page }) => {
+    await page.waitForSelector('[data-tab="vcard"]');
+    await page.click('[data-tab="vcard"]');
+    await page.waitForTimeout(600); // debounce (300ms) + opacity transition (200ms) + margin
+    // Placeholder uses opacity toggle (not display:none) — check computed opacity is 1 (fully visible)
+    const opacity = await page.locator('[data-testid="qr-placeholder"]').evaluate(
+      (el) => window.getComputedStyle(el).opacity
+    );
+    expect(Number(opacity)).toBeGreaterThan(0.9);
+  });
+
 });
