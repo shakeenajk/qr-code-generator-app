@@ -56,6 +56,7 @@ test.describe('QR Customization @smoke', () => {
 
   // CUST-07: Low-contrast warning
   test('@smoke CUST-07: low-contrast warning hidden initially; appears with bad colors', async ({ page }) => {
+    await page.waitForSelector('[data-testid="color-fg"]'); // wait for island hydration (client:visible)
     // Default colors (#1e293b on #ffffff) have good contrast — warning must be hidden
     await expect(page.locator('[data-testid="low-contrast-warning"]')).not.toBeVisible();
     // Fill fg color with yellow (#ffff00) — low contrast on white background
@@ -72,6 +73,7 @@ test.describe('QR Customization @smoke', () => {
 
   // LOGO-02 + LOGO-04: ECL notice appears/disappears with logo
   test('@smoke LOGO-02: ECL notice shown when logo uploaded; LOGO-04: hidden when removed', async ({ page }) => {
+    await page.waitForSelector('[data-testid="logo-dropzone"]'); // wait for island hydration (client:visible)
     // ECL notice must NOT be visible initially (no logo uploaded)
     await expect(page.locator('[data-testid="logo-ecl-notice"]')).not.toBeVisible();
 

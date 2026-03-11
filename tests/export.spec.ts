@@ -34,6 +34,7 @@ test.describe('Export Buttons @smoke', () => {
   // EXPO-01 / EXPO-02: Enabled after content entered
   test('@smoke export-png is enabled after content entered', async ({ page }) => {
     await page.goto('/');
+    await page.waitForSelector('[data-testid="export-png"]'); // wait for island hydration (client:visible)
     await page.fill('[data-testid="url-input"]', 'https://example.com');
     await page.waitForTimeout(400); // debounce
     await expect(page.locator('[data-testid="export-png"]')).not.toBeDisabled();
@@ -41,6 +42,7 @@ test.describe('Export Buttons @smoke', () => {
 
   test('@smoke export-svg is enabled after content entered', async ({ page }) => {
     await page.goto('/');
+    await page.waitForSelector('[data-testid="export-png"]'); // wait for island hydration (client:visible)
     await page.fill('[data-testid="url-input"]', 'https://example.com');
     await page.waitForTimeout(400); // debounce
     await expect(page.locator('[data-testid="export-svg"]')).not.toBeDisabled();
@@ -49,6 +51,7 @@ test.describe('Export Buttons @smoke', () => {
   // EXPO-01: PNG download triggers with expected filename
   test('@smoke export-png triggers download with filename containing qrcraft-code', async ({ page }) => {
     await page.goto('/');
+    await page.waitForSelector('[data-testid="export-png"]'); // wait for island hydration (client:visible)
     await page.fill('[data-testid="url-input"]', 'https://example.com');
     await page.waitForTimeout(400); // debounce
     const [download] = await Promise.all([
@@ -61,6 +64,7 @@ test.describe('Export Buttons @smoke', () => {
   // EXPO-02: SVG download triggers with expected filename
   test('@smoke export-svg triggers download with filename containing qrcraft-code', async ({ page }) => {
     await page.goto('/');
+    await page.waitForSelector('[data-testid="export-png"]'); // wait for island hydration (client:visible)
     await page.fill('[data-testid="url-input"]', 'https://example.com');
     await page.waitForTimeout(400); // debounce
     const [download] = await Promise.all([
@@ -87,6 +91,7 @@ test.describe('Copy to Clipboard @smoke', () => {
   // EXPO-03 / EXPO-04: Enabled after content entered
   test('@smoke export-copy is enabled after content entered', async ({ page }) => {
     await page.goto('/');
+    await page.waitForSelector('[data-testid="export-png"]'); // wait for island hydration (client:visible)
     await page.fill('[data-testid="url-input"]', 'https://example.com');
     await page.waitForTimeout(400); // debounce
     await expect(page.locator('[data-testid="export-copy"]')).not.toBeDisabled();
@@ -98,6 +103,7 @@ test.describe('Copy to Clipboard @smoke', () => {
     test.skip(browserName !== 'chromium', 'clipboard-write permission grant is Chromium-only');
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     await page.goto('/');
+    await page.waitForSelector('[data-testid="export-png"]'); // wait for island hydration (client:visible)
     await page.fill('[data-testid="url-input"]', 'https://example.com');
     await page.waitForTimeout(400); // debounce
     await page.click('[data-testid="export-copy"]');
@@ -114,6 +120,7 @@ test.describe('Copy to Clipboard @smoke', () => {
       });
     });
     await page.goto('/');
+    await page.waitForSelector('[data-testid="export-png"]'); // wait for island hydration (client:visible)
     await page.fill('[data-testid="url-input"]', 'https://example.com');
     await page.waitForTimeout(400); // debounce
     await page.click('[data-testid="export-copy"]');

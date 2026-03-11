@@ -31,6 +31,7 @@ test.describe('QR Generator @smoke', () => {
 
   // CONT-03: WiFi form produces a QR code
   test('CONT-03: WiFi tab generates a QR code from credentials @smoke', async ({ page }) => {
+    await page.waitForSelector('[data-tab="wifi"]'); // wait for island hydration (client:visible)
     await page.click('[data-tab="wifi"]');
     await page.fill('[data-tab-panel="wifi"] [name="ssid"]', 'MyNetwork');
     await page.fill('[data-tab-panel="wifi"] [name="password"]', 'MyPass123');
