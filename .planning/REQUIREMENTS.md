@@ -96,38 +96,38 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | — | Pending |
-| AUTH-02 | — | Pending |
-| AUTH-03 | — | Pending |
-| AUTH-04 | — | Pending |
-| AUTH-05 | — | Pending |
-| BILL-01 | — | Pending |
-| BILL-02 | — | Pending |
-| BILL-03 | — | Pending |
-| BILL-04 | — | Pending |
-| BILL-05 | — | Pending |
-| LIB-01 | — | Pending |
-| LIB-02 | — | Pending |
-| LIB-03 | — | Pending |
-| LIB-04 | — | Pending |
-| DYN-01 | — | Pending |
-| DYN-02 | — | Pending |
-| DYN-03 | — | Pending |
-| DYN-04 | — | Pending |
-| DYN-05 | — | Pending |
-| ANAL-01 | — | Pending |
-| ANAL-02 | — | Pending |
-| ANAL-03 | — | Pending |
-| ANAL-04 | — | Pending |
-| GATE-01 | — | Pending |
-| GATE-02 | — | Pending |
-| GATE-03 | — | Pending |
+| AUTH-01 | Phase 7 | Pending |
+| AUTH-02 | Phase 7 | Pending |
+| AUTH-03 | Phase 7 | Pending |
+| AUTH-04 | Phase 7 | Pending |
+| AUTH-05 | Phase 7 | Pending |
+| BILL-01 | Phase 8 | Pending |
+| BILL-02 | Phase 8 | Pending |
+| BILL-03 | Phase 8 | Pending |
+| BILL-04 | Phase 8 | Pending |
+| BILL-05 | Phase 8 | Pending |
+| LIB-01 | Phase 9 | Pending |
+| LIB-02 | Phase 9 | Pending |
+| LIB-03 | Phase 9 | Pending |
+| LIB-04 | Phase 9 | Pending |
+| DYN-01 | Phase 10 | Pending |
+| DYN-02 | Phase 10 | Pending |
+| DYN-03 | Phase 10 | Pending |
+| DYN-04 | Phase 10 | Pending |
+| DYN-05 | Phase 10 | Pending |
+| ANAL-01 | Phase 11 | Pending |
+| ANAL-02 | Phase 11 | Pending |
+| ANAL-03 | Phase 11 | Pending |
+| ANAL-04 | Phase 11 | Pending |
+| GATE-01 | Phase 9 | Pending |
+| GATE-02 | Phase 9 | Pending |
+| GATE-03 | Phase 9 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 26 total
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 26 ⚠️
+- Mapped to phases: 26
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-11*
-*Last updated: 2026-03-11 after initial v1.1 definition*
+*Last updated: 2026-03-11 after v1.1 roadmap creation*

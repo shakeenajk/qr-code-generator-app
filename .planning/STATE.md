@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Monetization
-status: defining_requirements
-stopped_at: —
+status: roadmap_ready
+stopped_at: Phase 7 ready to plan
 last_updated: "2026-03-11T19:00:00.000Z"
-last_activity: 2026-03-11 — v1.1 milestone started
+last_activity: 2026-03-11 — v1.1 roadmap created (5 phases, 26 requirements mapped)
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 23
-  completed_plans: 23
-  percent: 100
+  total_phases: 5
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,22 +21,46 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** Anyone can generate a visually stunning, fully customized QR code and download it immediately — no signup, no friction.
-**Current focus:** v1.1 Monetization — defining requirements
+**Current focus:** v1.1 Monetization — Phase 7: SSR Foundation + Auth
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 7 of 11 (SSR Foundation + Auth)
 Plan: —
-Status: Defining requirements for v1.1 Monetization
-Last activity: 2026-03-11 — Milestone v1.1 started
+Status: Ready to plan
+Last activity: 2026-03-11 — Roadmap created for v1.1 Monetization
 
 Progress: [░░░░░░░░░░] 0%
+
+## Performance Metrics
+
+**Velocity (v1.0 reference):**
+- Total plans completed: 23 (v1.0)
+- Average duration: ~15 min/plan (estimated)
+- Total execution time: ~5 days
+
+**v1.1 By Phase:**
+
+| Phase | Plans | Total | Avg/Plan |
+|-------|-------|-------|----------|
+| 7. SSR Foundation + Auth | TBD | - | - |
+| 8. Stripe Billing | TBD | - | - |
+| 9. Saved QR Library + Pro Gates | TBD | - | - |
+| 10. Dynamic QR Redirect Service | TBD | - | - |
+| 11. Scan Analytics Dashboard | TBD | - | - |
+
+*Updated after each plan completion*
 
 ## Accumulated Context
 
 ### Decisions
 
-All decisions archived to PROJECT.md Key Decisions table.
+All v1.0 decisions archived in PROJECT.md Key Decisions table.
+Recent decisions affecting v1.1:
+
+- Stack confirmed: Clerk (auth) + Turso/libSQL + Drizzle ORM + Stripe Checkout — see research/SUMMARY.md
+- Keep output: 'static' in astro.config.mjs; add adapter: vercel(); use per-route prerender = false
+- Use @libsql/client/web import (not default) for edge runtime in redirect endpoint
 
 ### Pending Todos
 
@@ -44,10 +68,12 @@ None.
 
 ### Blockers/Concerns
 
-None — v1.0 shipped.
+- Phase 8: Stripe product + price ID (monthly/annual) must be created in Stripe dashboard before Phase 8 starts — business input required
+- Phase 10: Confirm @libsql/client/web import path in v0.14.x before writing edge function
+- Phase 11: Verify Recharts bundle size impact before committing to chart library
 
 ## Session Continuity
 
 Last session: 2026-03-11
-Stopped at: v1.0 milestone archived
+Stopped at: v1.1 roadmap created — ready to plan Phase 7
 Resume file: None
