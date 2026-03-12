@@ -2,7 +2,19 @@
 
 ## What This Is
 
-QRCraft is a free, public-facing QR code generator that lets anyone create fully customized, visually branded QR codes in seconds and download them immediately. It targets marketers, business owners, and individuals who want beautiful QR codes without design software or signup friction. Shipped as a fast static site optimized for Google search.
+QRCraft is a QR code generator that lets anyone create fully customized, visually branded QR codes and download them immediately — no design software needed. It targets marketers, business owners, and individuals. Free tier works with no signup. Pro users get dynamic QR codes (destination editable post-print), saved QR library, scan analytics, and full customization — billed via freemium subscription.
+
+## Current Milestone: v1.1 Monetization
+
+**Goal:** Monetize QRCraft by adding user accounts, Stripe-powered freemium subscriptions, a saved QR library, dynamic QR codes with a server-side redirect layer, scan analytics, and Pro-only customization gates.
+
+**Target features:**
+- User sign up / login / session management
+- Freemium subscription via Stripe (free tier vs Pro)
+- Saved QR code library (Pro) — create, name, edit, delete saved QR codes
+- Dynamic QR codes (Pro) — redirect short-URL whose destination can be changed post-print
+- Scan analytics (Pro) — scan count and scan history per dynamic QR code
+- Advanced customization gate — lock some shapes/logo upload behind Pro
 
 ## Core Value
 
@@ -27,19 +39,21 @@ Anyone can generate a visually stunning, fully customized QR code and download i
 
 ### Active
 
-- [ ] Dynamic QR codes with scan analytics (redirect URL, scan count dashboard)
-- [ ] User accounts to save and re-edit generated QR codes
-- [ ] Additional content types: SMS, email (mailto), phone number (tel), calendar event (VEVENT)
-- [ ] Bulk generation from CSV upload
+- [ ] User sign up, login, session management — v1.1
+- [ ] Freemium subscription via Stripe (free vs Pro tier) — v1.1
+- [ ] Saved QR code library (Pro) — create, name, edit, delete — v1.1
+- [ ] Dynamic QR codes with server-side redirect layer (Pro) — v1.1
+- [ ] Scan analytics: scan count and history per dynamic QR code (Pro) — v1.1
+- [ ] Pro-only customization gates (some shapes, logo upload) — v1.1
 
 ### Out of Scope
 
 - QR code scanning/reading — generator only; inverse operation is a separate product
 - Logo URL input — canvas taint CORS issue; file upload is safer and sufficient
-- Monetization/ads — not decided; architecture does not block future freemium
 - Mobile native app — web-first; native is a separate project
-- Server-side QR generation — no backend needed; all rendering is client-side
 - Multiple pages per content type — SEO cannibalization risk
+- Bulk generation from CSV — deferred to v1.2+
+- Additional content types (SMS, email, tel, VEVENT) — deferred to v1.2+
 
 ## Context
 
@@ -54,8 +68,8 @@ Known tech debt from v1.0 audit:
 
 ## Constraints
 
-- **Tech**: No backend for v1 — all QR generation client-side
-- **Deployment**: Static site on Vercel (current) / Netlify / GitHub Pages
+- **Tech**: v1.1 requires a backend — auth, dynamic QR redirect service, analytics, payments; stack TBD via research
+- **Deployment**: Currently static on Vercel; v1.1 needs server-side hosting (Vercel serverless functions or separate API)
 - **Performance**: Fast load is critical for SEO — dependencies lean; `client:visible` hydration
 - **Accessibility**: WCAG AA contrast validation built in (color picker warns on low contrast)
 
@@ -76,4 +90,4 @@ Known tech debt from v1.0 audit:
 | FAQ_ITEMS single source of truth | Same array for JSON-LD FAQPage schema and visible FAQ | ✓ Good — prevents schema/content drift |
 
 ---
-*Last updated: 2026-03-11 after v1.0 milestone*
+*Last updated: 2026-03-11 after v1.1 milestone start*

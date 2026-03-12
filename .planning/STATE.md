@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: MVP
-status: milestone_complete
-stopped_at: v1.0 milestone archived
-last_updated: "2026-03-11T18:55:46.486Z"
-last_activity: 2026-03-11 — v1.0 milestone complete, all 36 requirements shipped
+milestone: v1.1
+milestone_name: Monetization
+status: defining_requirements
+stopped_at: —
+last_updated: "2026-03-11T19:00:00.000Z"
+last_activity: 2026-03-11 — v1.1 milestone started
 progress:
   total_phases: 6
   completed_phases: 6
@@ -21,14 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** Anyone can generate a visually stunning, fully customized QR code and download it immediately — no signup, no friction.
-**Current focus:** Planning next milestone (v1.1)
+**Current focus:** v1.1 Monetization — defining requirements
 
 ## Current Position
 
-Milestone v1.0 MVP — COMPLETE and archived.
-All 6 phases, 23 plans, 36 requirements shipped.
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements for v1.1 Monetization
+Last activity: 2026-03-11 — Milestone v1.1 started
 
-Progress: [##########] 100%
+Progress: [░░░░░░░░░░] 0%
 
 ## Accumulated Context
 
