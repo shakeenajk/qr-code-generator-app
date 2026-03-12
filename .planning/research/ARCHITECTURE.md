@@ -1,437 +1,824 @@
-# Architecture Patterns
+# Architecture Research
 
-**Domain:** Client-side QR code generator website (QRCraft)
-**Researched:** 2026-03-06
-**Confidence:** MEDIUM — based on training knowledge of QR generation libraries and browser rendering APIs; web/fetch tools unavailable for live verification
-
----
-
-## Recommended Architecture
-
-QRCraft is a pure client-side, single-page application with no backend. All QR generation, customization, logo compositing, and export happen in the browser. The architecture has three distinct layers: input collection, render pipeline, and export pipeline.
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        Browser                               │
-│                                                             │
-│  ┌──────────────┐    ┌──────────────┐    ┌───────────────┐  │
-│  │  Input Layer │───>│ Render Layer │───>│ Export Layer  │  │
-│  │              │    │              │    │               │  │
-│  │ - Content    │    │ - QR Matrix  │    │ - PNG (canvas)│  │
-│  │   Form       │    │   Generator  │    │ - SVG (string)│  │
-│  │ - Style      │    │ - SVG/Canvas │    │ - Clipboard   │  │
-│  │   Controls   │    │   Renderer   │    │               │  │
-│  │ - Logo       │    │ - Logo       │    │               │  │
-│  │   Upload     │    │   Compositor │    │               │  │
-│  └──────────────┘    └──────────────┘    └───────────────┘  │
-│                              │                               │
-│                     ┌────────▼────────┐                      │
-│                     │  Live Preview   │                      │
-│                     │  (debounced)    │                      │
-│                     └─────────────────┘                      │
-│                                                             │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │            State Layer (single source of truth)       │   │
-│  │  content | style | logo | outputFormat                │   │
-│  └──────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────┘
-```
+**Domain:** Freemium SaaS — Astro 5 static site adding auth, payments, dynamic QR redirect, and analytics
+**Researched:** 2026-03-11
+**Confidence:** HIGH (Astro + Vercel integration patterns, edge vs serverless distinction, Stripe webhook), MEDIUM (Better Auth session details, Neon edge latency specifics)
 
 ---
 
-## Component Boundaries
+## Context: Starting Point
 
-| Component | Responsibility | Communicates With |
-|-----------|---------------|-------------------|
-| ContentForm | Collects QR data payload: URL, text, WiFi, vCard. Validates per type. | State Layer (writes content) |
-| StyleControls | Foreground/background color pickers, gradient toggles, dot shape selector, corner eye style selector | State Layer (writes style) |
-| LogoUpload | Accepts image file, validates size/type, stores as data URL or object URL | State Layer (writes logo) |
-| AppState | Single reactive state object: content + style + logo + outputFormat | All components read/write |
-| QRMatrixGenerator | Calls qr library to produce the raw bit matrix from content string. Pure function, no side effects. | RenderPipeline (provides matrix) |
-| RenderPipeline | Orchestrates: matrix → styled SVG/canvas → logo compositing → preview update. Triggered by debounced state change. | QRMatrixGenerator, CanvasRenderer, SVGRenderer, LogoCompositor, LivePreview |
-| CanvasRenderer | Draws QR matrix to an off-screen `<canvas>` applying dot shapes, colors, gradients | RenderPipeline |
-| SVGRenderer | Builds SVG string/element from QR matrix applying dot shapes, colors, gradients | RenderPipeline |
-| LogoCompositor | Overlays logo image centered on canvas or inserts `<image>` tag in SVG. Handles sizing (max ~25% of QR area to preserve scannability). | CanvasRenderer, SVGRenderer |
-| LivePreview | Displays current render output (either canvas element or inline SVG). Updates when RenderPipeline emits new output. | RenderPipeline |
-| ExportController | On user action: triggers PNG export (canvas.toBlob → download) or SVG export (serialize SVG string → download) or clipboard write. | CanvasRenderer, SVGRenderer, LogoCompositor |
-| SEOLayer | Static `<head>` meta tags, JSON-LD structured data, semantic HTML shell. Not a runtime component — baked into HTML. | None at runtime |
-| PageShell | Top-level layout: header/logo, hero, generator section, how-it-works, FAQ, footer. Semantic HTML for SEO. | All UI components mount inside this |
+The existing app is a fully static Astro 5 site — `output: 'static'` in `astro.config.mjs`, no server-side code, no adapter installed. All logic runs client-side in `QRGeneratorIsland.tsx` (a React island with 276 LOC). The QR preview renders into a `<div>` using qr-code-styling. Deployed to Vercel as static HTML/CSS/JS. Lighthouse mobile: 100.
+
+v1.1 requires **five new server-side capabilities** that do not exist today:
+
+1. Auth (session cookies, protected routes)
+2. Database (users, QR codes, subscriptions, scan events)
+3. Stripe webhook handling (must be server-side — signature verification)
+4. Dynamic QR redirect service (`/r/:code` → target URL + scan log)
+5. Scan analytics query (read scan counts and history)
+
+The architecture challenge: **add all five capabilities without breaking the existing static site's Lighthouse 100 performance or introducing unnecessary complexity.**
 
 ---
 
-## Data Flow
+## Standard Architecture
 
-### Input → Render (happy path)
+### System Overview
 
 ```
-User types in ContentForm
-  → AppState.content updated
-  → debounce timer reset (300ms)
-  → debounce fires → RenderPipeline.run(state)
-    → QRMatrixGenerator.generate(state.content)  // pure: string → matrix
-    → CanvasRenderer.draw(matrix, state.style)    // canvas with dot shapes + colors
-    → LogoCompositor.apply(canvas, state.logo)    // if logo present
-    → LivePreview.update(canvas)                  // swap preview src
-
-User clicks Download PNG
-  → ExportController.exportPNG()
-    → CanvasRenderer.draw(matrix, state.style, highRes: true)  // 2x or 3x size
-    → LogoCompositor.apply(canvas, state.logo)
-    → canvas.toBlob('image/png') → link.download trigger
-
-User clicks Download SVG
-  → ExportController.exportSVG()
-    → SVGRenderer.build(matrix, state.style)      // produces SVG string
-    → LogoCompositor.applySVG(svgElement, state.logo)  // embeds <image> with data URL
-    → Blob('image/svg+xml') → link.download trigger
-
-User clicks Copy
-  → ExportController.copyToClipboard()
-    → canvas (already rendered) → canvas.toBlob → ClipboardItem → clipboard.write()
+┌─────────────────────────────────────────────────────────────────────┐
+│                         BROWSER / CLIENT                             │
+│                                                                       │
+│  ┌──────────────────────────────────────────────────────────────┐   │
+│  │  Astro static pages (HTML + Tailwind CSS, prerendered)        │   │
+│  │    index.astro (hero, features, FAQ)   ← UNCHANGED            │   │
+│  │    login.astro, signup.astro           ← NEW SSR pages        │   │
+│  │    dashboard.astro                     ← NEW SSR page         │   │
+│  └────────────────────────┬─────────────────────────────────────┘   │
+│                            │ hydrate (client:visible)                │
+│  ┌─────────────────────────▼───────────────────────────────────┐    │
+│  │  React Islands                                               │    │
+│  │    QRGeneratorIsland.tsx  ← MODIFIED: auth props + Pro gate  │    │
+│  │    AuthIsland.tsx         ← NEW: login/signup forms          │    │
+│  │    DashboardIsland.tsx    ← NEW: saved QR library            │    │
+│  │    AnalyticsIsland.tsx    ← NEW: scan charts                 │    │
+│  └────────────────────────┬─────────────────────────────────────┘   │
+└────────────────────────────┼────────────────────────────────────────┘
+                             │ fetch()
+┌────────────────────────────▼────────────────────────────────────────┐
+│                     VERCEL EDGE LAYER                                 │
+│                                                                       │
+│  ┌────────────────────────────────────────────────────────────┐     │
+│  │  Edge Function: /r/[code].ts   (export const runtime='edge')│     │
+│  │    1. Neon HTTP driver: SELECT target_url WHERE id=code      │     │
+│  │    2. Fire-and-forget scan event (waitUntil, non-blocking)   │     │
+│  │    3. Return 302 Location: target_url                        │     │
+│  └────────────────────────────────────────────────────────────┘     │
+│                                                                       │
+│  ┌────────────────────────────────────────────────────────────┐     │
+│  │  Astro Middleware: src/middleware.ts                         │     │
+│  │    - Validate session cookie via Better Auth                 │     │
+│  │    - Set Astro.locals.user and Astro.locals.isPro            │     │
+│  │    - Redirect unauthenticated /dashboard → /login            │     │
+│  └────────────────────────────────────────────────────────────┘     │
+└─────────────────────────────────────────────────────────────────────┘
+                             │
+┌────────────────────────────▼────────────────────────────────────────┐
+│               VERCEL SERVERLESS LAYER (Node.js runtime)               │
+│                                                                       │
+│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐  │
+│  │  /api/auth/[...] │  │  /api/qr/*       │  │ /api/webhooks/   │  │
+│  │  Better Auth     │  │  CRUD saved QRs  │  │ stripe.ts        │  │
+│  │  sign-up/in/out  │  │  + analytics     │  │ subscription     │  │
+│  │  session verify  │  │  query           │  │ event handling   │  │
+│  └────────┬─────────┘  └────────┬─────────┘  └────────┬─────────┘  │
+└───────────┼────────────────────┼────────────────────┼──────────────┘
+            │                    │                    │
+┌───────────▼────────────────────▼────────────────────▼──────────────┐
+│                         DATA LAYER                                    │
+│                                                                       │
+│  ┌─────────────────────────────────────────────────────────────┐    │
+│  │  Neon Postgres (serverless HTTP driver for edge;             │    │
+│  │                 pooled TCP connection for serverless)         │    │
+│  │    users, sessions, subscriptions, qr_codes, scan_events     │    │
+│  └─────────────────────────────────────────────────────────────┘    │
+│                                                                       │
+│  ┌─────────────────────────────────────────────────────────────┐    │
+│  │  Upstash Redis (Phase 2+ optimization, optional at launch)   │    │
+│  │    Write-through cache: shortCode → targetUrl                │    │
+│  │    Reduces redirect latency for frequently scanned codes     │    │
+│  └─────────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────────┘
+                             │
+┌────────────────────────────▼────────────────────────────────────────┐
+│                    EXTERNAL SERVICES                                  │
+│  ┌──────────────────────────┐  ┌─────────────────────────────────┐  │
+│  │  Stripe                  │  │  Better Auth (optional OAuth)    │  │
+│  │  Checkout, subscriptions │  │  Google / GitHub social login    │  │
+│  │  Customer portal         │  │  (email+password sufficient MVP) │  │
+│  └──────────────────────────┘  └─────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
-### State shape
+### Component Responsibilities
+
+| Component | Responsibility | New / Modified |
+|-----------|---------------|----------------|
+| `index.astro` | Marketing homepage, fully static, no auth required | UNCHANGED |
+| `src/middleware.ts` | Session validation on every SSR request; inject `locals.user` + `locals.isPro`; protect `/dashboard` | NEW |
+| `/r/[code].ts` | Dynamic QR redirect: lookup code → 302, fire-and-forget scan log | NEW (Edge) |
+| `/api/auth/[...all].ts` | Better Auth catch-all: sign-up, sign-in, sign-out, session | NEW (Serverless) |
+| `/api/qr/index.ts` | GET list of saved QR codes; POST create new QR code | NEW (Serverless) |
+| `/api/qr/[id].ts` | GET, PUT, DELETE single QR code; update dynamic target URL | NEW (Serverless) |
+| `/api/analytics/[code].ts` | GET scan count + time-series for a QR code | NEW (Serverless) |
+| `/api/webhooks/stripe.ts` | Verify Stripe sig; handle subscription lifecycle events | NEW (Serverless) |
+| `login.astro` / `signup.astro` | SSR wrappers for AuthIsland | NEW |
+| `dashboard.astro` | SSR protected page; passes `user` + `isPro` props to islands | NEW |
+| `QRGeneratorIsland.tsx` | Accepts `user`/`isPro` props; gates logo upload + shapes; adds "Save as Dynamic QR" action | MODIFIED |
+| `AuthIsland.tsx` | Login/signup forms using Better Auth browser client | NEW |
+| `DashboardIsland.tsx` | Saved QR list, edit target URL for dynamic codes, link to analytics | NEW |
+| `AnalyticsIsland.tsx` | Fetches `/api/analytics/:code`; renders total count + chart | NEW |
+| `db/schema.ts` | Drizzle ORM table definitions | NEW |
+| `lib/auth.ts` | Better Auth server instance (imported only by server code) | NEW |
+| `lib/db.ts` | Neon + Drizzle client singleton | NEW |
+| `lib/stripe.ts` | Stripe SDK client singleton | NEW |
+
+---
+
+## Recommended Project Structure
+
+```
+src/
+├── components/
+│   ├── QRGeneratorIsland.tsx     # MODIFIED — add user/isPro props, Pro gates, save action
+│   ├── AuthIsland.tsx            # NEW — login/signup forms (Better Auth client)
+│   ├── DashboardIsland.tsx       # NEW — saved QR library UI
+│   ├── AnalyticsIsland.tsx       # NEW — scan count + chart
+│   ├── UpgradeCTA.tsx            # NEW — reusable "Upgrade to Pro" prompt
+│   ├── customize/                # UNCHANGED
+│   └── tabs/                    # UNCHANGED
+├── pages/
+│   ├── index.astro               # UNCHANGED — static, no prerender flag needed
+│   ├── login.astro               # NEW — export const prerender = false
+│   ├── signup.astro              # NEW — export const prerender = false
+│   ├── dashboard.astro           # NEW — export const prerender = false, protected
+│   ├── r/
+│   │   └── [code].ts             # NEW — export const runtime = 'edge'
+│   └── api/
+│       ├── auth/
+│       │   └── [...all].ts       # NEW — Better Auth catch-all
+│       ├── qr/
+│       │   ├── index.ts          # NEW — GET list, POST create
+│       │   ├── [id].ts           # NEW — GET, PUT, DELETE
+│       │   └── checkout.ts       # NEW — POST: create Stripe checkout session
+│       ├── analytics/
+│       │   └── [code].ts         # NEW — GET scan stats
+│       └── webhooks/
+│           └── stripe.ts         # NEW — POST webhook handler
+├── db/
+│   ├── schema.ts                 # NEW — Drizzle table definitions
+│   └── migrations/               # NEW — generated by drizzle-kit
+├── lib/
+│   ├── auth.ts                   # NEW — Better Auth server instance
+│   ├── db.ts                     # NEW — Neon + Drizzle client
+│   ├── stripe.ts                 # NEW — Stripe SDK client
+│   ├── qrEncoding.ts             # UNCHANGED
+│   └── contrastUtils.ts          # UNCHANGED
+├── hooks/
+│   └── useDebounce.ts            # UNCHANGED
+├── middleware.ts                  # NEW — session injection + route protection
+└── styles/                       # UNCHANGED
+```
+
+### Structure Rationale
+
+- **`src/db/`:** Separates schema and migrations from application code. `drizzle-kit generate` and `drizzle-kit migrate` run at CI/deploy time.
+- **`src/lib/`:** Server-only singletons. React islands never import from here directly — they call API endpoints which import from `lib/`. This enforces the server/client boundary.
+- **`src/pages/r/[code].ts`:** Placed under `pages/` not `pages/api/` to get the clean URL `/r/abc123`. The edge runtime directive makes Vercel deploy it as an edge function, not a serverless function.
+- **Static pages stay static:** `index.astro` keeps its default `prerender: true`. Only pages and endpoints with `export const prerender = false` run server-side. Lighthouse 100 preserved on the homepage.
+- **`src/middleware.ts`:** Runs for every SSR request (middleware is skipped for prerendered static pages). Auth state is resolved once per SSR request and injected into `locals` — no redundant session fetches.
+
+---
+
+## Critical Architecture Decision: Astro 5 Hybrid Mode
+
+### How It Works in Astro 5
+
+In Astro v5, `output: 'hybrid'` was merged into `output: 'static'`. A single project can now mix fully prerendered static pages with on-demand server-rendered pages without changing the `output` config. Any `.astro` page or `.ts` endpoint opts into server rendering by adding:
 
 ```typescript
-interface AppState {
-  content: {
-    type: 'url' | 'text' | 'wifi' | 'vcard';
-    value: string;           // encoded payload string
-    fields: Record<string, string>;  // raw form fields before encoding
-  };
-  style: {
-    dotShape: 'square' | 'rounded' | 'dots' | 'classy';
-    eyeShape: 'square' | 'rounded' | 'circle';
-    foreground: string;      // hex or gradient descriptor
-    background: string;      // hex or transparent
-    gradient: {
-      enabled: boolean;
-      type: 'linear' | 'radial';
-      colorStart: string;
-      colorEnd: string;
-      angle: number;
-    };
-    errorCorrection: 'L' | 'M' | 'Q' | 'H';  // H required when logo present
-  };
-  logo: {
-    dataUrl: string | null;
-    sizeRatio: number;       // 0.2 default, max 0.3
-  };
-}
+export const prerender = false;
 ```
 
----
+Without that export, every file defaults to static prerender. This is exactly the right model for QRCraft: the marketing homepage stays static (Lighthouse 100 preserved), while `/dashboard`, `/login`, and all `/api/*` routes are server-rendered on demand.
 
-## Rendering Strategy: Canvas vs SVG
-
-**Use dual rendering: SVG for display and PNG export, Canvas for clipboard and PNG fallback.**
-
-The practical split is:
-
-| Purpose | Renderer | Reason |
-|---------|----------|--------|
-| Live preview | SVG (inline) | Resolution-independent, no blur on HiDPI displays, DOM-inspectable |
-| PNG download | Canvas (off-screen) | `canvas.toBlob()` is the standard PNG export path; high-res by rendering at 3x |
-| SVG download | SVG string serialization | Direct: build SVG, serialize, Blob download |
-| Clipboard | Canvas → `canvas.toBlob()` | `ClipboardItem` with `image/png` blob is the supported API |
-
-Maintain two render paths (SVG builder + Canvas drawer) that share the same matrix and style inputs. Keep them as separate pure functions so either can be called independently.
-
-**Confidence:** HIGH — this split is well-established in open-source QR generators.
-
----
-
-## Debouncing Strategy
-
-```
-ContentForm / StyleControls → onChange
-  → clearTimeout(debounceTimer)
-  → debounceTimer = setTimeout(runRender, 300ms)
-```
-
-- 300ms delay prevents render on every keystroke while typing a URL
-- StyleControls (color pickers, shape toggles) can use shorter delay (100ms) since no text is being typed — color picker `input` events fire continuously
-- Logo upload triggers immediate render (one-time event, no debounce needed)
-- Error correction level change: immediate (single click, not continuous)
-
-**Confidence:** HIGH — standard debounce pattern, values are community convention.
-
----
-
-## Logo Embedding
-
-### Scannability constraint
-
-QR codes with logos require Error Correction Level H (30% redundancy). The library must be configured to use `H` when `state.logo.dataUrl` is non-null. This is a hard requirement — lower EC levels with a logo center will cause scan failures.
-
-**Confidence:** HIGH — this is a fundamental property of QR error correction.
-
-### Logo sizing
-
-Center logo should occupy at most 25-30% of the QR code's total area. A common formula:
-
-```
-logoPixels = qrPixels * sizeRatio    // sizeRatio = 0.2 default
-logoX = (qrPixels - logoPixels) / 2
-logoY = (qrPixels - logoPixels) / 2
-```
-
-### Canvas logo compositing
-
-```
-1. Draw QR to canvas (all dots/colors/gradients)
-2. Optionally draw white "padding" rectangle centered (slightly larger than logo)
-3. Draw logo image centered
-```
-
-### SVG logo embedding
-
-```xml
-<image
-  href="data:image/png;base64,..."
-  x="85" y="85"
-  width="50" height="50"
-  preserveAspectRatio="xMidYMid meet"
-/>
-```
-
-The `href` must use the logo's data URL (not an object URL) so the SVG is self-contained when downloaded.
-
----
-
-## Patterns to Follow
-
-### Pattern 1: Pure Matrix Generation
-
-**What:** QR matrix generation is a pure function — same input always produces same output. No side effects, no DOM interaction.
-
-**When:** Always. Keeps the core algorithm testable and portable.
+**Required change to `astro.config.mjs`:**
 
 ```typescript
-// Pure — takes string, returns 2D boolean array
-function generateMatrix(content: string, ecLevel: ECLevel): boolean[][] {
-  // delegate to qr library
-}
+import vercel from '@astrojs/vercel';
+
+export default defineConfig({
+  site: 'https://qrcraft.app',
+  output: 'static',           // unchanged — hybrid is now implicit in v5
+  adapter: vercel(),          // NEW — required to enable SSR routes on Vercel
+  integrations: [react(), sitemap()],
+  vite: { plugins: [tailwindcss()] },
+});
 ```
 
-### Pattern 2: Render Pipeline as Orchestrator
+The `@astrojs/vercel` adapter is the single config addition that enables everything. Without it, `prerender: false` routes throw a build error.
 
-**What:** A single `render(state)` function orchestrates matrix generation → drawing → preview update. Components don't call each other directly.
+Confidence: HIGH — confirmed by Astro 5.0 release blog and on-demand rendering docs.
 
-**When:** Always. Prevents circular dependencies and makes the data flow explicit.
+---
+
+## Critical Architecture Decision: Edge vs Serverless for /r/[code]
+
+### Why This Decision Matters
+
+When someone scans a printed QR code, they wait for the `/r/abc123` redirect before seeing any content. A slow redirect feels like a broken QR code. This is the single most latency-sensitive path in the system.
+
+### Measured Latency (Vercel, 2025)
+
+| Runtime | Cold Start | Warm |
+|---------|-----------|------|
+| Serverless (Node.js) | 200–500ms | 80–150ms |
+| Edge (V8 Isolate) | < 50ms | 10–50ms |
+
+Edge functions are ~9x faster on cold start and ~2x faster warm. For a redirect that fires on every QR scan, this is meaningful.
+
+**Decision: Use Vercel Edge Runtime for `/r/[code].ts`.** Add `export const runtime = 'edge'` to the file.
+
+### Edge Runtime Constraint: No TCP
+
+Edge functions run in the V8 isolate runtime, not Node.js. This rules out standard `pg` connections (TCP). The solution is Neon's HTTP driver (`@neondatabase/serverless` using `neon()` not `Pool`), which queries Postgres over HTTPS fetch — fully edge-compatible.
+
+Neon benchmarks show sub-10ms Postgres queries from Vercel edge functions (same-region). This makes the full redirect flow — edge function cold start + DB lookup + response — achievable in under 60ms total, well below the threshold for perceived latency.
+
+### Upstash Redis Cache (Phase 2+, Not Required at Launch)
+
+For very high scan volume, add Upstash Redis as a write-through cache. On QR create/update, write `shortCode → targetUrl` to Redis. The edge function hits Redis first (2–3ms REST API call), falls back to Neon if miss. Vercel has an official edge-redirects-with-Upstash template. Not required at launch — add when scan volume justifies it.
+
+Confidence: HIGH — Neon edge compatibility confirmed by Neon official docs; edge latency benchmarks from openstatus and Neon.
+
+---
+
+## Data Schema
+
+All tables managed by Drizzle ORM with `drizzle-kit` migrations.
+
+```sql
+-- users: managed by Better Auth (auto-created by the framework)
+users (
+  id          text PRIMARY KEY,   -- Better Auth generates this
+  email       text UNIQUE NOT NULL,
+  name        text,
+  created_at  timestamp DEFAULT now()
+)
+
+-- sessions: managed by Better Auth
+sessions (
+  id           text PRIMARY KEY,
+  user_id      text REFERENCES users(id) ON DELETE CASCADE,
+  token        text UNIQUE NOT NULL,
+  expires_at   timestamp NOT NULL,
+  created_at   timestamp DEFAULT now()
+)
+
+-- subscriptions: one row per user, written by Stripe webhook
+subscriptions (
+  id                      text PRIMARY KEY,   -- Stripe subscription ID
+  user_id                 text UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+  stripe_customer_id      text UNIQUE NOT NULL,
+  stripe_subscription_id  text UNIQUE,
+  plan                    text NOT NULL DEFAULT 'free',   -- 'free' | 'pro'
+  status                  text NOT NULL DEFAULT 'active', -- 'active' | 'canceled' | 'past_due'
+  current_period_end      timestamp,
+  updated_at              timestamp DEFAULT now()
+)
+
+-- qr_codes: saved QR codes (Pro feature)
+qr_codes (
+  id           text PRIMARY KEY,   -- nanoid(10), doubles as redirect short code
+  user_id      text REFERENCES users(id) ON DELETE CASCADE,
+  name         text NOT NULL,
+  type         text NOT NULL,      -- 'static' | 'dynamic'
+  target_url   text,               -- for dynamic: current redirect destination
+  config_json  jsonb NOT NULL,     -- qr-code-styling options snapshot
+  created_at   timestamp DEFAULT now(),
+  updated_at   timestamp DEFAULT now()
+)
+
+-- scan_events: one row per scan (dynamic QR codes only)
+scan_events (
+  id           bigserial PRIMARY KEY,
+  qr_code_id   text REFERENCES qr_codes(id) ON DELETE CASCADE,
+  scanned_at   timestamp DEFAULT now(),
+  user_agent   text,
+  ip_hash      text    -- SHA-256(IP + daily_salt), never raw IP (GDPR)
+)
+
+-- stripe_events: for webhook idempotency
+stripe_events (
+  event_id     text PRIMARY KEY,   -- Stripe event ID (idempotency key)
+  processed_at timestamp DEFAULT now()
+)
+```
+
+**Key design note:** `qr_codes.id` (nanoid 10 chars) is also the redirect short code. The QR encodes `https://qrcraft.app/r/{id}`. No separate URL mapping table — the PK does double duty. Collision probability with nanoid(10) from ~64 chars is negligible for thousands of codes.
+
+**Index:** `CREATE INDEX scan_events_qr_scanned ON scan_events(qr_code_id, scanned_at DESC)` — required for analytics queries.
+
+---
+
+## Architectural Patterns
+
+### Pattern 1: Astro Middleware for Session Injection
+
+**What:** A single `src/middleware.ts` intercepts all on-demand SSR requests, validates the session cookie via Better Auth's `auth.api.getSession()`, and injects `locals.user` and `locals.isPro` so every server-rendered page and API endpoint has auth context without duplicating validation logic.
+
+**When to use:** Always — middleware runs before every SSR handler automatically.
+
+**Trade-offs:** Adds ~5–10ms per SSR request for the session DB lookup. Acceptable because: (a) serverless paths are not latency-critical (they are not the redirect hot path), and (b) the alternative (each endpoint validates auth independently) is far worse for correctness.
 
 ```typescript
-async function render(state: AppState): Promise<void> {
-  const matrix = generateMatrix(encodeContent(state.content), state.style.errorCorrection);
-  const canvas = drawToCanvas(matrix, state.style);
-  if (state.logo.dataUrl) {
-    await compositeLogoOnCanvas(canvas, state.logo);
+// src/middleware.ts
+import { defineMiddleware } from 'astro:middleware';
+import { auth } from './lib/auth';
+import { db } from './lib/db';
+import { subscriptions } from './db/schema';
+import { eq } from 'drizzle-orm';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const session = await auth.api.getSession({ headers: context.request.headers });
+  context.locals.user = session?.user ?? null;
+
+  if (session?.user) {
+    const [sub] = await db.select().from(subscriptions)
+      .where(eq(subscriptions.userId, session.user.id));
+    context.locals.isPro = sub?.plan === 'pro' && sub?.status === 'active';
+  } else {
+    context.locals.isPro = false;
   }
-  updatePreview(canvas);  // sets img src or swaps canvas element
-}
+
+  const protectedPaths = ['/dashboard'];
+  if (protectedPaths.some(p => context.url.pathname.startsWith(p)) && !context.locals.user) {
+    return context.redirect('/login');
+  }
+
+  return next();
+});
 ```
 
-### Pattern 3: Content Encoding as Lookup
+### Pattern 2: Server Endpoint per Resource
 
-**What:** Each content type (URL, WiFi, vCard) has a dedicated encoder function that converts form fields to the QR payload string.
+**What:** Astro `.ts` files in `src/pages/api/` export named HTTP method functions (`GET`, `POST`, `PUT`, `DELETE`). Each file becomes a serverless function on Vercel. Auth state is available via `context.locals` (set by middleware — no re-validation needed in the endpoint).
 
-**When:** Always. Separates encoding logic from UI.
+**When to use:** All CRUD operations (QR codes), analytics queries, auth routes (delegated to Better Auth), Stripe checkout and webhooks.
+
+**Trade-offs:** Cold starts apply (~200ms). Acceptable for user-initiated actions (save, edit, view dashboard). Not acceptable for the redirect hot path — which is why `/r/[code].ts` is edge, not serverless.
 
 ```typescript
-const encoders = {
-  url:   (fields) => fields.url,
-  text:  (fields) => fields.text,
-  wifi:  (fields) => `WIFI:T:${fields.auth};S:${fields.ssid};P:${fields.password};;`,
-  vcard: (fields) => `BEGIN:VCARD\nVERSION:3.0\nFN:${fields.name}\n...END:VCARD`,
-};
-```
+// src/pages/api/qr/index.ts
+export const prerender = false;
 
-### Pattern 4: Self-Contained SVG Export
-
-**What:** SVG export embeds all assets (logo, gradients, fonts) as inline data. The downloaded `.svg` file opens correctly in any viewer without external dependencies.
-
-**When:** Always for the SVG download path.
-
-### Pattern 5: Progressive Enhancement for Clipboard
-
-**What:** Check `navigator.clipboard.write` support before offering the Copy button. Degrade gracefully (hide button or show "not supported" tooltip) on browsers without Clipboard API.
-
-**When:** Always. Safari historically lagged on `ClipboardItem` support.
-
----
-
-## Anti-Patterns to Avoid
-
-### Anti-Pattern 1: Rendering Directly in Event Handlers
-
-**What:** Calling the QR render function synchronously inside every `onChange` handler.
-
-**Why bad:** Causes janky UI, blocks the main thread on every keystroke, especially for complex dot shapes with gradients.
-
-**Instead:** Always go through the debounce layer. The render pipeline should only be triggered by the debounce timer firing.
-
-### Anti-Pattern 2: Object URLs in SVG Export
-
-**What:** Using `URL.createObjectURL(logoFile)` as the logo `href` in the exported SVG.
-
-**Why bad:** Object URLs are session-scoped. The downloaded SVG will show a broken image when opened later.
-
-**Instead:** Convert the logo to a data URL immediately on upload (`FileReader.readAsDataURL`). Store the data URL in state. Always use data URLs in SVG export.
-
-### Anti-Pattern 3: Single Renderer for Both Preview and Export
-
-**What:** Using a visible `<canvas>` element as both the live preview and the export source.
-
-**Why bad:** Preview canvas is sized for display (e.g., 300×300). PNG export should be larger (e.g., 1000×1000). Sharing the element requires resizing, which causes a visible flash.
-
-**Instead:** Use an off-screen canvas for export at high resolution. The live preview uses a separate element (SVG for sharpness, or a display-sized canvas).
-
-### Anti-Pattern 4: Allowing Logo Without Forcing EC=H
-
-**What:** Letting users embed a logo without automatically setting error correction to H.
-
-**Why bad:** The QR code will fail to scan in real-world conditions — the logo occludes modules that are not recoverable with lower EC levels.
-
-**Instead:** When `state.logo.dataUrl` is non-null, force `errorCorrection = 'H'` before calling the matrix generator. Optionally surface this to users with a tooltip.
-
-### Anti-Pattern 5: Monolithic Single-File Component
-
-**What:** All form inputs, style controls, preview, and export buttons in one massive component/file.
-
-**Why bad:** Impossible to maintain, hard to add content types later, blocks parallel development of sections.
-
-**Instead:** Follow the component boundary table above. Each section is its own file/component.
-
----
-
-## SEO Page Structure
-
-The page is a static HTML document. SEO is baked into the HTML shell — not dynamically injected.
-
-### Head section
-
-```html
-<title>Free QR Code Generator — Customize & Download Instantly | QRCraft</title>
-<meta name="description" content="Create beautiful, custom QR codes in seconds. Customize colors, add your logo, and download as PNG or SVG. Free, no signup required.">
-<link rel="canonical" href="https://qrcraft.io/">
-
-<!-- Open Graph -->
-<meta property="og:title" content="QRCraft — Free Custom QR Code Generator">
-<meta property="og:description" content="...">
-<meta property="og:image" content="/og-image.png">
-<meta property="og:type" content="website">
-
-<!-- Twitter Card -->
-<meta name="twitter:card" content="summary_large_image">
-```
-
-### Structured data (JSON-LD)
-
-```html
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebApplication",
-  "name": "QRCraft",
-  "description": "Free custom QR code generator",
-  "applicationCategory": "UtilitiesApplication",
-  "operatingSystem": "Web",
-  "offers": {
-    "@type": "Offer",
-    "price": "0",
-    "priceCurrency": "USD"
-  },
-  "url": "https://qrcraft.io/"
+export async function GET({ locals }: APIContext) {
+  if (!locals.user) return new Response('Unauthorized', { status: 401 });
+  const codes = await db.select().from(qrCodes)
+    .where(eq(qrCodes.userId, locals.user.id))
+    .orderBy(desc(qrCodes.createdAt));
+  return Response.json(codes);
 }
-</script>
+
+export async function POST({ locals, request }: APIContext) {
+  if (!locals.isPro) return new Response('Pro required', { status: 403 });
+  const body = await request.json();
+  const id = nanoid(10);
+  const [created] = await db.insert(qrCodes).values({
+    id, userId: locals.user.id, ...body
+  }).returning();
+  return Response.json(created, { status: 201 });
+}
 ```
 
-### Page section order (semantic HTML)
+### Pattern 3: Edge Function with Fire-and-Forget Scan Logging
 
+**What:** The `/r/[code].ts` redirect handler runs in Vercel Edge Runtime. It reads the target URL from Neon over HTTP, immediately issues a 302 response, and logs the scan as a non-blocking background task. The user reaches the destination fast; the analytics write happens asynchronously.
+
+**When to use:** Any path where redirect latency is more important than write confirmation. This is the industry-standard pattern — Bitly, QR.io, and all major QR services use async scan logging.
+
+**Trade-offs:** Scan counts are eventually consistent. A scan fired 100ms before a dashboard query might not appear yet. This is fully acceptable for analytics (users expect seconds of lag, not milliseconds).
+
+```typescript
+// src/pages/r/[code].ts
+export const prerender = false;
+export const runtime = 'edge';
+
+import { neon } from '@neondatabase/serverless';
+import { createHash } from 'crypto';
+
+export async function GET({ params, request }: APIContext) {
+  const sql = neon(import.meta.env.DATABASE_URL);
+
+  const [qr] = await sql`
+    SELECT target_url FROM qr_codes
+    WHERE id = ${params.code} AND type = 'dynamic'
+    LIMIT 1
+  `;
+
+  if (!qr?.target_url) {
+    return new Response('QR code not found', { status: 404 });
+  }
+
+  // Log scan asynchronously — does not block the redirect
+  const ip = request.headers.get('x-forwarded-for') ?? '';
+  const dailySalt = new Date().toISOString().slice(0, 10);
+  const ipHash = createHash('sha256').update(ip + dailySalt).digest('hex');
+
+  // Fire-and-forget: scan event logged after response is sent
+  sql`
+    INSERT INTO scan_events (qr_code_id, user_agent, ip_hash)
+    VALUES (${params.code}, ${request.headers.get('user-agent') ?? ''}, ${ipHash})
+  `.catch(() => {}); // swallow errors so they never affect the redirect
+
+  return new Response(null, {
+    status: 302,
+    headers: {
+      Location: qr.target_url,
+      'Cache-Control': 'no-store, no-cache',
+    },
+  });
+}
 ```
-<header>      — site name + nav
-<main>
-  <section>   — hero: headline + subheadline (H1 here)
-  <section>   — generator tool (the interactive app)
-  <section>   — how it works (H2, 3 steps with icons)
-  <section>   — use cases / feature highlights (H2)
-  <section>   — FAQ with schema.org FAQPage markup (H2)
-<footer>      — links, legal
+
+### Pattern 4: Auth State via SSR Props (Not Island Fetch)
+
+**What:** Server-rendered `.astro` pages use `Astro.locals.user` and `Astro.locals.isPro` (set by middleware) to pass auth state as props to React islands at SSR render time. Islands receive auth state immediately — no client-side fetch on mount.
+
+**When to use:** Every page that has React islands needing auth state.
+
+**Trade-offs:** Auth state is baked in at SSR time. If a session expires mid-session, the island will show stale state until the next navigation, but the next API call will correctly return 401. The island can handle that by redirecting to `/login`. This is how all major SSR frameworks handle this pattern.
+
+```astro
+---
+// src/pages/dashboard.astro
+export const prerender = false;
+
+const user = Astro.locals.user;   // set by middleware
+const isPro = Astro.locals.isPro; // set by middleware
+---
+<DashboardIsland client:visible user={user} isPro={isPro} />
+<AnalyticsIsland client:visible isPro={isPro} />
 ```
 
-FAQ section with `FAQPage` structured data is high-value for search: it can generate rich results (expandable Q&A directly in Google).
+```typescript
+// Modified QRGeneratorIsland.tsx — top of file
+interface Props {
+  user: { id: string; email: string; name: string | null } | null;
+  isPro: boolean;
+}
 
-**Confidence:** MEDIUM — SEO best practices are stable but ranking outcomes depend on competition and Google's current weighting.
+export default function QRGeneratorIsland({ user = null, isPro = false }: Props) {
+  // ... all existing state unchanged ...
+
+  // Pro gate example: LogoSection becomes gated
+  return (
+    // ... existing JSX ...
+    {isPro
+      ? <LogoSection ... />
+      : <UpgradeCTA feature="Logo upload" />
+    }
+  );
+}
+```
+
+The homepage `index.astro` passes `user={null}` and `isPro={false}` — the island renders in free-tier mode with upgrade CTAs visible, but all free features fully functional.
+
+### Pattern 5: Stripe Webhook Idempotency
+
+**What:** Stripe can re-deliver webhooks (network failures, retries). The handler must be idempotent. Record processed event IDs in `stripe_events` table; skip duplicate events.
+
+**When to use:** Always in webhook handlers. Critical for subscription state correctness — accidental double-activation or double-cancellation breaks the user's access.
+
+```typescript
+// src/pages/api/webhooks/stripe.ts
+export const prerender = false;
+
+export async function POST({ request }: APIContext) {
+  const sig = request.headers.get('stripe-signature') ?? '';
+  const body = await request.text(); // must be raw text for signature verification
+
+  let event: Stripe.Event;
+  try {
+    event = stripe.webhooks.constructEvent(
+      body, sig, import.meta.env.STRIPE_WEBHOOK_SECRET
+    );
+  } catch {
+    return new Response('Invalid signature', { status: 400 });
+  }
+
+  // Idempotency guard
+  const [existing] = await db.select()
+    .from(stripeEvents)
+    .where(eq(stripeEvents.eventId, event.id));
+  if (existing) return new Response('Already processed', { status: 200 });
+
+  await db.insert(stripeEvents).values({ eventId: event.id });
+
+  switch (event.type) {
+    case 'checkout.session.completed':
+      await handleCheckoutComplete(event.data.object as Stripe.Checkout.Session);
+      break;
+    case 'customer.subscription.updated':
+    case 'customer.subscription.created':
+      await syncSubscription(event.data.object as Stripe.Subscription);
+      break;
+    case 'customer.subscription.deleted':
+      await cancelSubscription(event.data.object as Stripe.Subscription);
+      break;
+  }
+
+  return new Response('OK', { status: 200 });
+}
+```
 
 ---
 
-## Scalability Considerations
+## Data Flows
 
-| Concern | At launch | If traffic grows | If product grows |
-|---------|-----------|-----------------|-----------------|
-| QR generation load | Pure client-side, zero server load | No change needed | No change needed |
-| File download bandwidth | Static CDN (Vercel/Netlify edge) | CDN handles it automatically | Same |
-| Logo storage | Not stored — lives in browser session only | No change | Add server storage only if "saved QR codes" feature added |
-| Additional content types | Add encoder function + form fields | No architecture change | Follow Pattern 3 (lookup table) |
-| Freemium gating | Not needed now | Wrap style/export features in a feature-flag check | Don't couple to auth yet |
-| Analytics | Add script tag | No architecture change | Standard |
+### Flow 1: User Signs Up → Subscribes → Creates Dynamic QR
+
+```
+[/signup.astro — SSR page]
+  User submits email + password via AuthIsland
+      ↓
+[POST /api/auth/[...all] — Better Auth handler]
+  Hash password, insert users row, create session row
+  Return HTTP-only session cookie
+      ↓
+[Browser redirects to /dashboard]
+      ↓
+[Middleware validates cookie → locals.user set, locals.isPro = false]
+      ↓
+[dashboard.astro renders, passes user + isPro=false to DashboardIsland]
+  UpgradeCTA shown — "Dynamic QR requires Pro"
+      ↓
+[User clicks "Upgrade to Pro"]
+      ↓
+[POST /api/qr/checkout — serverless endpoint]
+  stripe.checkout.sessions.create({
+    mode: 'subscription',
+    customer_email: user.email,
+    success_url: '/dashboard?upgraded=true',
+    cancel_url: '/dashboard',
+  })
+  Returns { url: 'https://checkout.stripe.com/...' }
+      ↓
+[Browser navigates to Stripe Checkout — user pays]
+      ↓
+[Stripe fires POST /api/webhooks/stripe — checkout.session.completed]
+  Verify stripe-signature header
+  Check idempotency (stripe_events table)
+  Upsert subscriptions row: plan='pro', status='active'
+      ↓
+[Browser returns to /dashboard?upgraded=true]
+  Middleware re-reads subscriptions row → locals.isPro = true
+  DashboardIsland shows "Create Dynamic QR" button
+      ↓
+[User fills QR form in QRGeneratorIsland, clicks "Save as Dynamic QR"]
+      ↓
+[POST /api/qr — serverless endpoint, auth + isPro checked]
+  id = nanoid(10)  // e.g., "x7kPm3qN2f"
+  INSERT INTO qr_codes (id, user_id, name, type='dynamic', target_url, config_json)
+  Returns { id, shortUrl: 'https://qrcraft.app/r/x7kPm3qN2f' }
+      ↓
+[QRGeneratorIsland re-encodes shortUrl into QR pattern]
+  User downloads QR — printed code contains /r/x7kPm3qN2f
+  Target URL changeable at any time; printed code never changes
+```
+
+### Flow 2: QR Code Is Scanned → Analytics Recorded
+
+```
+[Mobile camera scans printed QR code]
+  Reads: https://qrcraft.app/r/x7kPm3qN2f
+      ↓
+[GET /r/x7kPm3qN2f — Vercel EDGE FUNCTION]
+  Neon HTTP driver: SELECT target_url WHERE id='x7kPm3qN2f'
+  (~5–10ms same region, no cold start penalty because edge)
+      ↓
+[Return 302 Location: https://example.com/campaign-page]
+  User sees destination in ~30–60ms total
+      ↓ [non-blocking, fire-and-forget]
+[INSERT INTO scan_events (qr_code_id, user_agent, ip_hash)]
+  Executes ~100ms after redirect, invisible to scanner
+  ip_hash = SHA-256(IP + today's date) — no PII stored
+```
+
+### Flow 3: User Updates Dynamic QR Destination
+
+```
+[User on /dashboard, expands dynamic QR card]
+  Types new target URL: 'https://example.com/new-page'
+      ↓
+[PUT /api/qr/x7kPm3qN2f — serverless endpoint]
+  Auth check: locals.user must own this QR code
+  UPDATE qr_codes SET target_url='https://example.com/new-page', updated_at=now()
+  WHERE id='x7kPm3qN2f' AND user_id=locals.user.id
+      ↓
+[All future scans immediately redirect to new URL]
+  Printed QR code unchanged — no reprint needed
+  This is the core value of "dynamic" QR
+```
+
+### Flow 4: User Views Scan Analytics
+
+```
+[User on /dashboard, clicks "Analytics" on a dynamic QR card]
+      ↓
+[AnalyticsIsland mounts, GET /api/analytics/x7kPm3qN2f]
+      ↓
+[Serverless endpoint: auth check + ownership check]
+  SELECT
+    COUNT(*) as total,
+    DATE_TRUNC('day', scanned_at) as day,
+    COUNT(*) as day_count
+  FROM scan_events
+  WHERE qr_code_id = 'x7kPm3qN2f'
+  GROUP BY day
+  ORDER BY day DESC
+  LIMIT 30
+      ↓
+[Returns { total: 47, series: [{date, count}, ...] }]
+      ↓
+[AnalyticsIsland renders: "47 total scans" + 30-day bar chart]
+```
 
 ---
 
-## Suggested Build Order
+## Integration Points with Existing Code
 
-Build order is driven by data flow dependencies: nothing can be previewed until rendering works, nothing can be exported until preview works, SEO shell can be built independently.
+### Modified: `QRGeneratorIsland.tsx`
+
+**What changes:**
+- Accept `user` and `isPro` props (injected by parent `.astro` page at SSR time, defaulting to `null`/`false` for unauthenticated use).
+- Gate `LogoSection` and advanced dot/corner shape options behind `isPro`. Show `<UpgradeCTA>` in place of gated UI when `isPro = false`.
+- Add "Save as Dynamic QR" button that calls `POST /api/qr` with current `config_json` and target URL.
+
+**What stays unchanged:** All existing state management (276 LOC of form state, debounce, qr-code-styling integration, tab switching, WiFi/vCard encoding, export buttons). The `client:visible` hydration directive is unchanged. No performance impact on the homepage.
+
+**Integration risk:** LOW — purely additive. The island already has well-separated state slices (ColorSection, ShapeSection, LogoSection, tabs).
+
+### Unchanged: `index.astro`
+
+The homepage is fully static. The `QRGeneratorIsland` on the homepage receives `user={null}` and `isPro={false}` as props from the Astro page (which reads `Astro.locals.user` — null for unauthenticated visitors on a static page). Free-tier generation and download work with no changes. Pro gates show upgrade CTAs. Lighthouse 100 preserved.
+
+### Modified: `astro.config.mjs`
+
+Add `@astrojs/vercel` adapter import and `adapter: vercel()` to `defineConfig`. No other changes.
+
+### New: `src/middleware.ts`
+
+Middleware is skipped for prerendered static pages (Astro only runs middleware for on-demand SSR requests). No impact on the static homepage performance.
+
+---
+
+## Build Order
+
+Dependencies:
+
+- Vercel adapter must be configured before SSR routes are testable
+- Database schema must exist before any data operations
+- Auth must exist before middleware can validate sessions
+- Middleware must exist before dashboard page uses `locals.user`
+- Stripe billing must exist before `isPro` is meaningful
+- QR CRUD must exist before dynamic QR redirect
+- Dynamic QR redirect must exist before analytics (no scan events without scans)
 
 ```
-1. AppState definition
-   (Everything depends on the state shape — define it first)
+Phase 1: Foundation (everything else depends on this)
+  1a. Add @astrojs/vercel adapter to astro.config.mjs
+  1b. Define Drizzle schema (users, sessions, subscriptions, qr_codes, scan_events)
+  1c. Configure Neon + Drizzle client (lib/db.ts)
+  1d. Install and configure Better Auth (lib/auth.ts)
+  1e. Mount Better Auth at /api/auth/[...all].ts
+  1f. Write middleware.ts (session validation, route protection)
+  1g. Build login.astro + signup.astro + AuthIsland.tsx
 
-2. QRMatrixGenerator
-   (Pure function, no UI dependencies — testable immediately)
+Phase 2: Payments
+  2a. Stripe SDK client (lib/stripe.ts)
+  2b. Checkout endpoint: /api/qr/checkout.ts
+  2c. Webhook handler: /api/webhooks/stripe.ts
+       (handles checkout.session.completed, subscription.updated, subscription.deleted)
+  2d. Middleware reads subscriptions table → locals.isPro
 
-3. Content encoders (URL, text, WiFi, vCard)
-   (Pure functions, depend on nothing)
+Phase 3: Saved QR Library + Pro Gates
+  3a. QR CRUD endpoints: /api/qr/index.ts + /api/qr/[id].ts
+  3b. DashboardIsland.tsx (list, rename, delete)
+  3c. dashboard.astro (protected SSR page)
+  3d. QRGeneratorIsland.tsx modifications (user/isPro props, Pro gates, save action)
 
-4. ContentForm UI
-   (Depends on: AppState, content encoders)
+Phase 4: Dynamic QR Redirect
+  4a. /r/[code].ts edge function (lookup + 302 redirect)
+  4b. Fire-and-forget scan_events INSERT in edge function
+  4c. PUT /api/qr/[id].ts supports updating target_url
+  4d. Dashboard shows dynamic QR's short URL + edit target UI
 
-5. CanvasRenderer (basic square dots, solid color)
-   (Depends on: QRMatrixGenerator)
-
-6. LivePreview (basic canvas display)
-   (Depends on: CanvasRenderer)
-   -- At this point: end-to-end URL → QR → preview works --
-
-7. StyleControls (colors, dot shapes, eye styles)
-   (Depends on: AppState, CanvasRenderer to extend)
-
-8. SVGRenderer
-   (Depends on: QRMatrixGenerator — parallel to CanvasRenderer)
-
-9. LogoUpload + LogoCompositor
-   (Depends on: CanvasRenderer, SVGRenderer — extends both)
-   -- At this point: full customization + logo works --
-
-10. ExportController (PNG, SVG, clipboard)
-    (Depends on: CanvasRenderer, SVGRenderer, LogoCompositor)
-    -- At this point: core product is complete --
-
-11. SEO shell (page structure, meta tags, structured data, FAQ)
-    (Depends on: nothing runtime — can be done in parallel with 1-10)
-
-12. PageShell polish (how-it-works section, feature highlights, footer)
-    (Depends on: SEO shell)
+Phase 5: Scan Analytics
+  5a. /api/analytics/[code].ts (aggregate scan_events)
+  5b. AnalyticsIsland.tsx (total count + 30-day chart)
+  5c. Dashboard integrates analytics link/panel per dynamic QR
 ```
 
-**Critical path:** 1 → 2 → 5 → 6 gets you a working prototype. Everything else is incremental.
+---
+
+## Scaling Considerations
+
+| Scale | Architecture Adjustments |
+|-------|--------------------------|
+| 0–1k users | Neon free tier (0.5 GB storage), Vercel Hobby plan. No Redis. Single Neon region (us-east-1 for lowest Vercel latency). |
+| 1k–50k users | Neon Launch plan. Add Upstash Redis write-through cache for redirect hot path. Monitor `scan_events` row growth. |
+| 50k–500k users | Neon Scale plan. Pre-aggregate: nightly job writes `scan_daily_totals` table; analytics query reads summaries not raw events. Partition `scan_events` by month. |
+| 500k+ users | Dedicated redirect microservice (Cloudflare Workers). ClickHouse or TimescaleDB for analytics. CDN caching for QR images. |
+
+### Scaling Priorities
+
+1. **First bottleneck:** `scan_events` write volume. At 10k scans/day = 3.6M rows/year. At 100k scans/day, raw row-per-scan becomes expensive to aggregate. Add `scan_daily_totals` pre-aggregation before hitting this ceiling.
+2. **Second bottleneck:** Redirect lookup under burst traffic (e.g., a QR code appears on TV). Upstash Redis cache (write-through on QR create/update) eliminates Neon dependency for the hot path. Add this when p99 redirect latency exceeds 200ms.
+
+---
+
+## Anti-Patterns
+
+### Anti-Pattern 1: Running the QR Redirect as a Serverless Function
+
+**What people do:** Place `/r/[code].ts` under `/api/` as a regular server endpoint without the edge runtime directive.
+
+**Why it's wrong:** Serverless cold starts take 200–500ms on Vercel. A user scanning a QR code experiences a half-second blank screen before seeing the destination. They assume the QR code is broken and do not retry.
+
+**Do this instead:** Export `const runtime = 'edge'` and use Neon's HTTP driver (not TCP `pg`). Edge cold starts are under 50ms.
+
+### Anti-Pattern 2: Storing Raw IP Addresses for Scan Analytics
+
+**What people do:** Insert `request.headers.get('x-forwarded-for')` directly into `scan_events` as `ip_address text`.
+
+**Why it's wrong:** Raw IPs are personal data under GDPR Article 4(1). Storing them requires consent, privacy policy disclosure, and retention limits. This creates legal risk.
+
+**Do this instead:** Store `SHA-256(IP + daily_salt)` as `ip_hash`. Sufficient for deduplication (filtering same-device repeat scans within a day), no PII stored, daily rotation makes hashes unlinkable across days.
+
+### Anti-Pattern 3: Client-Side Auth Checks as the Security Layer for Pro Features
+
+**What people do:** Fetch `/api/auth/session` in the React island on mount, check `isPro` in JavaScript, conditionally render gated UI. Treat the client-side check as authoritative.
+
+**Why it's wrong:** Client-side checks are purely cosmetic. Any user can call `POST /api/qr` from browser DevTools. The Pro gate must be enforced server-side.
+
+**Do this instead:** The API endpoint checks `locals.isPro` server-side (authoritative — returns 403 if false). The island receives `isPro` as a prop from the SSR page for display purposes only. Security lives at the API layer.
+
+### Anti-Pattern 4: Importing `lib/auth.ts` or `lib/db.ts` in React Islands
+
+**What people do:** Import the server-side Drizzle or Better Auth instances directly in a `*.tsx` island component to make database calls from the client.
+
+**Why it's wrong:** Astro/Vite will attempt to bundle these server modules into the client bundle. They import Node.js-only APIs (`pg`, `crypto`, etc.) that crash in the browser.
+
+**Do this instead:** React islands never import from `src/lib/`. They call API endpoints with `fetch()`. Server modules are only imported in `.ts` endpoint files and `middleware.ts`.
+
+### Anti-Pattern 5: Per-Island Auth Fetches Instead of Middleware Injection
+
+**What people do:** Each React island independently fetches `/api/auth/session` on mount to check if the user is logged in. Shows loading spinners in each island while waiting.
+
+**Why it's wrong:** Multiple redundant auth requests per page load. Every protected page shows loading state on every render. Islands can get inconsistent auth state if the session query returns at different times.
+
+**Do this instead:** Auth validation runs once in `middleware.ts`, injects `locals.user` once per request. The `.astro` page passes auth state as props to all islands simultaneously. Zero auth fetches on the client — islands render with correct state immediately.
+
+### Anti-Pattern 6: Encoding the Final Target URL Directly in the QR Pattern
+
+**What people do:** For "dynamic" QR codes, encode the destination URL (e.g., `https://example.com/campaign`) directly into the QR pattern, then try to track scans by adding UTM parameters.
+
+**Why it's wrong:** Once a QR code is printed, the encoded URL cannot be changed. This is not dynamic QR — it is a tracked static QR. The destination cannot be updated without reprinting.
+
+**Do this instead:** Encode the redirect short URL (`https://qrcraft.app/r/x7kPm3qN2f`) in the QR pattern. The short code is permanent. The target URL is a database field that can be updated at any time. This is the correct definition of a dynamic QR code.
+
+---
+
+## Integration Points
+
+### External Services
+
+| Service | Integration Pattern | Notes |
+|---------|---------------------|-------|
+| Stripe | Server-side SDK only (`lib/stripe.ts`). Checkout redirect for subscription creation. Webhook for all subscription state changes. | `STRIPE_SECRET_KEY` never leaves server. Use Stripe CLI for local webhook forwarding in dev. |
+| Neon Postgres | `@neondatabase/serverless` HTTP driver for edge functions. Standard `pg` + Drizzle for serverless functions (use `-pooler` connection string). | PgBouncer pooler handles connection limits in serverless. Use direct URL only in migrations. |
+| Better Auth | Mounted at `/api/auth/[...all].ts` as catch-all handler. Middleware calls `auth.api.getSession()` — HTTP-based, works in edge/serverless. | Session stored as HTTP-only, Secure, SameSite=Lax cookie. Better Auth owns the session schema. |
+| Upstash Redis | Optional. REST API from edge function via `@upstash/redis`. Write-through on QR create/update. | Add in Phase 2+ when redirect latency needs optimization. Not required at launch. |
+
+### Internal Boundaries
+
+| Boundary | Communication | Notes |
+|----------|---------------|-------|
+| Middleware ↔ API endpoints | `context.locals.user` + `context.locals.isPro` | Set once by middleware, read by all SSR handlers. Eliminates redundant auth checks. |
+| React islands ↔ API routes | `fetch()` with `credentials: 'include'` (sends session cookie automatically) | Islands never import server modules. API is the only server-communication channel. |
+| `/r/[code].ts` ↔ `scan_events` | Async INSERT via Neon HTTP after 302 response is sent | Non-blocking. User redirect is never blocked by analytics write. |
+| Stripe webhook ↔ `subscriptions` table | Webhook handler upserts subscription record. Middleware reads it on next request. | Stripe is authoritative for subscription state. Local DB is a cache of Stripe state. |
+| `qr_codes.id` ↔ short URL | The PK is the short code. `qrcraft.app/r/{id}` encodes into QR. | No separate URL mapping table. The QR record IS the redirect config. |
 
 ---
 
 ## Sources
 
-- Confidence levels reflect reasoning from training knowledge (cutoff August 2025); web search tools were unavailable during this research session.
-- QR error correction and logo scannability: ISO/IEC 18004 standard behavior — HIGH confidence.
-- Canvas export pattern (`toBlob` → download): Browser API — HIGH confidence.
-- Clipboard API (`ClipboardItem`) browser support caveats: MEDIUM confidence — verify current Safari support before shipping.
-- SEO structured data recommendations: schema.org WebApplication and FAQPage — MEDIUM confidence.
-- Debounce timing values (100ms, 300ms): convention, not specification — LOW confidence, tune by feel.
+- Astro 5.0 release blog (hybrid → static merge): https://astro.build/blog/astro-5/
+- Astro on-demand rendering docs: https://docs.astro.build/en/guides/on-demand-rendering/
+- Astro Vercel adapter docs: https://docs.astro.build/en/guides/integrations-guide/vercel/
+- Astro middleware docs: https://docs.astro.build/en/guides/middleware/
+- Better Auth Astro integration: https://better-auth.com/docs/integrations/astro
+- Neon serverless driver docs: https://neon.com/docs/serverless/serverless-driver
+- Neon sub-10ms Postgres queries for Vercel edge functions: https://neon.com/blog/sub-10ms-postgres-queries-for-vercel-edge-functions
+- Vercel edge vs serverless latency benchmarks: https://www.openstatus.dev/blog/monitoring-latency-vercel-edge-vs-serverless
+- Vercel edge redirects + Upstash template: https://github.com/vercel/examples/tree/main/edge-middleware/redirects-upstash
+- Stripe subscription webhooks guide: https://docs.stripe.com/billing/subscriptions/webhooks
+- Stripe webhook signature verification: https://docs.stripe.com/webhooks
+- Drizzle ORM + Neon tutorial: https://orm.drizzle.team/docs/tutorials/drizzle-with-neon
+
+---
+*Architecture research for: QRCraft v1.1 — adding auth/payments/dynamic QR redirect/analytics to existing Astro 5 static site on Vercel*
+*Researched: 2026-03-11*

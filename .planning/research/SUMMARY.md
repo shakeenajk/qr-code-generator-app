@@ -1,17 +1,17 @@
 # Project Research Summary
 
-**Project:** QRCraft
-**Domain:** Client-side QR code generator website (SEO-first, static)
-**Researched:** 2026-03-06
-**Confidence:** MEDIUM-HIGH
+**Project:** QRCraft v1.1 — Freemium Monetization Layer
+**Domain:** SaaS freemium add-on on existing Astro 5 + Vercel static site
+**Researched:** 2026-03-11
+**Confidence:** HIGH
 
 ## Executive Summary
 
-QRCraft is a pure client-side, static web application — no backend required for any core function. QR generation, logo compositing, and file export all happen in the browser using `qr-code-styling` (the dominant styled-QR library) and native Canvas/SVG APIs. The recommended stack is Astro (SSG framework for SEO-first HTML output) with React islands for the interactive generator, Tailwind CSS for styling, and Vercel for deployment. This combination delivers a fast-loading, crawler-friendly product without sacrificing the reactive UI needed for live QR preview. The architecture is well-understood and the technology choices are conservative — all libraries are mature and the patterns are established.
+QRCraft v1.1 adds a full freemium monetization layer — auth, Stripe billing, saved QR library, dynamic QR redirect, and scan analytics — on top of a complete, production-quality static QR generator. The research establishes a clear stack: Clerk for auth, Turso (libSQL) with Drizzle ORM for the database, Stripe Checkout for payments, and Vercel edge functions for the latency-critical redirect service. The project requires switching Astro from its current static-only output to a hybrid model where the homepage and marketing pages stay fully prerendered (preserving Lighthouse 100) while new dashboard, API, and redirect routes run server-side. The critical insight is that Astro 5's `output: 'static'` already supports per-route SSR via `export const prerender = false` — no global mode change is needed, and adding `@astrojs/vercel` as an adapter is the only required `astro.config.mjs` change.
 
-The product competes primarily on speed, cleanliness, and visual output quality. The biggest table-stakes differentiators are: instantaneous live preview (no submit button), SVG export as a first-class citizen, logo embed with gradient support, and zero friction (no signup, no watermarks). The competitive gap to own is the combination of a clean/fast UI with full visual customization — most competitors are either feature-complete but cluttered, or clean but limited. QRCraft should be both.
+The recommended approach groups work into five sequential phases, each unlocking the next. Auth and database come first because every other v1.1 feature depends on user identity. Stripe billing comes second because it defines what "Pro" means before any Pro features are built. The saved QR library, dynamic redirect service, and scan analytics follow in strict dependency order — you cannot have dynamic QR without a redirect service, and you cannot have scan analytics without scans being recorded. This ordering eliminates integration dead ends and ensures each phase produces a shippable increment.
 
-The highest-risk areas are not architectural but behavioral: QR scannability under customization (logo coverage, inverted colors, gradient contrast at finder squares), correct encoding for structured content types (WiFi SSID escaping, vCard RFC compliance), and canvas security restrictions that silently break PNG/SVG export when cross-origin logo images are involved. These pitfalls are well-documented and fully preventable, but only if they are addressed at implementation time — not retrofitted. The recommended mitigation strategy is to enforce constraints automatically (force EC=H when logo is present, validate color contrast, use file upload not URL input for logos) rather than relying on user awareness.
+The primary risks are operational, not technical. A non-idempotent Stripe webhook handler causes corrupted subscription state that is expensive to recover. The redirect endpoint run as a serverless function instead of an edge function produces unacceptable redirect latency that undermines the core value of dynamic QR codes. Storing raw IP addresses for scan analytics creates GDPR exposure. All three are prevention problems — trivial to avoid when building correctly and expensive to fix post-launch. The research flags specific acceptance criteria for each phase to prevent these from shipping.
 
 ---
 
@@ -19,211 +19,163 @@ The highest-risk areas are not architectural but behavioral: QR scannability und
 
 ### Recommended Stack
 
-The core generation library is `qr-code-styling` (^1.6.0) — the industry standard for styled QR codes in the browser. It supports all required customization features: dot shapes, eye styles, color gradients, logo embedding, and both Canvas and SVG output modes. No alternatives come close in the combination of active maintenance and feature breadth for a consumer UI tool.
+The new infrastructure for v1.1 layers onto the existing Astro 5 + React islands + Tailwind v4 + Vercel stack without replacing anything. The single most significant config change is adding `@astrojs/vercel` as an adapter — one line in `astro.config.mjs` — which unlocks server-side rendering for individual routes while leaving the static homepage unchanged.
 
-The framework choice is Astro (^4.x) with React (^18.x) islands. Astro provides full HTML output at build time — pages are real HTML for crawlers, satisfying SEO requirements without any additional configuration. React islands hydrate only the generator UI, keeping JS bundle size minimal for the static content around the tool. TypeScript (^5.x) is standard across all layers. Tailwind CSS (^3.4.x) handles styling. Build tooling is Vite (embedded in Astro) with pnpm. Deployment target is Vercel (zero-config, preview deploys, global CDN, free tier sufficient).
+**Core technologies (new for v1.1):**
+- `@clerk/astro` ^2.16.2: Auth — sign-up, sign-in, session, route protection. Official Astro SDK with pre-built UI components and `clerkMiddleware()`. Eliminates custom auth UI entirely. 10K MAU free tier is appropriate for MVP scale.
+- `stripe` ^20.4.1 + `@stripe/stripe-js` ^5.x: Payments via Stripe Checkout (hosted). Handles PCI compliance, 3DS, Apple Pay, and billing portal. ~2 hours to integrate vs ~2 days for custom Elements.
+- `@libsql/client` ^0.14.x: Turso/libSQL database client. HTTP-based SQLite — no connection pool management, sub-5ms overhead, edge-runtime compatible via `@libsql/client/web`. Free tier is generous; minimum paid is $4.99/mo vs $25/mo for Postgres alternatives.
+- `drizzle-orm` ^0.45.1 + `drizzle-kit` ^0.30.x: ORM with native libSQL driver. TypeScript-first, schema-as-code. Confirmed edge-runtime compatible per official Drizzle docs.
+- `nanoid` ^5.x: Short-code generation. The `qr_codes.id` (10 chars) serves as both primary key and redirect short code — no separate URL mapping table needed.
 
-**Core technologies:**
-- `qr-code-styling` ^1.6.0: QR rendering (Canvas + SVG, full customization) — only library with full dot/eye/logo/gradient support
-- Astro ^4.x: SSG framework — ships zero-JS HTML by default; perfect for SEO + tool hybrid
-- React ^18.x: Interactive islands — live preview, form controls, export buttons
-- TypeScript ^5.x: Type safety — native support across all stack layers
-- Tailwind CSS ^3.4.x: Utility CSS — fast UI iteration, purged at build, no runtime overhead
-- Vercel: Deployment — zero-config Astro, global edge CDN, preview deploys on PRs
-- `@astrojs/sitemap` ^3.x: Sitemap — required for Google indexing, one-line integration
+**Critical config note:** Use `import vercel from '@astrojs/vercel'` (not the deprecated `/serverless` sub-path). Keep `output: 'static'` in `astro.config.mjs` — Astro 5 hybrid is implicit. Add `adapter: vercel()`. Do NOT switch to `output: 'server'` globally or all formerly-static pages become serverless functions.
+
+**Stack conflict note:** ARCHITECTURE.md references Better Auth + Neon Postgres as an alternative. STACK.md recommendations (Clerk + Turso) are more current and better validated against Astro 5. Use STACK.md as authoritative for technology choices; use ARCHITECTURE.md for patterns, component boundaries, and data flows.
 
 ### Expected Features
 
-**Must have (table stakes):**
-- URL QR generation with live preview — the primary use case; zero friction, no submit button
-- Plain text QR — second most common type; trivially added once URL works
-- Foreground and background color customization — minimum expected customization
-- Error correction level selection — required for power users and logo embedding
-- PNG download — universal export format
-- Free with no signup — auth-wall means immediate abandonment
-- Mobile-responsive layout — 50%+ of traffic is mobile; also a Core Web Vitals signal
-- Fast page load (lean JS) — directly impacts SEO rankings for competitive queries
+The v1.0 static generator is complete and ships unchanged. All v1.1 work is additive. Static QR generation must remain fully anonymous and ungated — it is the primary acquisition channel for Pro conversion.
 
-**Should have (competitive differentiators):**
-- Logo/image embed in QR center — single biggest visual differentiator; requires EC=H enforcement
-- Dot shape + eye style customization — produces "designer QR" vs plain black squares
-- Color gradients (foreground, linear and radial) — high visual impact, medium complexity
-- SVG download — vector export for print-quality output; high value given client-side architecture
-- WiFi credential QR codes — good SEO keyword target, low implementation complexity
-- vCard / contact info QR — business card use case; more UI fields but well-understood encoding
-- Copy to clipboard — near-zero effort, noticeable UX improvement
-- WCAG AA accessibility — keyboard navigation, labeled controls; most competitors fail here
+**Must have (table stakes — v1.1 MVP):**
+- Email/password auth with session management — identity foundation for everything else
+- Stripe Checkout + Customer Portal — revenue and self-serve billing management (legal compliance in many jurisdictions)
+- Saved QR library (Pro) — create, name, edit, delete saved QR codes with serialized qr-code-styling settings
+- Dynamic QR codes with editable destination URL (Pro) — the #1 Pro feature in the category; print once, change destination forever
+- Short-URL redirect service (`/r/:code`) with scan logging — prerequisite for dynamic QR and analytics
+- Basic scan analytics: total scans, unique scans, 30-day time-series chart, device breakdown, top countries (Pro)
+- Pro feature gates: logo upload and advanced dot shapes behind Pro for authenticated users (anonymous users remain completely ungated)
+- Free tier limits: 3 dynamic QR codes max, 500 scans/code soft limit
+
+**Should have (v1.x — add after validation):**
+- QR active/paused toggle — pause a campaign without deleting the code
+- Copy existing QR as new draft — reduces re-setup friction
+- QR expiry date — campaign auto-expiry
+- CSV export of scan data — data portability
 
 **Defer (v2+):**
-- Frame/CTA text ("Scan Me" border) — polish, not core
-- SMS / email / geo / calendar content types — expand SEO surface area post-launch
-- Presets/templates — requires curating quality defaults
-- Share link (settings encoded in URL hash) — useful but not blocking
-- Batch/bulk generation — agency use case, high complexity
-- Dynamic QR codes (redirect URLs) — requires backend, separate product tier
+- Custom short domains — very high complexity, enterprise only
+- Folder/tag organization — add when users report navigation pain at 20+ codes
+- Team/multi-seat accounts — requires org data model redesign
+- Scan limit email alerts — requires async job queue
 
-**Anti-features (explicitly avoid):**
-- User accounts in v1 — adds GDPR surface area, infra cost, and auth friction for no benefit
-- Watermarks on free tier — destroys value proposition
-- Paid-only SVG export — users expect SVG free; paywalling it drives traffic to competitors
-- Dynamic QR infrastructure — massive scope; separate product decision
+**Anti-features to never build:**
+- Ads in redirect path — worst-reviewed pattern in competitor analysis, destroys trust
+- Watermarks on free QR output — makes output unusable professionally, kills acquisition funnel
+- Requiring account for static QR generation — breaks the core acquisition model
+- Deleting data on subscription cancel — users leave angry reviews; gate edit/create, not read
+
+**Feature gate strategy:** Gate logo embed and advanced dot shapes for new authenticated users only. Anonymous static generation stays completely ungated forever. This preserves Lighthouse 100 on the homepage and zero-friction acquisition.
 
 ### Architecture Approach
 
-QRCraft is a three-layer client-side system: Input Layer (ContentForm + StyleControls + LogoUpload), Render Pipeline (QRMatrixGenerator + CanvasRenderer + SVGRenderer + LogoCompositor + LivePreview), and Export Pipeline (ExportController). A single reactive AppState object is the source of truth. Changes to state trigger a debounced render pipeline (300ms for text input, 100ms for style controls), which updates the live preview. Export actions trigger a separate high-resolution render to an off-screen canvas.
+The architecture is a layered Astro 5 hybrid deployment on Vercel. The homepage remains fully static (prerendered at build time, served from CDN). New SSR routes (`/login`, `/signup`, `/dashboard`) opt into server rendering with `export const prerender = false`. A single `src/middleware.ts` validates sessions once per SSR request and injects `locals.user` and `locals.isPro` — eliminating redundant auth checks across all API endpoints. The dynamic QR redirect (`/r/[slug]`) runs as a Vercel edge function for global low-latency redirects. All other new API routes are standard Vercel serverless functions.
+
+Auth state flows server → Astro page → React island as props (not via client-side fetch on mount). Islands receive `user` and `isPro` at SSR render time — zero auth fetches on mount, no flash of ungated content.
 
 **Major components:**
-1. AppState — single reactive object: content (type + fields + encoded value) + style (dotShape, eyeShape, foreground, background, gradient, errorCorrection) + logo (dataUrl, sizeRatio)
-2. RenderPipeline — orchestrates matrix generation → canvas/SVG rendering → logo compositing → preview update; triggered by debounced state changes; never called directly from event handlers
-3. ContentForm — collects and validates per-type input (URL, text, WiFi fields, vCard fields); delegates encoding to per-type pure encoder functions
-4. StyleControls — color pickers, gradient toggles, dot shape selector, eye style selector; validates contrast before updating state
-5. LogoUpload — file input only (no URL input to avoid canvas taint); converts to data URL on upload; triggers auto-set of EC=H
-6. ExportController — separate high-res canvas render for PNG; SVG string serialization for SVG; ClipboardItem for clipboard; feature-detects clipboard API before offering copy
-7. SEOLayer — static Astro page shell: semantic HTML, meta tags, JSON-LD structured data, FAQ section with FAQPage schema; built independently of React islands
-
-**Key patterns:**
-- Dual rendering: SVG for live preview (crisp on HiDPI), Canvas for PNG export and clipboard
-- Pure functions for matrix generation and content encoding — testable without UI
-- File upload only for logos (prevents canvas taint completely)
-- Content type encoders as a lookup table — extensible to new types without architectural changes
+1. `src/middleware.ts` — Session validation via `clerkMiddleware()`, injects `locals.user` + `locals.isPro` into all SSR requests, protects `/dashboard` with redirect to `/login`
+2. `src/pages/r/[slug].ts` (edge runtime) — Dynamic QR redirect: DB lookup via `@libsql/client/web` → 302 redirect + fire-and-forget scan event INSERT; must use `/web` import not default import
+3. `src/pages/api/stripe/webhook.ts` — Stripe subscription lifecycle (all six events) with idempotency guard; must read raw request body before JSON parsing for signature verification
+4. `src/pages/api/qr/` — CRUD for saved QR library; all check `locals.isPro` server-side; POST requires Pro
+5. `src/pages/api/analytics/[id].ts` — Scan count aggregation queries; Pro-gated, user ownership enforced
+6. `DashboardIsland.tsx`, `AnalyticsIsland.tsx` — React islands receiving auth state as SSR props, calling API endpoints via `fetch()`, never importing from `src/lib/` directly
+7. `src/db/schema.ts` + `src/lib/db.ts` — Drizzle schema (5 tables) and Turso client; edge routes use `/web`, serverless routes use default
 
 ### Critical Pitfalls
 
-1. **Logo coverage breaks scannability** — Force EC=H automatically when a logo is uploaded; enforce 20-25% max area (not 30% — the spec's limit does not account for finder pattern preservation); never let the logo touch corner squares. Test with printed output on mid-range Android in poor lighting, not just browser BarcodeDetector.
+1. **Astro output mode misconfiguration** — Switching to `output: 'server'` globally converts the static homepage to a serverless function, destroying Lighthouse 100. Prevention: keep `output: 'static'`, add `adapter: vercel()`, add `export const prerender = false` only to SSR routes. Verify with `x-vercel-cache: HIT` on homepage response.
 
-2. **Canvas taint blocks download silently** — Use file upload exclusively for logo input (no URL input). Local File objects are never cross-origin, eliminating the taint risk entirely. If URL input is ever added, proxy it through a serverless function to same-origin.
+2. **Non-idempotent Stripe webhook handler** — Stripe retries webhooks on timeouts; without deduplication the same event fires twice and corrupts subscription state. Prevention: store `stripe_event_id` in a `stripe_events` table as the first operation; return 200 immediately if already present. 30 minutes to implement, must not be deferred.
 
-3. **SVG export may be raster-in-SVG** — Verify `qr-code-styling` produces true vector output (paths/rects, not `<image>` wrappers) before relying on it. Open the exported SVG in a text editor to confirm. Also: ensure logo in SVG export uses data URL (not object URL), otherwise the logo breaks when the file is opened later.
+3. **Redirect endpoint as serverless instead of edge function** — Cold-start serverless adds 200-500ms before the user sees their destination. QR users assume the code is broken. Prevention: `export const runtime = 'edge'` in `/r/[slug].ts`; use `@libsql/client/web`. This is not an optimization — it is the minimum viable redirect experience.
 
-4. **Inverted colors and low-contrast gradients break scans** — Validate that foreground luminance is darker than background (minimum 3:1 contrast ratio). For gradients, ensure the gradient endpoints at the finder square corners remain dark enough. Lock corner finder squares to solid dark color regardless of gradient settings.
+4. **Missing Stripe subscription lifecycle events** — Handling only `checkout.session.completed` leaves users on the wrong tier after cancellation, payment failure, or plan changes. Prevention: implement all six subscription events from day one — `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_succeeded`, `invoice.payment_failed`, and `customer.subscription.trial_will_end`.
 
-5. **vCard and WiFi encoding bugs surface only in edge cases** — Write dedicated encoder functions (not string concatenation) for each content type. Unit-test with edge cases: SSID with quotes and backslashes, vCard name with comma and semicolon. WiFi format per ZXing spec: `WIFI:T:WPA;S:<SSID>;P:<password>;;` with backslash escaping.
+5. **Scan analytics bot inflation** — Link preview bots (Slack, iMessage, WhatsApp) and security scanners inflate scan counts 3-6x, making analytics untrustworthy. Prevention: store raw User-Agent in every scan event and filter known bot agents in the display query (not at collection time — raw data enables retroactive improvements).
 
 ---
 
 ## Implications for Roadmap
 
-Based on combined research, the architecture's build order (state → matrix generator → renderer → preview → customization → export → SEO shell) maps cleanly to product phases. The critical path is short: AppState + matrix generator + basic canvas renderer + live preview = working prototype with 4 focused tasks. Everything else is incremental.
+The feature dependency graph drives a strict 5-phase ordering. Each phase is a prerequisite for the next.
 
-### Phase 1: Foundation — Project Setup and SEO Shell
+### Phase 1: Foundation — Auth, Database, and SSR Infrastructure
 
-**Rationale:** SEO page structure has no runtime dependencies — it can be built in parallel with the interactive components and must be correct before launch. URL architecture and meta tags are hard to change after Google indexing. Astro project initialization, Tailwind setup, and the static HTML shell with structured data belong here. Script loading strategy (defer/module for QR library) must also be set now, not retrofitted.
+**Rationale:** Auth is the prerequisite for billing (Stripe must attach to a user), which is the prerequisite for Pro features. Database schema must be established before any data can be stored. The Astro output mode decision must be made and locked before any SSR routes are written — getting it wrong is the most expensive pitfall to recover from.
 
-**Delivers:** Deployable Astro site with correct page structure, meta tags, Open Graph, JSON-LD WebApplication schema, FAQ section with FAQPage schema, static og:image, and sitemap. Passes Lighthouse SEO audit. QR generator area is a placeholder.
+**Delivers:** Working sign-up, sign-in, sign-out, session-protected `/dashboard` route. Database schema with all five tables (`users`, `subscriptions`, `qr_codes`, `scan_events`, `stripe_events`). Astro middleware injecting auth context. Vercel adapter configured correctly. Login and signup pages with Clerk pre-built components.
 
-**Addresses:** Fast page load (table stakes), SEO requirements, social sharing preview (og:image)
+**Addresses:** Email/password auth, route protection, Astro output mode strategy, DB connection approach
 
-**Avoids:** SEO cannibalization from wrong URL structure (Pitfall 4); missing og:image killing social CTR (Pitfall 13); QR library blocking FCP (Pitfall 11)
+**Avoids:** Astro output mode misconfiguration (Pitfall 1), middleware applied to static pages causing errors (Pitfall 2), Postgres connection pool exhaustion (Pitfall 9), flash of ungated content (Pitfall 8)
 
-**Research flag:** Standard patterns — skip phase research. Astro SSG + sitemap + JSON-LD are well-documented.
+**Research flag:** Standard patterns — Clerk has an official Astro SDK with a documented quickstart. No additional research needed. Acceptance criteria: homepage must show `x-vercel-cache: HIT`; dashboard must show `x-vercel-cache: MISS`; unauthenticated `/dashboard` must redirect to `/login`.
 
----
+### Phase 2: Stripe Billing and Pro Tier
 
-### Phase 2: Core Generator — URL QR with Live Preview
+**Rationale:** Pro tier must be defined before any Pro features are built. Every subsequent phase gates content behind `locals.isPro`. Building billing after auth (Phase 1) but before library or dynamic QR (Phase 3) means subscription state is available when feature gates are implemented.
 
-**Rationale:** This is the critical path. AppState definition must come first (everything depends on the state shape). Then matrix generation (pure function, testable immediately), basic canvas renderer, and live preview. This phase delivers an end-to-end working QR generator for URL input. All subsequent phases build on this foundation.
+**Delivers:** Stripe Checkout integration (free → Pro upgrade), Stripe Customer Portal (manage/cancel), webhook handler for all six subscription lifecycle events, subscription state persisted in `subscriptions` table, middleware updated to read `isPro` from subscriptions, Stripe CLI setup for local webhook testing.
 
-**Delivers:** Working URL → live QR preview with debounced re-render. Fixed-size preview container (prevents layout shift). Basic square dots, solid foreground/background color. No export yet.
+**Addresses:** Stripe Checkout, Customer Portal, self-serve cancellation, subscription lifecycle management
 
-**Addresses:** URL QR generation (table stakes #1), live preview (table stakes #2), fast/instant generation
+**Avoids:** Non-idempotent webhook handler (Pitfall 3), missing subscription events (Pitfall 4), granting Pro on client-side redirect instead of webhook (ARCHITECTURE integration gotcha)
 
-**Avoids:** Input lag and layout shift from unbounded re-render (Pitfall 5); wrong quiet zone default (Pitfall 7 — verify library default is 4 modules, set explicitly)
+**Research flag:** Standard Stripe Checkout + webhooks pattern — well documented. The six-event requirement and idempotency table are non-negotiable and must be in the phase acceptance criteria before any code is written.
 
-**Research flag:** Standard patterns — skip phase research. Debounce + fixed canvas container is well-established.
+### Phase 3: Saved QR Library and Pro Feature Gates
 
----
+**Rationale:** The library requires auth (Phase 1) and a defined Pro tier (Phase 2). Pro gates on logo and advanced shapes require knowing the user's tier. This phase delivers the core Pro value proposition — a persistent, named QR library — before tackling dynamic QR infrastructure.
 
-### Phase 3: Content Types — Text, WiFi, vCard
+**Delivers:** QR CRUD API endpoints (`/api/qr/`), DashboardIsland with library list view, Pro gates on logo upload and advanced dot shapes in QRGeneratorIsland (new authenticated users only), free tier limit enforcement (3 dynamic QR max), save-to-library action in QRGeneratorIsland, QR settings serialization to JSON blob.
 
-**Rationale:** Once the core generator works, adding content types is low-risk extension. Plain text is trivial. WiFi and vCard require dedicated encoder functions with proper escaping. Building encoders as pure functions early (before any customization complexity) keeps them isolated and testable. Unit tests for edge cases belong in this phase.
+**Addresses:** Saved QR library (Pro), named QR records, Pro customization gates, free tier limits
 
-**Delivers:** Content type selector (URL / Text / WiFi / vCard) with type-specific form fields. Each type produces a correctly encoded QR payload. Encoders unit-tested with edge cases.
+**Avoids:** Client-side-only Pro gating (server-side check at every API endpoint is authoritative), forced signup for anonymous users (anonymous static generation stays ungated)
 
-**Addresses:** Plain text QR (table stakes), WiFi QR (differentiator + SEO keyword), vCard QR (business card use case)
+**Research flag:** Standard CRUD pattern — no additional research needed. One early verification: confirm `qr-code-styling` config serializes cleanly to/from JSON for the settings snapshot. Test round-trip fidelity before building the full save flow.
 
-**Avoids:** WiFi encoding bugs with special characters (Pitfall 8 — ZXing spec backslash escaping); vCard field escaping per RFC 6350 (Pitfall 8)
+### Phase 4: Dynamic QR Redirect Service
 
-**Research flag:** Standard patterns for URL/text. WiFi and vCard encoding has known spec rules — no additional research needed, but unit tests are mandatory.
+**Rationale:** Dynamic QR codes are the #1 Pro differentiator and the highest-complexity new infrastructure. They depend on Phase 3 (dynamic QR is a type of saved QR) and the Vercel adapter (Phase 1). Building this as a dedicated phase gives the edge function its required focus — redirect latency has the strictest performance requirement in the system.
 
----
+**Delivers:** Edge function at `/r/[slug].ts` (302 redirect + fire-and-forget scan logging), dynamic QR creation flow in the library, editable destination URL, active/paused toggle, redirect to holding page for deactivated codes, destination URL validation (http/https allowlist on creation).
 
-### Phase 4: Visual Customization — Colors, Shapes, Gradients
+**Addresses:** Dynamic QR codes, redirect service, scan event recording, active/paused toggle
 
-**Rationale:** The visual customization features (dot shapes, eye styles, color pickers, gradients) are what differentiate QRCraft from basic generators. They build on the render pipeline established in Phase 2. Contrast validation must be built alongside color pickers, not added later.
+**Avoids:** Serverless redirect instead of edge function (Pitfall 6), open redirect phishing (Pitfall 5), storing raw IP addresses (GDPR — store SHA-256(IP + daily_salt) as `ip_hash`)
 
-**Delivers:** Dot shape selector (square, rounded, dots, classy, extra-rounded), eye/corner style selector, foreground/background color pickers with contrast validation, gradient toggle (linear/radial with start/end color and angle). All changes trigger debounced live preview update.
+**Research flag:** Two items to confirm during phase planning: (1) the exact `@libsql/client/web` import path in version 0.14.x — it is a documented gotcha and must be verified before writing the edge function; (2) rate limiting approach (Vercel KV vs in-memory edge counter) — brief spike recommended before implementation.
 
-**Addresses:** Color customization (table stakes), dot/eye shape customization (differentiator), gradients (differentiator), error correction level selector
+### Phase 5: Scan Analytics Dashboard
 
-**Avoids:** Inverted color QR codes that fail to scan (Pitfall 6 — luminance validation on color picker change); gradient corners too light for finder squares (Pitfall 12 — lock corner squares to solid dark)
+**Rationale:** Analytics require scan events (recorded in Phase 4) before there is data to display. Building analytics last means the data model is populated and the display layer can be built and tested against real data.
 
-**Research flag:** Standard patterns — skip phase research. `qr-code-styling` API is well-documented for these features.
+**Delivers:** Analytics API endpoint (`/api/analytics/[id].ts`) with scan count aggregation, AnalyticsIsland with total/unique scans, 30-day time-series chart, device breakdown, top countries table, bot-filtering in display query (not collection query — raw data preserved for retroactive improvement).
 
----
+**Addresses:** Scan analytics (Pro), time-series chart, device breakdown, geographic breakdown, unique vs total scan distinction
 
-### Phase 5: Logo Embedding
+**Avoids:** Bot inflation making analytics untrustworthy (Pitfall 7 — store raw User-Agent in scan events, filter known bot agents in display query), synchronous scan logging blocking redirect (already addressed in Phase 4 with fire-and-forget)
 
-**Rationale:** Logo embedding is the single most impactful differentiator and also the highest-risk feature from a scannability perspective. It must be a dedicated phase because: (1) it requires EC=H enforcement logic, (2) it extends both the canvas and SVG render paths (LogoCompositor), and (3) the file-upload-only strategy (to prevent canvas taint) must be a deliberate decision, not an afterthought.
-
-**Delivers:** Logo file upload (file input only, no URL input). Automatic EC=H enforcement when logo is present. Logo size ratio control (default 20%, max 25%). Canvas compositing for preview and PNG export. SVG `<image>` embedding using data URL for vector export. Warning if logo approaches size limit.
-
-**Addresses:** Logo embed (top differentiator), error correction level auto-management
-
-**Avoids:** Logo coverage breaking scannability (Pitfall 1 — force H, enforce 20-25% max); canvas taint blocking download (Pitfall 2 — file upload only, never URL input); object URL in SVG export breaking downloaded files (Architecture anti-pattern 2)
-
-**Research flag:** Logo compositing patterns are well-documented. The EC=H constraint is from ISO spec. No additional research needed — enforce the constraints as specified.
-
----
-
-### Phase 6: Export Pipeline — PNG, SVG, Clipboard
-
-**Rationale:** Export is the last core feature because it depends on both render paths (canvas for PNG/clipboard, SVG for vector export) being stable. High-resolution PNG export requires a separate off-screen canvas from the live preview canvas. SVG quality must be verified (true vector, not raster-in-SVG) before this phase ships. Clipboard requires feature detection and graceful degradation.
-
-**Delivers:** PNG download at 3x display resolution (minimum 900px, ideally 1200px option). SVG download as true vector (verify library output format). Copy to clipboard with ClipboardAPI feature detection and fallback modal for unsupported browsers (Firefox image clipboard). Clear user-facing error if any export fails.
-
-**Addresses:** PNG download (table stakes), SVG download (differentiator), copy to clipboard (differentiator)
-
-**Avoids:** Low-resolution PNG for print (Pitfall 9 — render at 3-4x on hidden canvas); SVG as raster-in-SVG (Pitfall 3 — verify library output in text editor); clipboard failure in Firefox/HTTP (Pitfall 10 — feature detect, implement fallback)
-
-**Research flag:** Verify `qr-code-styling` SVG output format before committing to the export implementation. This is a one-time check, not a research sprint.
-
----
-
-### Phase 7: Polish and Launch Readiness
-
-**Rationale:** Final phase collects UX polish items that improve conversion and completeness without being blocking for core functionality. Dark mode, accessibility audit, performance tuning, and content type expansion (SMS, email, geo) all belong here.
-
-**Delivers:** Dark mode (CSS variables), WCAG AA accessibility pass (keyboard navigation, ARIA labels, labeled form controls), Lighthouse 90+ on mobile, additional content types (SMS, email, geo) as low-effort SEO surface area expansion, "how it works" page section, FAQ section populated with real questions.
-
-**Addresses:** WCAG AA (differentiator), fast page load (table stakes), mobile-responsive layout (table stakes)
-
-**Avoids:** Lighthouse CLS above 0.1 from preview resize (confirm fixed container from Phase 2 holds); script loading blocking FCP (confirm defer/module from Phase 1)
-
-**Research flag:** Standard patterns — skip phase research.
-
----
+**Research flag:** Two items to confirm: (1) chart library selection — Recharts is the default choice for React islands, but bundle size impact should be verified before committing; (2) bot User-Agent filtering approach — Vercel BotID is a paid add-on, IAB/ABC list is free but requires maintenance; confirm which approach fits the project before Phase 5 planning.
 
 ### Phase Ordering Rationale
 
-- Phase 1 (Foundation) runs partially in parallel with Phase 2 — the static shell and the React island are independent tracks that merge when the generator component is mounted in the page
-- Phases 2-3 (Core + Content Types) establish pure functions that all later phases depend on — shortcutting this order causes retrofits
-- Phase 4 (Customization) must come before Phase 5 (Logo) because EC=H is part of the style layer; logo logic reads from the style state
-- Phase 5 (Logo) must come before Phase 6 (Export) because logo compositing affects both render paths that the export controller uses
-- Phase 6 (Export) is the final core feature — once it ships, the product is functionally complete
-- Phase 7 (Polish) can be partially parallelized: accessibility work can start during Phase 4-5, dark mode during any phase
+- **Dependency chain is strict:** Auth → Billing → Library → Dynamic QR → Analytics. No phase can be safely reordered without breaking a prerequisite.
+- **Risk front-loading:** The highest-risk pitfall (output mode misconfiguration) is addressed in Phase 1 before any feature code is written. The second-highest-risk (non-idempotent webhooks) is addressed in Phase 2. By Phase 3 the infrastructure is stable and each new phase adds features to a solid foundation.
+- **Shippable increments:** After Phase 2, the billing flow is testable end-to-end. After Phase 3, the library is usable by Pro users. After Phase 4, dynamic QR codes work. Each phase is a product milestone, not just a code milestone.
+- **Performance isolation:** Phase 4 (redirect service) has the strictest performance requirement in the system — treating it as a standalone phase gives it the dedicated focus it requires. The <100ms P99 redirect target cannot be achieved by rushing it as a sub-task.
 
 ### Research Flags
 
-Phases needing deeper research during planning:
-- None identified. All phases follow established patterns with well-documented APIs. The key unknowns are implementation-time verification tasks, not research questions.
+Phases likely needing a brief research spike during planning:
+- **Phase 4 (Dynamic QR Redirect):** `@libsql/client/web` import path in v0.14.x is a documented gotcha. Rate limiting strategy (Vercel KV vs in-memory) needs a decision. Edge Config vs direct DB lookup trade-offs may be worth a 30-minute spike.
+- **Phase 5 (Analytics):** Chart library bundle size should be verified before selection. Bot User-Agent filtering approach (Vercel BotID vs IAB list) should be confirmed — one is paid, one requires maintenance.
 
 Phases with standard patterns (skip research-phase):
-- **All phases** — Astro, React, `qr-code-styling`, Canvas API, SVG export, Clipboard API, and QR encoding specs are all well-documented with high-confidence sources. The pitfalls are known and the preventions are specified.
-
-Implementation-time verification tasks (not research sprints):
-- Verify `qr-code-styling` SVG output is true vector (open exported SVG in text editor, confirm no `<image>` wrapper) — Phase 6
-- Verify library default quiet zone is 4 modules; set explicitly if not — Phase 2
-- Verify Tailwind CSS v4 stable release status before installing (was in beta at training cutoff) — Phase 1
+- **Phase 1 (Auth + Foundation):** Clerk has an official Astro SDK with a documented quickstart. Turso + Drizzle has an official integration tutorial.
+- **Phase 2 (Stripe Billing):** Stripe Checkout + webhooks is the most-documented Stripe pattern. The idempotency table is boilerplate.
+- **Phase 3 (Saved QR Library):** Standard CRUD over a known schema.
 
 ---
 
@@ -231,45 +183,50 @@ Implementation-time verification tasks (not research sprints):
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | `qr-code-styling` is the clear industry standard; Astro + React is a well-established combination; all deployment options are proven. Specific patch versions need npm verification at project start. Tailwind v4 status needs confirmation. |
-| Features | MEDIUM | Core table stakes are stable and well-established. Competitive landscape observations are from training data (mid-2025); should be spot-checked against current competitors before final feature prioritization. |
-| Architecture | HIGH | Three-layer client-side architecture is well-established for this class of tool. Dual renderer (SVG preview + Canvas export), debounce patterns, and logo compositing approach are all proven. EC=H constraint is from ISO spec. |
-| Pitfalls | HIGH | Canvas taint, QR EC spec constraints, WiFi/vCard encoding specs, Clipboard API browser support, and SEO cannibalization patterns are all well-documented with authoritative sources. Library-specific defaults (quiet zone) need implementation-time verification. |
+| Stack | HIGH | All version numbers confirmed against npm registry as of 2026-03-11. Official SDK docs verified for Clerk, Drizzle, libSQL. Turso free tier confirmed against official pricing page. |
+| Features | MEDIUM-HIGH | Competitor feature tiers verified via live competitor research (QRTiger, Hovercode, Uniqode, QR Code Generator). Free tier limits (3 dynamic, 500 scans/code) are calibrated against QRTiger's model from multiple sources. |
+| Architecture | HIGH | Astro 5 hybrid output model confirmed via official Astro 5.0 release docs and on-demand rendering guide. Edge vs serverless latency confirmed via official Neon benchmarks and openstatus benchmark. Fire-and-forget scan logging is the documented industry pattern. |
+| Pitfalls | HIGH (Stripe/Astro/Vercel), MEDIUM (bot filtering, scale thresholds) | Stripe webhook pitfalls from official Stripe docs. Astro output mode pitfalls from official Astro v5 upgrade guide. CVE references confirmed. Bot filtering thresholds from vendor blogs — treat as directional. |
 
-**Overall confidence:** HIGH for architecture and technology decisions. MEDIUM for competitive feature prioritization (verify against live competitors before roadmap is finalized).
+**Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **Tailwind CSS v4 stability:** Was in beta at training cutoff (August 2025). Verify whether v4 is stable before using; if it is, the API differs significantly from v3. If still in flux, use v3.4.x.
-- **Astro version currency:** v4.x was current mid-2025; v5.x may exist. Check astro.build/changelog at project start and adjust.
-- **`qr-code-styling` SVG output quality:** Must verify the library produces true vector SVG (not raster-in-SVG) before committing to SVG export as a feature. This is a 5-minute check, not a blocker.
-- **Competitor feature set verification:** FEATURES.md was written from training knowledge. Before finalizing the roadmap, manually check qrcode-monkey.com and qr-code-generator.com for any features that have become table stakes since mid-2025.
-- **Firefox clipboard image support:** Noted as unsupported as of 2025 training data. Verify current status — if Firefox has added `ClipboardItem` image support, the fallback modal can be simplified.
+- **ARCHITECTURE.md vs STACK.md stack discrepancy:** ARCHITECTURE.md assumes Better Auth + Neon Postgres; STACK.md recommends Clerk + Turso. Roadmapper should use STACK.md technology choices and ARCHITECTURE.md patterns. The schema in STACK.md is authoritative for implementation — the ARCHITECTURE.md schema uses Neon-specific types (e.g., `bigserial`, `jsonb`) that do not apply to SQLite/Turso.
+- **Stripe pricing/plan price point:** Research covers integration patterns but not the specific Pro plan price ($X/month). This is a business input that must be defined before Phase 2 starts — the Stripe product and price ID must exist to create Checkout sessions.
+- **Analytics chart library:** FEATURES.md specifies a 30-day time-series chart and device breakdown chart but does not specify a library. Bundle size should be verified during Phase 5 planning — Recharts is the default for React but adds ~50KB gzipped.
+- **Stripe webhook reconciliation cron:** PITFALLS.md recommends a daily reconciliation job. Vercel cron jobs require Vercel Pro plan. If on Hobby, alternatives are GitHub Actions scheduled workflow or accepting the 3-day Stripe retry window as sufficient. Resolve during Phase 2 planning.
 
 ---
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- ISO/IEC 18004:2015 — QR code error correction level capacities, quiet zone requirements, module definitions
-- ZXing WiFi QR format specification — WiFi credential encoding rules (`WIFI:T:WPA;S:...;P:...;;`)
-- RFC 6350 (vCard 4.0) / RFC 2426 (vCard 3.0) — vCard field escaping rules
-- HTML Living Standard, Canvas API — CORS taint security model for cross-origin images
-- W3C Clipboard API specification — `navigator.clipboard.write()` secure context requirement
-- Google Search Central — Core Web Vitals (CLS, LCP), structured data for WebApplication/FAQPage
-- WCAG 2.1 SC 1.4.11 — 3:1 minimum contrast ratio for graphical objects
+- [Clerk Astro SDK docs](https://clerk.com/docs/reference/astro/overview) — auth integration, middleware, locals API (updated March 2026)
+- [Astro on-demand rendering docs](https://docs.astro.build/en/guides/on-demand-rendering/) — output modes, prerender flag
+- [Astro Vercel adapter docs](https://docs.astro.build/en/guides/integrations-guide/vercel/) — adapter config, import path
+- [Drizzle + Turso tutorial](https://orm.drizzle.team/docs/tutorials/drizzle-with-turso) — ORM + libSQL integration
+- [Drizzle + Vercel Edge Functions](https://orm.drizzle.team/docs/tutorials/drizzle-with-vercel-edge-functions) — edge runtime compatibility
+- [Stripe subscriptions guide](https://docs.stripe.com/billing/subscriptions/build-subscriptions) — Checkout + webhook lifecycle
+- [Stripe webhook signature verification](https://docs.stripe.com/webhooks) — raw body requirement, constructEvent
+- [Turso pricing](https://turso.tech/pricing) — free tier limits confirmed
+- [Vercel Edge Config docs](https://vercel.com/docs/edge-config) — redirect caching strategy
+- [Vercel connection pooling guide](https://vercel.com/kb/guide/connection-pooling-with-functions) — serverless DB connection limits
+- [Astro v5 upgrade guide](https://docs.astro.build/en/guides/upgrade-to/v5/) — hybrid output option removal
+- CVE-2025-61925 / CVE-2025-64525 — Astro middleware bypass via x-forwarded-host
 
 ### Secondary (MEDIUM confidence)
-- `qr-code-styling` GitHub (kozakdenys/qr-code-styling) — feature set, API, output modes (training data, HIGH confidence for feature set, MEDIUM for current version)
-- Astro documentation (docs.astro.build) — SSG behavior, React integration, sitemap plugin (training data, HIGH confidence)
-- Competitive landscape analysis: qrcode-monkey.com, qr-code-generator.com, the-qrcode-generator.com, canva.com/qr-code-generator (training data, MEDIUM — verify against live sites)
-- MDN Web Docs — Clipboard API browser compatibility matrix (training data, MEDIUM — verify Firefox support status)
+- [QRTiger Pricing](https://www.qrcode-tiger.com/payment) — free tier limits: 3 dynamic, 100 scans/code
+- [Hovercode Pricing](https://hovercode.com/pricing/) — free tier: 3 dynamic; analytics breakdown
+- [openstatus Vercel latency benchmarks](https://www.openstatus.dev/blog/monitoring-latency-vercel-edge-vs-serverless) — edge vs serverless comparison
+- [Stripe freemium patterns](https://stripe.com/resources/more/freemium-pricing-explained) — freemium conversion patterns
+- [Vercel Fluid Compute + connection exhaustion](https://www.solberg.is/vercel-fluid-backpressure) — serverless connection management
+- npm registry — version numbers for `@clerk/astro`, `stripe`, `@astrojs/vercel`, `drizzle-orm` confirmed via WebSearch
 
-### Tertiary (LOW confidence)
-- Debounce timing conventions (300ms text, 100ms style controls) — community convention, not specification; tune by feel during implementation
-- Tailwind CSS v4 release status — was in beta at training cutoff; verify before use
+### Tertiary (LOW confidence — directional only)
+- [QR analytics guide](https://www.qr-insights.com/blog/qr-code-analytics-metrics-guide) — bot inflation magnitude estimates
+- IAB/ABC International Spiders and Bots List — bot filtering reference (current list needs verification at implementation time)
 
 ---
-
-*Research completed: 2026-03-06*
+*Research completed: 2026-03-11*
 *Ready for roadmap: yes*
