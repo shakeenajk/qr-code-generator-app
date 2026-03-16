@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Monetization
 status: planning
-stopped_at: Completed 07-02-PLAN.md
-last_updated: "2026-03-16T19:10:19.329Z"
+stopped_at: Completed 07-04-PLAN.md
+last_updated: "2026-03-16T19:14:05.675Z"
 last_activity: 2026-03-11 — Roadmap created for v1.1 Monetization
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 5
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -52,6 +52,7 @@ Progress: [░░░░░░░░░░] 0%
 *Updated after each plan completion*
 | Phase 07 P01 | 2 | 2 tasks | 6 files |
 | Phase 07 P02 | 81s | 2 tasks | 5 files |
+| Phase 07 P04 | 5min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -68,6 +69,9 @@ Recent decisions affecting v1.1:
 - [Phase 07]: Use @astrojs/vercel@9.0.5 — v10 requires Astro 6; project is on Astro 5
 - [Phase 07]: No edgeMiddleware on vercel() adapter — Clerk is incompatible with Vercel Edge runtime (Async Local Storage issue)
 - [Phase 07]: Keep output: 'static' in astro.config.mjs — static homepage stays CDN-cached; auth pages use prerender=false per-route
+- [Phase 07]: DashboardLayout uses frontmatter CSS import (consistent with Layout.astro) not <link> href
+- [Phase 07]: DashboardLayout is a standalone HTML doc — noindex meta, no FAQ schema, separate from marketing layout
+- [Phase 07]: MobileTabBar uses inline style for safe-area-inset-bottom (pb-safe Tailwind class not configured in v4 yet)
 
 ### Pending Todos
 
@@ -81,6 +85,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-16T19:10:19.326Z
-Stopped at: Completed 07-02-PLAN.md
+Last session: 2026-03-16T19:14:05.673Z
+Stopped at: Completed 07-04-PLAN.md
 Resume file: None
