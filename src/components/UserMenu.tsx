@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useUser, useClerk } from '@clerk/astro/react';
+import { useUser, useClerk } from '@clerk/shared/react';
 
 export default function UserMenu() {
   const { user, isLoaded } = useUser();
