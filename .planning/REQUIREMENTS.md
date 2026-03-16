@@ -7,11 +7,11 @@
 
 ### Auth
 
-- [ ] **AUTH-01**: User can sign up with email and password
-- [ ] **AUTH-02**: User can sign in with email and password
-- [ ] **AUTH-03**: User can sign in with Google or GitHub (OAuth)
-- [ ] **AUTH-04**: User session persists across browser refresh
-- [ ] **AUTH-05**: User can sign out
+- [x] **AUTH-01**: User can sign up with email and password
+- [x] **AUTH-02**: User can sign in with email and password
+- [x] **AUTH-03**: User can sign in with Google or GitHub (OAuth)
+- [x] **AUTH-04**: User session persists across browser refresh
+- [x] **AUTH-05**: User can sign out
 
 ### Billing
 
@@ -96,11 +96,11 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | Phase 7 | Pending |
-| AUTH-02 | Phase 7 | Pending |
-| AUTH-03 | Phase 7 | Pending |
-| AUTH-04 | Phase 7 | Pending |
-| AUTH-05 | Phase 7 | Pending |
+| AUTH-01 | Phase 7 | Complete |
+| AUTH-02 | Phase 7 | Complete |
+| AUTH-03 | Phase 7 | Complete |
+| AUTH-04 | Phase 7 | Complete |
+| AUTH-05 | Phase 7 | Complete |
 | BILL-01 | Phase 8 | Pending |
 | BILL-02 | Phase 8 | Pending |
 | BILL-03 | Phase 8 | Pending |

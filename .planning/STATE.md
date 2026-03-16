@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Monetization
 status: planning
-stopped_at: Phase 7 context gathered
-last_updated: "2026-03-16T01:52:59.045Z"
+stopped_at: Completed 07-01-PLAN.md
+last_updated: "2026-03-16T19:07:13.556Z"
 last_activity: 2026-03-11 — Roadmap created for v1.1 Monetization
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 5
+  completed_plans: 1
   percent: 0
 ---
 
@@ -50,6 +50,7 @@ Progress: [░░░░░░░░░░] 0%
 | 11. Scan Analytics Dashboard | TBD | - | - |
 
 *Updated after each plan completion*
+| Phase 07 P01 | 2 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -61,6 +62,8 @@ Recent decisions affecting v1.1:
 - Stack confirmed: Clerk (auth) + Turso/libSQL + Drizzle ORM + Stripe Checkout — see research/SUMMARY.md
 - Keep output: 'static' in astro.config.mjs; add adapter: vercel(); use per-route prerender = false
 - Use @libsql/client/web import (not default) for edge runtime in redirect endpoint
+- [Phase 07]: Use astro dev (not preview) as Playwright webServer — preview cannot serve SSR routes with prerender=false
+- [Phase 07]: Auth stub tests use test.fixme (not .skip) so pending tests appear visibly in reports
 
 ### Pending Todos
 
@@ -74,6 +77,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-16T01:52:59.042Z
-Stopped at: Phase 7 context gathered
-Resume file: .planning/phases/07-ssr-foundation-auth/07-CONTEXT.md
+Last session: 2026-03-16T19:07:13.553Z
+Stopped at: Completed 07-01-PLAN.md
+Resume file: None
