@@ -1,0 +1,39 @@
+---
+import { LayoutGrid, BarChart2, Settings } from 'lucide-astro';
+
+interface Props {
+  activeSection?: string;
+}
+
+const { activeSection = 'my-qr-codes' } = Astro.props;
+
+const tabs = [
+  { href: '/dashboard', id: 'my-qr-codes', label: 'QR Codes', Icon: LayoutGrid },
+  { href: '/dashboard/analytics', id: 'analytics', label: 'Analytics', Icon: BarChart2 },
+  { href: '/dashboard/settings', id: 'settings', label: 'Settings', Icon: Settings },
+];
+---
+
+<nav
+  class="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700 flex md:hidden z-40"
+  style="padding-bottom: env(safe-area-inset-bottom, 0)"
+  aria-label="Dashboard tabs"
+>
+  {tabs.map(({ href, id, label, Icon }) => {
+    const isActive = activeSection === id;
+    return (
+      <a
+        href={href}
+        class={`flex-1 flex flex-col items-center justify-center py-3 gap-0.5 text-xs font-medium transition-colors ${
+          isActive
+            ? 'text-blue-600 dark:text-blue-400'
+            : 'text-gray-500 dark:text-slate-400'
+        }`}
+        aria-current={isActive ? 'page' : undefined}
+      >
+        <Icon class="w-5 h-5" />
+        <span class="sr-only">{label}</span>
+      </a>
+    );
+  })}
+</nav>

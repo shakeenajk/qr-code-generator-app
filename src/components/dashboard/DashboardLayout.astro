@@ -1,0 +1,40 @@
+---
+import '../../styles/global.css';
+import Header from '../Header.astro';
+import Sidebar from './Sidebar.astro';
+import MobileTabBar from './MobileTabBar.astro';
+
+interface Props {
+  activeSection?: string;
+  title?: string;
+}
+
+const { activeSection = 'my-qr-codes', title = 'Dashboard — QRCraft' } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="robots" content="noindex, nofollow" />
+  </head>
+  <body class="bg-gray-50 text-gray-900 antialiased dark:bg-[#0f172a] dark:text-slate-100">
+    <!-- Top header (full width) -->
+    <Header />
+
+    <!-- Main content area: sidebar + page content -->
+    <div class="flex min-h-[calc(100vh-4rem)]">
+      <Sidebar activeSection={activeSection} />
+
+      <!-- Page content -->
+      <main class="flex-1 overflow-auto pb-20 md:pb-0">
+        <slot />
+      </main>
+    </div>
+
+    <!-- Mobile tab bar (fixed at bottom, visible on mobile only) -->
+    <MobileTabBar activeSection={activeSection} />
+  </body>
+</html>

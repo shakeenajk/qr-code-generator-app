@@ -1,0 +1,45 @@
+---
+import { LayoutGrid, BarChart2, Settings } from 'lucide-astro';
+
+interface Props {
+  activeSection?: string;
+}
+
+const { activeSection = 'my-qr-codes' } = Astro.props;
+
+const navItems = [
+  { href: '/dashboard', label: 'My QR Codes', id: 'my-qr-codes', Icon: LayoutGrid },
+  { href: '/dashboard/analytics', label: 'Analytics', id: 'analytics', Icon: BarChart2 },
+  { href: '/dashboard/settings', label: 'Settings', id: 'settings', Icon: Settings },
+];
+---
+
+<aside class="w-64 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-700 flex-shrink-0 hidden md:flex flex-col py-6">
+  <div class="px-4 mb-6">
+    <a href="/" class="flex items-center gap-2 text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white text-sm transition-colors">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+      </svg>
+      Back to QRCraft
+    </a>
+  </div>
+  <nav class="flex flex-col gap-1 px-3" aria-label="Dashboard navigation">
+    {navItems.map(({ href, label, id, Icon }) => {
+      const isActive = activeSection === id;
+      return (
+        <a
+          href={href}
+          class={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+            isActive
+              ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+              : 'text-gray-600 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800'
+          }`}
+          aria-current={isActive ? 'page' : undefined}
+        >
+          <Icon class="w-5 h-5 flex-shrink-0" />
+          {label}
+        </a>
+      );
+    })}
+  </nav>
+</aside>
