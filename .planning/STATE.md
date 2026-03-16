@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Monetization
 status: planning
-stopped_at: Completed 07-04-PLAN.md
-last_updated: "2026-03-16T19:14:05.675Z"
+stopped_at: Completed 07-03-PLAN.md
+last_updated: "2026-03-16T19:20:03.880Z"
 last_activity: 2026-03-11 — Roadmap created for v1.1 Monetization
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 5
-  completed_plans: 3
+  completed_plans: 4
   percent: 0
 ---
 
@@ -53,6 +53,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 07 P01 | 2 | 2 tasks | 6 files |
 | Phase 07 P02 | 81s | 2 tasks | 5 files |
 | Phase 07 P04 | 5min | 2 tasks | 4 files |
+| Phase 07 P03 | 434s | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,7 @@ Recent decisions affecting v1.1:
 - [Phase 07]: DashboardLayout uses frontmatter CSS import (consistent with Layout.astro) not <link> href
 - [Phase 07]: DashboardLayout is a standalone HTML doc — noindex meta, no FAQ schema, separate from marketing layout
 - [Phase 07]: MobileTabBar uses inline style for safe-area-inset-bottom (pb-safe Tailwind class not configured in v4 yet)
+- [Phase 07]: Import useUser/useClerk from @clerk/shared/react — @clerk/astro/react does not export these hooks
 
 ### Pending Todos
 
@@ -85,6 +87,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-16T19:14:05.673Z
-Stopped at: Completed 07-04-PLAN.md
+Last session: 2026-03-16T19:20:03.878Z
+Stopped at: Completed 07-03-PLAN.md
 Resume file: None
