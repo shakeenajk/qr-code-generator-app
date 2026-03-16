@@ -62,7 +62,15 @@ Plans:
   3. User can open Stripe Customer Portal to change plan, update payment, or cancel — without contacting support
   4. Pro status updates in the app within seconds of checkout completing, driven by the webhook (not the Checkout redirect)
   5. All 6 subscription lifecycle events (checkout, update, delete, payment success, payment failure, trial end) update subscription state correctly; duplicate events are safely ignored (stripe_events dedup table)
-**Plans**: TBD
+**Plans**: 6 plans
+
+Plans:
+- [ ] 08-01-PLAN.md — Install packages, DB schema (subscriptions + stripe_events), Stripe + billing singletons, test scaffolds
+- [ ] 08-02-PLAN.md — Stripe webhook handler (all 6 lifecycle events, dedup), middleware webhook exclusion
+- [ ] 08-03-PLAN.md — Checkout session API, Customer Portal session API, subscription status API
+- [ ] 08-04-PLAN.md — Dashboard billing UI (upgrade CTA panel, tier badge, payment failure banner, post-checkout polling)
+- [ ] 08-05-PLAN.md — Public /pricing page with 3-tier comparison + monthly/annual toggle, hero Pro mention
+- [ ] 08-06-PLAN.md — Automated smoke suite + human verification checkpoint
 
 ### Phase 9: Saved QR Library + Pro Gates
 **Goal**: Pro users have a persistent named QR library they can create, edit, and delete; Pro-only customization features are server-side gated; anonymous users remain completely ungated
@@ -110,7 +118,7 @@ Plans:
 | 5. Complete Dark Mode | v1.0 | 3/3 | Complete | 2026-03-11 |
 | 6. Fix Ghost Placeholder + Lighthouse | v1.0 | 3/3 | Complete | 2026-03-11 |
 | 7. SSR Foundation + Auth | v1.1 | 5/5 | Complete | 2026-03-16 |
-| 8. Stripe Billing | v1.1 | 0/TBD | Not started | - |
+| 8. Stripe Billing | v1.1 | 0/6 | Not started | - |
 | 9. Saved QR Library + Pro Gates | v1.1 | 0/TBD | Not started | - |
 | 10. Dynamic QR Redirect Service | v1.1 | 0/TBD | Not started | - |
 | 11. Scan Analytics Dashboard | v1.1 | 0/TBD | Not started | - |
