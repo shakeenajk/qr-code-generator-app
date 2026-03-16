@@ -1,11 +1,10 @@
 ---
 export const prerender = false;
-import { auth } from '@clerk/astro/server';
 import DashboardLayout from '../../components/dashboard/DashboardLayout.astro';
 
 // Middleware (src/middleware.ts) already redirects unauthenticated users to /login.
 // This is a belt-and-suspenders check in case middleware is misconfigured.
-const { userId } = auth(Astro);
+const { userId } = Astro.locals.auth();
 if (!userId) {
   return Astro.redirect('/login');
 }
