@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Monetization
 status: planning
-stopped_at: Completed 07-01-PLAN.md
-last_updated: "2026-03-16T19:07:13.556Z"
+stopped_at: Completed 07-02-PLAN.md
+last_updated: "2026-03-16T19:10:19.329Z"
 last_activity: 2026-03-11 — Roadmap created for v1.1 Monetization
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 5
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -51,6 +51,7 @@ Progress: [░░░░░░░░░░] 0%
 
 *Updated after each plan completion*
 | Phase 07 P01 | 2 | 2 tasks | 6 files |
+| Phase 07 P02 | 81s | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -64,6 +65,9 @@ Recent decisions affecting v1.1:
 - Use @libsql/client/web import (not default) for edge runtime in redirect endpoint
 - [Phase 07]: Use astro dev (not preview) as Playwright webServer — preview cannot serve SSR routes with prerender=false
 - [Phase 07]: Auth stub tests use test.fixme (not .skip) so pending tests appear visibly in reports
+- [Phase 07]: Use @astrojs/vercel@9.0.5 — v10 requires Astro 6; project is on Astro 5
+- [Phase 07]: No edgeMiddleware on vercel() adapter — Clerk is incompatible with Vercel Edge runtime (Async Local Storage issue)
+- [Phase 07]: Keep output: 'static' in astro.config.mjs — static homepage stays CDN-cached; auth pages use prerender=false per-route
 
 ### Pending Todos
 
@@ -77,6 +81,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-16T19:07:13.553Z
-Stopped at: Completed 07-01-PLAN.md
+Last session: 2026-03-16T19:10:19.326Z
+Stopped at: Completed 07-02-PLAN.md
 Resume file: None
