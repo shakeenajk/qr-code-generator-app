@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Monetization
 status: executing
-stopped_at: Phase 08 Plan 01 complete
-last_updated: "2026-03-16T23:51:42Z"
-last_activity: 2026-03-16 — Phase 8 Plan 01 (Stripe billing foundation) complete
+stopped_at: Completed 08-02-PLAN.md
+last_updated: "2026-03-16T23:59:21.786Z"
+last_activity: 2026-03-16 — Phase 8 Plan 01 (DB schema + singletons + test stubs) complete
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 11
+  completed_plans: 7
   percent: 21
 ---
 
@@ -55,6 +55,7 @@ Progress: [███░░░░░░░] 21%
 | Phase 07 P04 | 5min | 2 tasks | 4 files |
 | Phase 07 P03 | 434s | 2 tasks | 4 files |
 | Phase 08 P01 | 9min | 2 tasks | 9 files |
+| Phase 08 P02 | 2min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -79,6 +80,8 @@ Recent decisions affecting v1.1:
 - [Phase 08-01]: Use drizzle-orm/libsql/web (not /libsql) — default import is Node-only and fails on Vercel Edge
 - [Phase 08-01]: integer mode: boolean for cancelAtPeriodEnd — SQLite stores booleans as 0/1 integers
 - [Phase 08-01]: PRICE_TIER_MAP initialized at module level from import.meta.env — tier resolution centralized in billing.ts
+- [Phase 08]: current_period_end is on SubscriptionItem (not Subscription) in Stripe API 2026-02-25 — must use sub.items.data[0].current_period_end
+- [Phase 08]: handleSubscriptionUpdated conflicts on stripeSubscriptionId (not userId) for safe upsert with out-of-order events
 
 ### Pending Todos
 
@@ -92,6 +95,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-16T23:51:42Z
-Stopped at: Completed 08-01-PLAN.md
-Resume file: .planning/phases/08-stripe-billing/08-02-PLAN.md
+Last session: 2026-03-16T23:59:21.783Z
+Stopped at: Completed 08-02-PLAN.md
+Resume file: None
