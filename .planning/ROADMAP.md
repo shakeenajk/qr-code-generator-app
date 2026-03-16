@@ -25,7 +25,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 
 **Milestone Goal:** Add user accounts, Stripe-powered freemium subscriptions, a saved QR library, dynamic QR codes with a server-side redirect layer, scan analytics, and Pro-only customization gates — while keeping the anonymous static generator completely ungated.
 
-- [ ] **Phase 7: SSR Foundation + Auth** — Vercel adapter, Clerk auth, Turso DB schema, middleware, sign-up/sign-in/sign-out
+- [x] **Phase 7: SSR Foundation + Auth** — Vercel adapter, Clerk auth, Turso DB schema, middleware, sign-up/sign-in/sign-out (completed 2026-03-16)
 - [ ] **Phase 8: Stripe Billing** — Checkout (monthly + annual), Customer Portal, idempotent webhook with all 6 lifecycle events
 - [ ] **Phase 9: Saved QR Library + Pro Gates** — QR CRUD, dashboard library view, Pro gates on logo/shapes, anonymous flow unchanged
 - [ ] **Phase 10: Dynamic QR Redirect Service** — Edge function at /r/[slug], editable destination, active/paused toggle, free tier limit
@@ -109,7 +109,7 @@ Plans:
 | 4. Export and Launch | v1.0 | 4/4 | Complete | 2026-03-10 |
 | 5. Complete Dark Mode | v1.0 | 3/3 | Complete | 2026-03-11 |
 | 6. Fix Ghost Placeholder + Lighthouse | v1.0 | 3/3 | Complete | 2026-03-11 |
-| 7. SSR Foundation + Auth | 4/5 | In Progress|  | - |
+| 7. SSR Foundation + Auth | 5/5 | Complete   | 2026-03-16 | - |
 | 8. Stripe Billing | v1.1 | 0/TBD | Not started | - |
 | 9. Saved QR Library + Pro Gates | v1.1 | 0/TBD | Not started | - |
 | 10. Dynamic QR Redirect Service | v1.1 | 0/TBD | Not started | - |
