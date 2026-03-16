@@ -1,7 +1,7 @@
 ---
 import Logo from './Logo.astro';
 import UserMenu from './UserMenu.tsx';
-import { SignedIn, SignedOut } from '@clerk/astro/components';
+import { Show } from '@clerk/astro/components';
 ---
 <header class="bg-white border-b border-gray-200 sticky top-0 z-50 dark:bg-slate-900 dark:border-slate-700">
   <nav
@@ -14,17 +14,17 @@ import { SignedIn, SignedOut } from '@clerk/astro/components';
     </a>
 
     <div class="flex items-center gap-3">
-      <SignedOut>
+      <Show when="signed-out">
         <a
           href="/login"
           class="bg-[#2563EB] text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         >
           Sign In
         </a>
-      </SignedOut>
-      <SignedIn>
+      </Show>
+      <Show when="signed-in">
         <UserMenu client:load />
-      </SignedIn>
+      </Show>
     </div>
   </nav>
 </header>
