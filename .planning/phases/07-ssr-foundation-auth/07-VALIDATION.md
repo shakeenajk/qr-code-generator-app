@@ -44,7 +44,6 @@ created: 2026-03-15
 | 7-02-01 | 02 | 1 | AUTH-03 | e2e | `npx playwright test auth/session.spec.ts` | ❌ W0 | ⬜ pending |
 | 7-02-02 | 02 | 1 | AUTH-04 | e2e | `npx playwright test auth/signout.spec.ts` | ❌ W0 | ⬜ pending |
 | 7-03-01 | 03 | 1 | AUTH-05 | e2e | `npx playwright test auth/redirect.spec.ts` | ❌ W0 | ⬜ pending |
-| 7-03-02 | 03 | 2 | AUTH-05 | e2e | `npx playwright test auth/static-homepage.spec.ts` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -57,7 +56,6 @@ created: 2026-03-15
 - [ ] `tests/auth/session.spec.ts` — stubs for AUTH-03 (session persistence)
 - [ ] `tests/auth/signout.spec.ts` — stubs for AUTH-04 (sign out redirect)
 - [ ] `tests/auth/redirect.spec.ts` — stubs for AUTH-05 (unauthenticated redirect)
-- [ ] `tests/auth/static-homepage.spec.ts` — stubs for AUTH-05 (homepage cache hit)
 - [ ] Update `playwright.config.ts` webServer to `astro dev` for SSR routes
 
 ---
