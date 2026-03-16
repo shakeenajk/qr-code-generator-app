@@ -2,7 +2,7 @@
 phase: 07-ssr-foundation-auth
 plan: 05
 subsystem: auth
-tags: [clerk, playwright, testing, oauth, auth]
+tags: [clerk, playwright, testing, oauth, auth, verification]
 
 # Dependency graph
 requires:
@@ -11,96 +11,97 @@ requires:
   - phase: 07-ssr-foundation-auth/07-04
     provides: "Dashboard layout, header auth state, DashboardLayout component"
 provides:
-  - "Human verification checkpoint — confirms auth flow works end-to-end with real Clerk keys"
+  - "Human-verified end-to-end auth flow — all AUTH-01 through AUTH-05 confirmed working"
+  - "Smoke test suite passing 7/7 with real Clerk API keys"
 affects: [phase-08, stripe-billing]
 
 # Tech tracking
 tech-stack:
   added: []
   patterns:
-    - "Smoke tests run with placeholder Clerk keys (page loads and non-auth redirects only)"
-    - "Auth gate: real Clerk API keys required before smoke + human verification can complete"
+    - "Smoke tests run with real Clerk keys (page loads, redirect, header state)"
+    - "test.fixme pattern for auth flows requiring authenticated Playwright sessions"
 
 key-files:
   created: []
   modified: []
 
 key-decisions:
-  - "Smoke tests fail with REPLACE_ME Clerk keys — Clerk middleware returns 500 instead of redirecting to /login without valid keys"
-  - "Task 1 is an auth gate: real PUBLIC_CLERK_PUBLISHABLE_KEY and CLERK_SECRET_KEY must be set in .env.local before tests pass"
+  - "Clerk middleware with placeholder API keys throws 500 on protected routes — real keys required before smoke tests pass"
+  - "Smoke tests (7/7) pass after real Clerk API keys are set in .env.local"
+  - "Full AUTH-01 through AUTH-05 verified manually by human — OAuth (Google + GitHub) buttons confirmed visible"
 
 patterns-established: []
 
-requirements-completed: []  # AUTH-01 through AUTH-05 pending human verification
+requirements-completed: [AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05]
 
 # Metrics
-duration: 5min
+duration: ~30min (including auth gate resolution + human verification)
 completed: 2026-03-16
 ---
 
 # Phase 07 Plan 05: Auth End-to-End Verification Summary
 
-**Human verification checkpoint — Clerk API keys must be set in .env.local before smoke tests and auth flow can be confirmed**
+**Smoke tests passing 7/7 with real Clerk keys; all AUTH-01 through AUTH-05 behaviors confirmed by human verification**
 
 ## Performance
 
-- **Duration:** ~5 min
+- **Duration:** ~30 min (including Clerk key setup and full manual verification)
 - **Started:** 2026-03-16T19:22:18Z
-- **Completed:** 2026-03-16T19:22:18Z (checkpoint — awaiting auth gate resolution)
-- **Tasks:** 0/2 completed (blocked at auth gate)
+- **Completed:** 2026-03-16 (human approved)
+- **Tasks:** 2/2 completed
 - **Files modified:** 0
 
 ## Accomplishments
 
-- Diagnosed Clerk auth gate: `.env.local` contains placeholder keys (`REPLACE_ME`) that cause Clerk middleware to return HTTP 500 on protected routes
-- Confirmed smoke tests structure is correct — 7 smoke tests across 5 test files, only requiring page loads and redirect behavior
-- Confirmed 2 smoke tests fail due to auth gate: `/dashboard` returns 500 instead of redirecting to `/login`
+- Resolved Clerk auth gate: real API keys set in `.env.local`, replacing `REPLACE_ME` placeholders
+- All 7 smoke tests now pass (`npx playwright test tests/auth/ --grep "@smoke" --project=chromium`)
+- Human verified the complete auth flow end-to-end:
+  - AUTH-01: Email/password sign-up lands on /dashboard
+  - AUTH-02: Email/password sign-in redirects to /dashboard
+  - AUTH-03: Google and GitHub OAuth buttons visible on /login
+  - AUTH-04: Session persists across browser refresh on /dashboard
+  - AUTH-05: Sign out redirects to /
+  - Middleware redirect: unauthenticated /dashboard visit redirects to /login
+  - Header state: Sign In button when signed out, avatar dropdown when signed in
 
 ## Task Commits
 
-No commits — no code changes required for this checkpoint plan. All implementation was completed in plans 07-01 through 07-04.
+No code commits — this plan is verification-only. All implementation completed in plans 07-01 through 07-04.
 
 ## Files Created/Modified
 
-None — this plan is a verification-only plan.
+None — this plan is a verification-only checkpoint. No source files were created or modified.
 
 ## Decisions Made
 
-- Clerk middleware with placeholder API keys throws a 500 error on protected routes rather than falling back to unauthenticated behavior. Real keys are required for smoke tests to pass.
+- Clerk middleware requires real API keys to function; placeholder keys cause HTTP 500 rather than unauthenticated fallback behavior. Auth gate is expected and documented.
+- Smoke test count: 7 tests across 5 test files. `test.fixme` tests (requiring authenticated Playwright sessions) remain skipped — this is expected and correct.
 
 ## Deviations from Plan
 
-None — plan executed as written. Auth gate (missing Clerk keys) is the expected blocker for this checkpoint.
+None — plan executed as written. Auth gate (missing Clerk keys) was the expected blocker; resolved by user setting real keys from Clerk Dashboard.
 
 ## Issues Encountered
 
-**Auth gate identified during Task 1:**
-- `.env.local` still has `PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_REPLACE_ME` and `CLERK_SECRET_KEY=sk_test_REPLACE_ME`
-- Running `npx playwright test tests/auth/ --grep "@smoke"` produces 2 failures:
-  - `@smoke unauthenticated /dashboard redirects to /login` — FAILS (receives `/dashboard` not `/login`)
-  - `@smoke /dashboard page loads (unauthenticated → redirects to /login)` — FAILS (same)
-- Root cause: Clerk middleware cannot initialize with invalid keys; throws 500 instead of redirect
-- Resolution: Set real Clerk API keys from https://dashboard.clerk.com
-
-## User Setup Required
-
-**Clerk API keys must be configured before smoke tests can pass.**
-
-Steps:
-1. Go to https://dashboard.clerk.com — create or select your application
-2. Navigate to API Keys section
-3. Copy the Publishable Key (`pk_test_...`) and Secret Key (`sk_test_...`)
-4. Edit `.env.local` and replace both `REPLACE_ME` values
-5. Run: `npx playwright test tests/auth/ --grep "@smoke" --project=chromium`
-6. All 7 smoke tests should pass, `test.fixme` tests will be skipped (expected)
-7. Then complete human verification of the full auth flow (AUTH-01 through AUTH-05)
+**Auth gate (resolved):**
+- `.env.local` had placeholder `REPLACE_ME` keys causing Clerk middleware to return 500 on protected routes
+- Resolved: user set real `PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` from https://dashboard.clerk.com
+- All 7 smoke tests passed after keys were set
 
 ## Next Phase Readiness
 
-- All Phase 7 code (07-01 through 07-04) is complete
-- Once Clerk keys are set and smoke tests pass, human verification of the auth flow is the final gate
-- After human verification, Phase 7 is ready for `/gsd:verify-work` and Phase 8 (Stripe Billing) can begin
+- Phase 7 is complete — all 5 requirements (AUTH-01 through AUTH-05) verified
+- Phase 8 (Stripe Billing) can begin
+- Prerequisite: Stripe product + price IDs (monthly/annual) must be created in Stripe Dashboard before Phase 8 starts
+
+## Self-Check: PASSED
+
+No files were created or modified in this plan — verification only.
+
+Smoke tests verified: 7/7 pass with real Clerk API keys.
+Human verification completed: user responded "approved" after testing all AUTH-01 through AUTH-05 flows.
 
 ---
 *Phase: 07-ssr-foundation-auth*
-*Completed: 2026-03-16 (checkpoint — pending auth gate)*
+*Completed: 2026-03-16*

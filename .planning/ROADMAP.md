@@ -46,11 +46,11 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 **Plans**: 5 plans
 
 Plans:
-- [ ] 07-01-PLAN.md — Test scaffolds + playwright config update for SSR dev server
-- [ ] 07-02-PLAN.md — Install packages, configure astro.config.mjs, wire Clerk middleware
-- [ ] 07-03-PLAN.md — Create /login and /signup pages, rewrite auth-aware Header + UserMenu
-- [ ] 07-04-PLAN.md — Build dashboard shell (DashboardLayout, Sidebar, MobileTabBar, /dashboard page)
-- [ ] 07-05-PLAN.md — Automated smoke tests + human verification checkpoint
+- [x] 07-01-PLAN.md — Test scaffolds + playwright config update for SSR dev server
+- [x] 07-02-PLAN.md — Install packages, configure astro.config.mjs, wire Clerk middleware
+- [x] 07-03-PLAN.md — Create /login and /signup pages, rewrite auth-aware Header + UserMenu
+- [x] 07-04-PLAN.md — Build dashboard shell (DashboardLayout, Sidebar, MobileTabBar, /dashboard page)
+- [x] 07-05-PLAN.md — Automated smoke tests + human verification checkpoint
 
 ### Phase 8: Stripe Billing
 **Goal**: Users can upgrade to Pro and manage or cancel their subscription; Pro status is driven by webhooks, not client-side redirects
@@ -109,7 +109,7 @@ Plans:
 | 4. Export and Launch | v1.0 | 4/4 | Complete | 2026-03-10 |
 | 5. Complete Dark Mode | v1.0 | 3/3 | Complete | 2026-03-11 |
 | 6. Fix Ghost Placeholder + Lighthouse | v1.0 | 3/3 | Complete | 2026-03-11 |
-| 7. SSR Foundation + Auth | 5/5 | Complete   | 2026-03-16 | - |
+| 7. SSR Foundation + Auth | v1.1 | 5/5 | Complete | 2026-03-16 |
 | 8. Stripe Billing | v1.1 | 0/TBD | Not started | - |
 | 9. Saved QR Library + Pro Gates | v1.1 | 0/TBD | Not started | - |
 | 10. Dynamic QR Redirect Service | v1.1 | 0/TBD | Not started | - |
