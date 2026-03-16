@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Monetization
-status: planning
-stopped_at: Phase 08 context gathered
-last_updated: "2026-03-16T21:14:05.595Z"
-last_activity: 2026-03-16 — Phase 7 SSR Foundation + Auth complete (5/5 plans)
+status: executing
+stopped_at: Phase 08 Plan 01 complete
+last_updated: "2026-03-16T23:51:42Z"
+last_activity: 2026-03-16 — Phase 8 Plan 01 (Stripe billing foundation) complete
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 5
-  completed_plans: 5
-  percent: 19
+  total_plans: 6
+  completed_plans: 6
+  percent: 21
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** Anyone can generate a visually stunning, fully customized QR code and download it immediately — no signup, no friction.
-**Current focus:** v1.1 Monetization — Phase 7: SSR Foundation + Auth
+**Current focus:** v1.1 Monetization — Phase 8: Stripe Billing
 
 ## Current Position
 
 Phase: 8 of 11 (Stripe Billing)
-Plan: —
-Status: Ready to plan
-Last activity: 2026-03-16 — Phase 7 SSR Foundation + Auth complete (5/5 plans)
+Plan: 1 of 6 complete
+Status: Executing
+Last activity: 2026-03-16 — Phase 8 Plan 01 (DB schema + singletons + test stubs) complete
 
-Progress: [██░░░░░░░░] 19%
+Progress: [███░░░░░░░] 21%
 
 ## Performance Metrics
 
@@ -54,6 +54,7 @@ Progress: [██░░░░░░░░] 19%
 | Phase 07 P02 | 81s | 2 tasks | 5 files |
 | Phase 07 P04 | 5min | 2 tasks | 4 files |
 | Phase 07 P03 | 434s | 2 tasks | 4 files |
+| Phase 08 P01 | 9min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -75,6 +76,9 @@ Recent decisions affecting v1.1:
 - [Phase 07]: MobileTabBar uses inline style for safe-area-inset-bottom (pb-safe Tailwind class not configured in v4 yet)
 - [Phase 07]: Import useUser/useClerk from @clerk/shared/react — @clerk/astro/react does not export these hooks
 - [Phase 07]: Clerk middleware with placeholder API keys throws 500 on protected routes — real keys required before smoke tests can pass
+- [Phase 08-01]: Use drizzle-orm/libsql/web (not /libsql) — default import is Node-only and fails on Vercel Edge
+- [Phase 08-01]: integer mode: boolean for cancelAtPeriodEnd — SQLite stores booleans as 0/1 integers
+- [Phase 08-01]: PRICE_TIER_MAP initialized at module level from import.meta.env — tier resolution centralized in billing.ts
 
 ### Pending Todos
 
@@ -82,12 +86,12 @@ None.
 
 ### Blockers/Concerns
 
-- Phase 8: Stripe product + price ID (monthly/annual) must be created in Stripe dashboard before Phase 8 starts — business input required
+- [RESOLVED] Phase 8: Stripe product + price IDs created in test mode, env vars confirmed present
 - Phase 10: Confirm @libsql/client/web import path in v0.14.x before writing edge function
 - Phase 11: Verify Recharts bundle size impact before committing to chart library
 
 ## Session Continuity
 
-Last session: 2026-03-16T21:14:05.591Z
-Stopped at: Phase 08 context gathered
-Resume file: .planning/phases/08-stripe-billing/08-CONTEXT.md
+Last session: 2026-03-16T23:51:42Z
+Stopped at: Completed 08-01-PLAN.md
+Resume file: .planning/phases/08-stripe-billing/08-02-PLAN.md

@@ -15,11 +15,11 @@
 
 ### Billing
 
-- [ ] **BILL-01**: User can upgrade to Pro via Stripe Checkout (monthly plan)
-- [ ] **BILL-02**: User can upgrade to Pro via Stripe Checkout (annual plan at a discount)
-- [ ] **BILL-03**: User can manage or cancel their subscription via Stripe Customer Portal
-- [ ] **BILL-04**: Pro status is reflected in the app after checkout completes (webhook-driven, not redirect-driven)
-- [ ] **BILL-05**: Subscription lifecycle events are handled (checkout, update, cancel, payment failure, trial end)
+- [x] **BILL-01**: User can upgrade to Pro via Stripe Checkout (monthly plan)
+- [x] **BILL-02**: User can upgrade to Pro via Stripe Checkout (annual plan at a discount)
+- [x] **BILL-03**: User can manage or cancel their subscription via Stripe Customer Portal
+- [x] **BILL-04**: Pro status is reflected in the app after checkout completes (webhook-driven, not redirect-driven)
+- [x] **BILL-05**: Subscription lifecycle events are handled (checkout, update, cancel, payment failure, trial end)
 
 ### Saved QR Library
 
@@ -101,11 +101,11 @@
 | AUTH-03 | Phase 7 | Complete |
 | AUTH-04 | Phase 7 | Complete |
 | AUTH-05 | Phase 7 | Complete |
-| BILL-01 | Phase 8 | Pending |
-| BILL-02 | Phase 8 | Pending |
-| BILL-03 | Phase 8 | Pending |
-| BILL-04 | Phase 8 | Pending |
-| BILL-05 | Phase 8 | Pending |
+| BILL-01 | Phase 8 | Complete |
+| BILL-02 | Phase 8 | Complete |
+| BILL-03 | Phase 8 | Complete |
+| BILL-04 | Phase 8 | Complete |
+| BILL-05 | Phase 8 | Complete |
 | LIB-01 | Phase 9 | Pending |
 | LIB-02 | Phase 9 | Pending |
 | LIB-03 | Phase 9 | Pending |
