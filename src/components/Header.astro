@@ -23,7 +23,7 @@ import { Show } from '@clerk/astro/components';
         </a>
       </Show>
       <Show when="signed-in">
-        <UserMenu client:load />
+        <UserMenu client:only="react" />
       </Show>
     </div>
   </nav>
