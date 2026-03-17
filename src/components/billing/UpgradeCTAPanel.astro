@@ -1,0 +1,117 @@
+---
+interface Props {
+  tier: 'free' | 'starter' | 'pro';
+}
+
+const { tier } = Astro.props;
+---
+
+{tier === 'free' ? (
+  <div class="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 p-4 mx-3 mb-3">
+    <p class="text-sm font-semibold text-blue-700 dark:text-blue-400">Upgrade to Pro</p>
+    <p class="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Unlock dynamic QR codes and analytics</p>
+
+    <!-- Monthly/Annual toggle -->
+    <div class="flex mt-2 mb-3 bg-white dark:bg-slate-800 rounded-lg p-0.5 border border-gray-200 dark:border-slate-700 text-xs">
+      <button id="cta-monthly-btn" data-cadence="monthly"
+        class="flex-1 py-1 rounded-md font-medium transition-colors bg-[#2563EB] text-white">
+        Monthly
+      </button>
+      <button id="cta-annual-btn" data-cadence="annual"
+        class="flex-1 py-1 rounded-md font-medium transition-colors text-gray-500 dark:text-slate-400">
+        Annual <span class="text-green-500 font-semibold">-17%</span>
+      </button>
+    </div>
+
+    <button id="cta-upgrade-btn"
+      class="w-full bg-[#2563EB] text-white text-xs font-semibold py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-60">
+      Upgrade to Pro
+    </button>
+  </div>
+) : (
+  <button
+    id="cta-manage-btn"
+    class="text-xs text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 transition-colors px-4 mb-3 block text-center w-full"
+  >
+    Manage subscription
+  </button>
+)}
+
+{tier === 'free' && (
+  <script>
+    (function() {
+      const monthlyBtn = document.getElementById('cta-monthly-btn');
+      const annualBtn  = document.getElementById('cta-annual-btn');
+      const upgradeBtn = document.getElementById('cta-upgrade-btn');
+
+      if (!monthlyBtn || !annualBtn || !upgradeBtn) return;
+
+      const PRICES = {
+        monthly: import.meta.env.PUBLIC_STRIPE_PRICE_PRO_MONTHLY,
+        annual:  import.meta.env.PUBLIC_STRIPE_PRICE_PRO_ANNUAL,
+      };
+      let cadence = 'monthly';
+
+      function setActive(selected) {
+        cadence = selected;
+        const activeClass = ['bg-[#2563EB]', 'text-white'];
+        const inactiveClass = ['text-gray-500', 'dark:text-slate-400'];
+        if (selected === 'monthly') {
+          monthlyBtn.classList.add(...activeClass);
+          monthlyBtn.classList.remove(...inactiveClass);
+          annualBtn.classList.remove(...activeClass);
+          annualBtn.classList.add(...inactiveClass);
+        } else {
+          annualBtn.classList.add(...activeClass);
+          annualBtn.classList.remove(...inactiveClass);
+          monthlyBtn.classList.remove(...activeClass);
+          monthlyBtn.classList.add(...inactiveClass);
+        }
+      }
+
+      monthlyBtn.addEventListener('click', () => setActive('monthly'));
+      annualBtn.addEventListener('click', () => setActive('annual'));
+
+      upgradeBtn.addEventListener('click', async () => {
+        upgradeBtn.disabled = true;
+        upgradeBtn.textContent = 'Loading...';
+        try {
+          const res = await fetch('/api/checkout/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ priceId: PRICES[cadence] }),
+          });
+          if (!res.ok) throw new Error('checkout failed');
+          const { url } = await res.json();
+          window.location.href = url;
+        } catch {
+          upgradeBtn.disabled = false;
+          upgradeBtn.textContent = 'Upgrade to Pro';
+        }
+      });
+    })();
+  </script>
+)}
+
+{tier !== 'free' && (
+  <script>
+    (function() {
+      const manageBtn = document.getElementById('cta-manage-btn');
+      if (!manageBtn) return;
+
+      manageBtn.addEventListener('click', async () => {
+        manageBtn.disabled = true;
+        manageBtn.textContent = 'Loading...';
+        try {
+          const res = await fetch('/api/portal/create', { method: 'POST' });
+          if (!res.ok) throw new Error('portal failed');
+          const { url } = await res.json();
+          window.location.href = url;
+        } catch {
+          manageBtn.disabled = false;
+          manageBtn.textContent = 'Manage subscription';
+        }
+      });
+    })();
+  </script>
+)}

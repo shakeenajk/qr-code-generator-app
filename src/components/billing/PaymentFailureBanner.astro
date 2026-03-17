@@ -1,0 +1,64 @@
+---
+interface Props {
+  show: boolean;
+}
+
+const { show } = Astro.props;
+---
+
+{show && (
+  <div id="payment-failure-banner" class="bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800 px-6 py-3 flex items-center gap-3">
+    <!-- Warning icon -->
+    <svg class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+    </svg>
+    <p class="text-sm text-red-700 dark:text-red-400 flex-1">
+      Your payment failed — please update your payment method to keep your subscription active.
+    </p>
+    <button
+      id="payment-failure-update-btn"
+      class="text-sm font-semibold text-red-700 dark:text-red-400 hover:text-red-900 dark:hover:text-red-200 underline transition-colors whitespace-nowrap"
+    >
+      Update payment
+    </button>
+    <button
+      id="payment-failure-dismiss-btn"
+      class="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-200 transition-colors ml-1"
+      aria-label="Dismiss"
+    >
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+
+  <script>
+    (function() {
+      const updateBtn = document.getElementById('payment-failure-update-btn');
+      const dismissBtn = document.getElementById('payment-failure-dismiss-btn');
+      const banner = document.getElementById('payment-failure-banner');
+
+      if (updateBtn) {
+        updateBtn.addEventListener('click', async () => {
+          updateBtn.disabled = true;
+          updateBtn.textContent = 'Loading...';
+          try {
+            const res = await fetch('/api/portal/create', { method: 'POST' });
+            if (!res.ok) throw new Error('portal failed');
+            const { url } = await res.json();
+            window.location.href = url;
+          } catch {
+            updateBtn.disabled = false;
+            updateBtn.textContent = 'Update payment';
+          }
+        });
+      }
+
+      if (dismissBtn && banner) {
+        dismissBtn.addEventListener('click', () => {
+          banner.style.display = 'none';
+        });
+      }
+    })();
+  </script>
+)}
