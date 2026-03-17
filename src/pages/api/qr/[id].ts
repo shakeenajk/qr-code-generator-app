@@ -5,6 +5,46 @@ import { db } from '../../../db/index';
 import { savedQrCodes } from '../../../db/schema';
 import { and, eq } from 'drizzle-orm';
 
+export const GET: APIRoute = async ({ locals, params }) => {
+  const { userId } = locals.auth();
+  if (!userId) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
+  const { id } = params;
+  if (!id) {
+    return new Response(JSON.stringify({ error: 'Missing id' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  const [row] = await db
+    .select()
+    .from(savedQrCodes)
+    .where(and(eq(savedQrCodes.id, id), eq(savedQrCodes.userId, userId)))
+    .limit(1);
+
+  if (!row) {
+    return new Response(JSON.stringify({ error: 'Not found' }), {
+      status: 404,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  return new Response(
+    JSON.stringify({
+      id: row.id,
+      name: row.name,
+      contentType: row.contentType,
+      contentData: JSON.parse(row.contentData),
+      styleData: JSON.parse(row.styleData),
+      logoData: row.logoData ?? null,
+    }),
+    { status: 200, headers: { 'Content-Type': 'application/json' } }
+  );
+};
+
 export const PUT: APIRoute = async ({ locals, request, params }) => {
   const { userId } = locals.auth();
   if (!userId) {
