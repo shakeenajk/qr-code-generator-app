@@ -1,7 +1,7 @@
 import QRCodeStyling from "qr-code-styling";
 import type { DotType, CornerSquareType, CornerDotType } from "qr-code-styling";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { useUser } from "@clerk/shared/react";
+import { $userStore, $isLoadedStore } from "@clerk/astro/client";
 import { Toaster, toast } from "sonner";
 import { Lock } from "lucide-react";
 import { useDebounce } from "../hooks/useDebounce";
@@ -51,11 +51,19 @@ export default function QRGeneratorIsland() {
   const qrCodeRef = useRef<QRCodeStyling | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
 
-  // Auth state
-  const { isSignedIn, isLoaded } = useUser();
+  // Auth state — use @clerk/astro/client nanostores (compatible with Astro's Clerk integration)
+  const [isLoaded, setIsLoaded] = useState(() => $isLoadedStore.get());
+  const [isSignedIn, setIsSignedIn] = useState(() => !!$userStore.get());
   const [userTier, setUserTier] = useState<UserTier>(null);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Subscribe to Clerk nanostores to keep isLoaded / isSignedIn in sync
+  useEffect(() => {
+    const unsubLoaded = $isLoadedStore.subscribe((loaded) => setIsLoaded(loaded));
+    const unsubUser = $userStore.subscribe((user) => setIsSignedIn(!!user));
+    return () => { unsubLoaded(); unsubUser(); };
+  }, []);
 
   // Edit-mode state
   const [editName, setEditName] = useState<string | null>(null);

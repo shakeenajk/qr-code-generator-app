@@ -1,7 +1,8 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('QR Delete API @smoke', () => {
-  test.fixme('unauthenticated DELETE /api/qr/[id] returns 401', async ({ request }) => {
-    // TODO: endpoint created in plan 09-02
+  test('unauthenticated DELETE /api/qr/[id] returns 401 @smoke', async ({ request }) => {
+    const response = await request.delete('/api/qr/fake-id');
+    expect(response.status()).toBe(401);
   });
 });
