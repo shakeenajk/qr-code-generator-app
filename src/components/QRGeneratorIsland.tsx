@@ -271,8 +271,10 @@ export default function QRGeneratorIsland() {
       });
 
       if (!res.ok) throw new Error("Save failed");
-      toast("Saved to library");
       setShowSaveModal(false);
+      toast("Saved to library", {
+        action: { label: "Go to Library", onClick: () => { window.location.href = "/dashboard"; } },
+      });
     } catch {
       toast.error("Failed to save — please try again");
     } finally {
