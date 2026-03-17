@@ -506,7 +506,7 @@ export default function QRGeneratorIsland() {
           />
 
           {/* Save to Library button — only shown for signed-in users */}
-          {isNonProSignedIn && (
+          {isNonProSignedIn && !editId && (
             <button
               data-testid="save-to-library-locked"
               onClick={() => toast("Upgrade to Pro to save QR codes to your library", {
@@ -523,7 +523,7 @@ export default function QRGeneratorIsland() {
             </button>
           )}
 
-          {isPro && (
+          {isPro && !editId && (
             <button
               data-testid="save-to-library"
               onClick={() => setShowSaveModal(true)}
