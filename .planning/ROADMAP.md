@@ -27,7 +27,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 
 - [x] **Phase 7: SSR Foundation + Auth** — Vercel adapter, Clerk auth, Turso DB schema, middleware, sign-up/sign-in/sign-out (completed 2026-03-16)
 - [x] **Phase 8: Stripe Billing** — Checkout (monthly + annual), Customer Portal, idempotent webhook with all 6 lifecycle events (completed 2026-03-17)
-- [ ] **Phase 9: Saved QR Library + Pro Gates** — QR CRUD, dashboard library view, Pro gates on logo/shapes, anonymous flow unchanged
+- [x] **Phase 9: Saved QR Library + Pro Gates** — QR CRUD, dashboard library view, Pro gates on logo/shapes, anonymous flow unchanged (completed 2026-03-17)
 - [ ] **Phase 10: Dynamic QR Redirect Service** — Edge function at /r/[slug], editable destination, active/paused toggle, free tier limit
 - [ ] **Phase 11: Scan Analytics Dashboard** — Analytics API, total/unique scans, 30-day chart, device breakdown, top countries, bot filtering
 
@@ -126,6 +126,6 @@ Plans:
 | 6. Fix Ghost Placeholder + Lighthouse | v1.0 | 3/3 | Complete | 2026-03-11 |
 | 7. SSR Foundation + Auth | v1.1 | 5/5 | Complete | 2026-03-16 |
 | 8. Stripe Billing | v1.1 | 6/6 | Complete | 2026-03-17 |
-| 9. Saved QR Library + Pro Gates | 4/5 | In Progress|  | - |
+| 9. Saved QR Library + Pro Gates | 5/5 | Complete   | 2026-03-17 | - |
 | 10. Dynamic QR Redirect Service | v1.1 | 0/TBD | Not started | - |
 | 11. Scan Analytics Dashboard | v1.1 | 0/TBD | Not started | - |
