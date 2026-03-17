@@ -5,6 +5,15 @@ import { db } from '../../../db/index';
 import { savedQrCodes } from '../../../db/schema';
 import { and, eq } from 'drizzle-orm';
 
+function tryParse(value: string): unknown {
+  try { return JSON.parse(value); } catch { return {}; }
+}
+
+function toJsonString(value: unknown): string {
+  if (typeof value === 'string') return value;
+  return JSON.stringify(value);
+}
+
 export const GET: APIRoute = async ({ locals, params }) => {
   const { userId } = locals.auth();
   if (!userId) {
@@ -37,8 +46,8 @@ export const GET: APIRoute = async ({ locals, params }) => {
       id: row.id,
       name: row.name,
       contentType: row.contentType,
-      contentData: JSON.parse(row.contentData),
-      styleData: JSON.parse(row.styleData),
+      contentData: typeof row.contentData === 'string' ? tryParse(row.contentData) : row.contentData,
+      styleData: typeof row.styleData === 'string' ? tryParse(row.styleData) : row.styleData,
       logoData: row.logoData ?? null,
     }),
     { status: 200, headers: { 'Content-Type': 'application/json' } }
@@ -69,15 +78,19 @@ export const PUT: APIRoute = async ({ locals, request, params }) => {
     });
   }
 
-  const { name, styleData, logoData, thumbnailData } = body as {
+  const { name, contentType, contentData, styleData, logoData, thumbnailData } = body as {
     name?: string;
-    styleData?: string;
+    contentType?: string;
+    contentData?: unknown;
+    styleData?: unknown;
     logoData?: string | null;
     thumbnailData?: string | null;
   };
 
   const updates: Partial<{
     name: string;
+    contentType: string;
+    contentData: string;
     styleData: string;
     logoData: string | null;
     thumbnailData: string | null;
@@ -87,7 +100,9 @@ export const PUT: APIRoute = async ({ locals, request, params }) => {
   };
 
   if (name !== undefined) updates.name = name;
-  if (styleData !== undefined) updates.styleData = styleData;
+  if (contentType !== undefined) updates.contentType = contentType;
+  if (contentData !== undefined) updates.contentData = toJsonString(contentData);
+  if (styleData !== undefined) updates.styleData = toJsonString(styleData);
   if (logoData !== undefined) updates.logoData = logoData;
   if (thumbnailData !== undefined) updates.thumbnailData = thumbnailData;
 
