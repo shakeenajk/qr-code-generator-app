@@ -37,22 +37,22 @@ const { tier } = Astro.props;
   </button>
 )}
 
-{tier === 'free' && (
-  <script>
-    (function() {
-      const monthlyBtn = document.getElementById('cta-monthly-btn');
-      const annualBtn  = document.getElementById('cta-annual-btn');
-      const upgradeBtn = document.getElementById('cta-upgrade-btn');
+<script>
+  (function() {
+    const upgradeBtn = document.getElementById('cta-upgrade-btn');
+    const monthlyBtn = document.getElementById('cta-monthly-btn');
+    const annualBtn  = document.getElementById('cta-annual-btn');
+    const manageBtn  = document.getElementById('cta-manage-btn');
 
-      if (!monthlyBtn || !annualBtn || !upgradeBtn) return;
-
+    // --- Upgrade flow (free tier) ---
+    if (upgradeBtn && monthlyBtn && annualBtn) {
       const PRICES = {
         monthly: import.meta.env.PUBLIC_STRIPE_PRICE_PRO_MONTHLY,
         annual:  import.meta.env.PUBLIC_STRIPE_PRICE_PRO_ANNUAL,
       };
       let cadence = 'monthly';
 
-      function setActive(selected) {
+      function setActive(selected: string) {
         cadence = selected;
         const activeClass = ['bg-[#2563EB]', 'text-white'];
         const inactiveClass = ['text-gray-500', 'dark:text-slate-400'];
@@ -73,6 +73,7 @@ const { tier } = Astro.props;
       annualBtn.addEventListener('click', () => setActive('annual'));
 
       upgradeBtn.addEventListener('click', async () => {
+        console.log('[CTA] click fired, priceId =', PRICES[cadence]);
         upgradeBtn.disabled = true;
         upgradeBtn.textContent = 'Loading...';
         try {
@@ -81,24 +82,21 @@ const { tier } = Astro.props;
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ priceId: PRICES[cadence] }),
           });
+          console.log('[CTA] response status:', res.status);
+          const body = await res.json();
+          console.log('[CTA] response body:', body);
           if (!res.ok) throw new Error('checkout failed');
-          const { url } = await res.json();
-          window.location.href = url;
-        } catch {
+          window.location.href = body.url;
+        } catch (err) {
+          console.error('[CTA] error:', err);
           upgradeBtn.disabled = false;
           upgradeBtn.textContent = 'Upgrade to Pro';
         }
       });
-    })();
-  </script>
-)}
+    }
 
-{tier !== 'free' && (
-  <script>
-    (function() {
-      const manageBtn = document.getElementById('cta-manage-btn');
-      if (!manageBtn) return;
-
+    // --- Manage subscription flow (paid tier) ---
+    if (manageBtn) {
       manageBtn.addEventListener('click', async () => {
         manageBtn.disabled = true;
         manageBtn.textContent = 'Loading...';
@@ -112,6 +110,6 @@ const { tier } = Astro.props;
           manageBtn.textContent = 'Manage subscription';
         }
       });
-    })();
-  </script>
-)}
+    }
+  })();
+</script>
