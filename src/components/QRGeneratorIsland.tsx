@@ -1,6 +1,9 @@
 import QRCodeStyling from "qr-code-styling";
 import type { DotType, CornerSquareType, CornerDotType } from "qr-code-styling";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useUser } from "@clerk/shared/react";
+import { Toaster, toast } from "sonner";
+import { Lock } from "lucide-react";
 import { useDebounce } from "../hooks/useDebounce";
 import {
   encodeWifi,
@@ -20,8 +23,10 @@ import VCardTab from "./tabs/VCardTab";
 import { ColorSection, type ColorSectionState } from "./customize/ColorSection";
 import { ShapeSection, type ShapeSectionState } from "./customize/ShapeSection";
 import { LogoSection, type LogoSectionState } from "./customize/LogoSection";
+import { SaveQRModal } from "./SaveQRModal";
 
 type TabId = "url" | "text" | "wifi" | "vcard";
+type UserTier = "free" | "starter" | "pro" | null;
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "url", label: "URL" },
@@ -46,6 +51,16 @@ export default function QRGeneratorIsland() {
   const qrCodeRef = useRef<QRCodeStyling | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
 
+  // Auth state
+  const { isSignedIn, isLoaded } = useUser();
+  const [userTier, setUserTier] = useState<UserTier>(null);
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Edit-mode state
+  const [editName, setEditName] = useState<string | null>(null);
+  const [editLoading, setEditLoading] = useState(false);
+
   // Tab state
   const [activeTab, setActiveTab] = useState<TabId>("url");
 
@@ -63,16 +78,6 @@ export default function QRGeneratorIsland() {
     email: "",
     org: "",
   });
-
-  // Derive the raw QR data string from active tab state
-  const rawContent = useMemo(() => {
-    switch (activeTab) {
-      case "url":   return urlValue;
-      case "text":  return textValue;
-      case "wifi":  return encodeWifi(wifiValue);
-      case "vcard": return encodeVCard(vcardValue);
-    }
-  }, [activeTab, urlValue, textValue, wifiValue, vcardValue]);
 
   // Customization state — defaults match Phase 2 initial options (no visual change on launch)
   const [colorOptions, setColorOptions] = useState<ColorSectionState>({
@@ -94,6 +99,16 @@ export default function QRGeneratorIsland() {
     logoSrc: null,
     logoFilename: null,
   });
+
+  // Derive the raw QR data string from active tab state
+  const rawContent = useMemo(() => {
+    switch (activeTab) {
+      case "url":   return urlValue;
+      case "text":  return textValue;
+      case "wifi":  return encodeWifi(wifiValue);
+      case "vcard": return encodeVCard(vcardValue);
+    }
+  }, [activeTab, urlValue, textValue, wifiValue, vcardValue]);
 
   // Debounce for 300ms — PREV-01
   const debouncedContent = useDebounce(rawContent, 300);
@@ -118,6 +133,183 @@ export default function QRGeneratorIsland() {
       case "vcard": return isVCardEmpty(vcardValue);
     }
   }, [activeTab, debouncedContent, wifiValue, vcardValue]);
+
+  // Edit-mode: detect ?edit= URL param (client-side only)
+  const editId = useMemo(
+    () => typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("edit") : null,
+    []
+  );
+
+  // Tier fetch — runs when Clerk finishes loading
+  // CRITICAL: defaults to null (unlocked) while loading — no flash of locked state for anonymous users
+  useEffect(() => {
+    if (!isLoaded) return;
+    if (!isSignedIn) {
+      setUserTier(null);
+      return;
+    }
+    fetch("/api/subscription/status")
+      .then((r) => r.json())
+      .then((d) => setUserTier(d.tier as UserTier))
+      .catch(() => setUserTier("free"));
+  }, [isLoaded, isSignedIn]);
+
+  // Edit-mode fetch: load saved QR and hydrate all state slices
+  useEffect(() => {
+    if (!editId) return;
+    setEditLoading(true);
+    fetch(`/api/qr/${editId}`)
+      .then((r) => {
+        if (!r.ok) throw new Error("Not found");
+        return r.json();
+      })
+      .then((data) => {
+        // Hydrate name for banner
+        setEditName(data.name ?? "Untitled");
+
+        // Hydrate tab
+        if (data.contentType && ["url", "text", "wifi", "vcard"].includes(data.contentType)) {
+          setActiveTab(data.contentType as TabId);
+        }
+
+        // Hydrate content
+        const content = data.contentData ?? {};
+        if (data.contentType === "url") setUrlValue(content.url ?? "");
+        if (data.contentType === "text") setTextValue(content.text ?? "");
+        if (data.contentType === "wifi") setWifiValue(content as WifiState);
+        if (data.contentType === "vcard") setVcardValue(content as VCardState);
+
+        // Hydrate style
+        if (data.styleData) {
+          const s = data.styleData;
+          setColorOptions((prev) => ({
+            ...prev,
+            dotColor: s.dotColor ?? prev.dotColor,
+            bgColor: s.bgColor ?? prev.bgColor,
+            gradientEnabled: s.gradientEnabled ?? prev.gradientEnabled,
+            gradientType: s.gradientType ?? prev.gradientType,
+            gradientStop1: s.gradientStop1 ?? prev.gradientStop1,
+            gradientStop2: s.gradientStop2 ?? prev.gradientStop2,
+          }));
+          setShapeOptions((prev) => ({
+            ...prev,
+            dotType: (s.dotType as DotType) ?? prev.dotType,
+            cornerSquareType: (s.cornerSquareType as CornerSquareType) ?? prev.cornerSquareType,
+            cornerDotType: (s.cornerDotType as CornerDotType) ?? prev.cornerDotType,
+          }));
+        }
+
+        // Hydrate logo
+        if (data.logoData) {
+          setLogoOptions({ logoSrc: data.logoData, logoFilename: "logo" });
+        }
+      })
+      .catch(() => toast.error("Could not load QR for editing"))
+      .finally(() => setEditLoading(false));
+  }, [editId]);
+
+  // Derive default save name from current content
+  const defaultSaveName = useMemo(() => {
+    switch (activeTab) {
+      case "url":    return urlValue.replace(/^https?:\/\//, "").split("/")[0].slice(0, 60) || "My QR";
+      case "text":   return textValue.split("\n")[0].slice(0, 60) || "My QR";
+      case "wifi":   return wifiValue.ssid.slice(0, 60) || "WiFi QR";
+      case "vcard":  return vcardValue.name.slice(0, 60) || "Contact QR";
+    }
+  }, [activeTab, urlValue, textValue, wifiValue, vcardValue]);
+
+  // Generate a thumbnail (base64 data URL PNG) from the QR instance
+  async function generateThumbnail(): Promise<string | null> {
+    try {
+      const blob = await qrCodeRef.current?.getRawData("png");
+      if (!blob) return null;
+      return await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target?.result as string ?? null);
+        reader.onerror = () => reject(null);
+        reader.readAsDataURL(blob as Blob);
+      });
+    } catch {
+      return null;
+    }
+  }
+
+  // Save handler — POST /api/qr/save
+  const handleSave = useCallback(async (name: string) => {
+    setIsSaving(true);
+    try {
+      const thumbnailData = await generateThumbnail();
+
+      // Build contentData from active tab
+      let contentData: Record<string, unknown>;
+      switch (activeTab) {
+        case "url":   contentData = { url: urlValue }; break;
+        case "text":  contentData = { text: textValue }; break;
+        case "wifi":  contentData = { ...wifiValue }; break;
+        case "vcard": contentData = { ...vcardValue }; break;
+      }
+
+      const res = await fetch("/api/qr/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          contentType: activeTab,
+          contentData,
+          styleData: { ...colorOptions, ...shapeOptions },
+          logoData: logoOptions.logoSrc ?? null,
+          thumbnailData,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Save failed");
+      toast("Saved to library");
+      setShowSaveModal(false);
+    } catch {
+      toast.error("Failed to save — please try again");
+    } finally {
+      setIsSaving(false);
+    }
+  }, [activeTab, urlValue, textValue, wifiValue, vcardValue, colorOptions, shapeOptions, logoOptions]);
+
+  // Edit save handler — PUT /api/qr/[id]
+  const handleEditSave = useCallback(async () => {
+    if (!editId) return;
+    setIsSaving(true);
+    try {
+      const thumbnailData = await generateThumbnail();
+
+      let contentData: Record<string, unknown>;
+      switch (activeTab) {
+        case "url":   contentData = { url: urlValue }; break;
+        case "text":  contentData = { text: textValue }; break;
+        case "wifi":  contentData = { ...wifiValue }; break;
+        case "vcard": contentData = { ...vcardValue }; break;
+      }
+
+      const res = await fetch(`/api/qr/${editId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: editName,
+          contentType: activeTab,
+          contentData,
+          styleData: { ...colorOptions, ...shapeOptions },
+          logoData: logoOptions.logoSrc ?? null,
+          thumbnailData,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Update failed");
+      toast("Changes saved");
+      // Navigate back to dashboard after brief delay
+      setTimeout(() => { window.location.href = "/dashboard"; }, 1000);
+    } catch {
+      toast.error("Failed to save changes — please try again");
+    } finally {
+      setIsSaving(false);
+    }
+  }, [editId, editName, activeTab, urlValue, textValue, wifiValue, vcardValue, colorOptions, shapeOptions, logoOptions]);
 
   // Mount effect — create QR instance client-side only and append to preview div
   // useEffect never runs during SSR, so qr-code-styling's window access is safe
@@ -170,8 +362,44 @@ export default function QRGeneratorIsland() {
     setActiveTab(tabId);
   }, []);
 
+  // Determine save button rendering
+  // - anonymous (userTier === null): hide button
+  // - signed-in non-Pro: greyed button with lock
+  // - Pro: active save button
+  const isPro = userTier === "pro";
+  const isNonProSignedIn = isLoaded && isSignedIn && userTier !== null && userTier !== "pro";
+
   return (
     <div className="w-full">
+      <Toaster theme="system" position="bottom-right" />
+
+      {/* Edit-mode banner */}
+      {editId && (
+        <div className="w-full mb-6 px-4 py-3 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 rounded-lg flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex-1 text-sm font-medium text-amber-800 dark:text-amber-200">
+            {editLoading ? "Loading QR…" : `Editing: ${editName ?? "Untitled"}`}
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={handleEditSave}
+              disabled={isSaving || editLoading}
+              className="px-4 py-1.5 text-sm font-medium text-white bg-amber-600 hover:bg-amber-700
+                         rounded-lg transition-colors disabled:opacity-50"
+            >
+              {isSaving ? "Saving…" : "Save Changes"}
+            </button>
+            <button
+              onClick={() => { window.location.href = "/dashboard"; }}
+              className="px-4 py-1.5 text-sm font-medium text-amber-800 dark:text-amber-200
+                         bg-amber-100 dark:bg-amber-800/50 hover:bg-amber-200 dark:hover:bg-amber-800
+                         rounded-lg transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col lg:flex-row gap-8 items-start">
 
         {/* Form panel — 60% on desktop */}
@@ -248,8 +476,8 @@ export default function QRGeneratorIsland() {
           <div className="mt-8 border-t border-gray-200 pt-6 space-y-6 dark:border-slate-700">
             <h2 className="text-base font-semibold text-gray-900 dark:text-white">Customize</h2>
             <ColorSection value={colorOptions} onChange={setColorOptions} />
-            <ShapeSection value={shapeOptions} onChange={setShapeOptions} />
-            <LogoSection value={logoOptions} onChange={setLogoOptions} />
+            <ShapeSection value={shapeOptions} onChange={setShapeOptions} userTier={userTier} />
+            <LogoSection value={logoOptions} onChange={setLogoOptions} userTier={userTier} />
           </div>
         </div>
 
@@ -268,9 +496,49 @@ export default function QRGeneratorIsland() {
             logoOptions={debouncedLogo}
             debouncedContent={debouncedContent}
           />
+
+          {/* Save to Library button — only shown for signed-in users */}
+          {isNonProSignedIn && (
+            <button
+              data-testid="save-to-library-locked"
+              onClick={() => toast("Upgrade to Pro to save QR codes to your library", {
+                action: { label: "Upgrade", onClick: () => { window.location.href = "/pricing"; } },
+              })}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium
+                         text-gray-400 bg-gray-100 dark:bg-slate-700 dark:text-slate-500
+                         border border-gray-200 dark:border-slate-600 rounded-lg cursor-pointer
+                         transition-colors"
+              aria-label="Save to Library — Pro feature, upgrade to unlock"
+            >
+              <Lock size={14} />
+              Save to Library
+            </button>
+          )}
+
+          {isPro && (
+            <button
+              data-testid="save-to-library"
+              onClick={() => setShowSaveModal(true)}
+              disabled={isEmpty}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium
+                         text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors
+                         disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Save to Library
+            </button>
+          )}
         </div>
 
       </div>
+
+      {/* Save modal */}
+      <SaveQRModal
+        isOpen={showSaveModal}
+        defaultName={defaultSaveName}
+        onSave={handleSave}
+        onClose={() => setShowSaveModal(false)}
+        isSaving={isSaving}
+      />
     </div>
   );
 }
