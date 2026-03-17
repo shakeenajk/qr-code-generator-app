@@ -82,7 +82,14 @@ Plans:
   3. Pro user can delete a saved QR code and it is removed from their library
   4. Authenticated non-Pro user who attempts to use logo upload or advanced dot shapes sees a Pro upgrade prompt; the API rejects the operation server-side regardless of client state
   5. Anonymous user on the homepage can use all static generation features (including logo upload and all dot shapes) without any account prompt
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 09-01-PLAN.md — Wave 0 test scaffolds (API + gate smoke stubs, test.fixme)
+- [ ] 09-02-PLAN.md — savedQrCodes DB schema + QR CRUD API routes (POST save, GET list, PUT/DELETE [id])
+- [ ] 09-03-PLAN.md — QRGeneratorIsland auth-awareness, SaveQRModal, edit-mode banner, Pro gate overlays
+- [ ] 09-04-PLAN.md — QRLibrary dashboard component (grid/list, cards, empty state) + dashboard page wiring
+- [ ] 09-05-PLAN.md — Activate smoke suite + human verification checkpoint
 
 ### Phase 10: Dynamic QR Redirect Service
 **Goal**: Pro users can create dynamic QR codes whose destination URL is editable post-print; scanning the QR code redirects with low latency via an edge function
@@ -118,7 +125,7 @@ Plans:
 | 5. Complete Dark Mode | v1.0 | 3/3 | Complete | 2026-03-11 |
 | 6. Fix Ghost Placeholder + Lighthouse | v1.0 | 3/3 | Complete | 2026-03-11 |
 | 7. SSR Foundation + Auth | v1.1 | 5/5 | Complete | 2026-03-16 |
-| 8. Stripe Billing | 6/6 | Complete   | 2026-03-17 | - |
-| 9. Saved QR Library + Pro Gates | v1.1 | 0/TBD | Not started | - |
+| 8. Stripe Billing | v1.1 | 6/6 | Complete | 2026-03-17 |
+| 9. Saved QR Library + Pro Gates | v1.1 | 0/5 | Not started | - |
 | 10. Dynamic QR Redirect Service | v1.1 | 0/TBD | Not started | - |
 | 11. Scan Analytics Dashboard | v1.1 | 0/TBD | Not started | - |
