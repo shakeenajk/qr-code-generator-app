@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { useUser, useClerk } from '@clerk/shared/react';
+import TierBadge from './billing/TierBadge';
 
 export default function UserMenu() {
   const { user, isLoaded } = useUser();
   const { signOut, openUserProfile } = useClerk();
   const [open, setOpen] = useState(false);
+  const [tier, setTier] = useState<'free' | 'starter' | 'pro'>('free');
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on outside click
@@ -16,6 +18,14 @@ export default function UserMenu() {
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  // Fetch subscription tier on mount
+  useEffect(() => {
+    fetch('/api/subscription/status')
+      .then(r => r.json())
+      .then(data => setTier(data.tier))
+      .catch(() => {}); // fail silently, badge just won't show
   }, []);
 
   if (!isLoaded || !user) return null;
@@ -43,10 +53,11 @@ export default function UserMenu() {
             {initials || '?'}
           </span>
         )}
-        {/* Name */}
+        {/* Name + TierBadge */}
         <span className="text-sm font-medium text-gray-700 dark:text-slate-200 hidden sm:block max-w-[120px] truncate">
           {displayName}
         </span>
+        <TierBadge tier={tier} />
         {/* Chevron */}
         <svg
           className={`w-4 h-4 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`}

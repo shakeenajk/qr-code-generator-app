@@ -1,11 +1,13 @@
 ---
 import { LayoutGrid, BarChart2, Settings } from 'lucide-astro';
+import UpgradeCTAPanel from '../billing/UpgradeCTAPanel.astro';
 
 interface Props {
   activeSection?: string;
+  tier?: 'free' | 'starter' | 'pro';
 }
 
-const { activeSection = 'my-qr-codes' } = Astro.props;
+const { activeSection = 'my-qr-codes', tier = 'free' } = Astro.props;
 
 const navItems = [
   { href: '/dashboard', label: 'My QR Codes', id: 'my-qr-codes', Icon: LayoutGrid },
@@ -42,4 +44,8 @@ const navItems = [
       );
     })}
   </nav>
+
+  <!-- Push billing panel to bottom -->
+  <div class="flex-1" />
+  <UpgradeCTAPanel tier={tier} />
 </aside>

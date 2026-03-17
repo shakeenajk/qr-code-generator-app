@@ -7,9 +7,10 @@ import MobileTabBar from './MobileTabBar.astro';
 interface Props {
   activeSection?: string;
   title?: string;
+  tier?: 'free' | 'starter' | 'pro';
 }
 
-const { activeSection = 'my-qr-codes', title = 'Dashboard — QRCraft' } = Astro.props;
+const { activeSection = 'my-qr-codes', title = 'Dashboard — QRCraft', tier = 'free' } = Astro.props;
 ---
 
 <!doctype html>
@@ -26,7 +27,7 @@ const { activeSection = 'my-qr-codes', title = 'Dashboard — QRCraft' } = Astro
 
     <!-- Main content area: sidebar + page content -->
     <div class="flex min-h-[calc(100vh-4rem)]">
-      <Sidebar activeSection={activeSection} />
+      <Sidebar activeSection={activeSection} tier={tier} />
 
       <!-- Page content -->
       <main class="flex-1 overflow-auto pb-20 md:pb-0">

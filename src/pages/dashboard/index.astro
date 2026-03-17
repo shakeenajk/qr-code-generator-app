@@ -1,6 +1,8 @@
 ---
 export const prerender = false;
 import DashboardLayout from '../../components/dashboard/DashboardLayout.astro';
+import PaymentFailureBanner from '../../components/billing/PaymentFailureBanner.astro';
+import SubscriptionPolling from '../../components/billing/SubscriptionPolling';
 
 // Middleware (src/middleware.ts) already redirects unauthenticated users to /login.
 // This is a belt-and-suspenders check in case middleware is misconfigured.
@@ -8,9 +10,23 @@ const { userId } = Astro.locals.auth();
 if (!userId) {
   return Astro.redirect('/login');
 }
+
+// Fetch subscription status server-side to pass tier to components
+const subRes = await fetch(`${import.meta.env.PUBLIC_BASE_URL}/api/subscription/status`, {
+  headers: { cookie: Astro.request.headers.get('cookie') ?? '' }
+});
+const { tier, paymentFailed } = subRes.ok
+  ? await subRes.json()
+  : { tier: 'free', paymentFailed: false };
 ---
 
-<DashboardLayout activeSection="my-qr-codes" title="My QR Codes — QRCraft">
+<DashboardLayout activeSection="my-qr-codes" title="My QR Codes — QRCraft" tier={tier}>
+  <!-- Payment failure banner (sticky at top of main content) -->
+  <PaymentFailureBanner show={paymentFailed} />
+
+  <!-- Post-checkout subscription polling (activates on ?upgraded=true) -->
+  <SubscriptionPolling client:only="react" />
+
   <div class="p-6 md:p-8">
     <!-- Page header -->
     <div class="mb-8">
