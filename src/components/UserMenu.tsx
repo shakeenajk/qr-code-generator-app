@@ -1,13 +1,19 @@
 import { useState, useRef, useEffect } from 'react';
-import { useUser, useClerk } from '@clerk/shared/react';
+import { $userStore, $clerkStore } from '@clerk/astro/client';
 import TierBadge from './billing/TierBadge';
 
 export default function UserMenu() {
-  const { user, isLoaded } = useUser();
-  const { signOut, openUserProfile } = useClerk();
+  const [user, setUser] = useState(() => $userStore.get());
+  const [clerk, setClerk] = useState(() => $clerkStore.get());
   const [open, setOpen] = useState(false);
   const [tier, setTier] = useState<'free' | 'starter' | 'pro'>('free');
   const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const unsub1 = $userStore.subscribe(setUser);
+    const unsub2 = $clerkStore.subscribe(setClerk);
+    return () => { unsub1(); unsub2(); };
+  }, []);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -28,7 +34,7 @@ export default function UserMenu() {
       .catch(() => {}); // fail silently, badge just won't show
   }, []);
 
-  if (!isLoaded || !user) return null;
+  if (!user) return null;
 
   const initials = (user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '');
   const displayName = user.fullName ?? user.firstName ?? 'Account';
@@ -80,14 +86,14 @@ export default function UserMenu() {
             My Dashboard
           </a>
           <button
-            onClick={() => { openUserProfile(); setOpen(false); }}
+            onClick={() => { clerk?.openUserProfile(); setOpen(false); }}
             className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
           >
             Account Settings
           </button>
           <hr className="my-1 border-gray-100 dark:border-slate-700" />
           <button
-            onClick={() => signOut({ redirectUrl: '/' })}
+            onClick={() => clerk?.signOut({ redirectUrl: '/' })}
             className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
           >
             Sign Out
