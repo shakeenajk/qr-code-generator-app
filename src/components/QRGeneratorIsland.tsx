@@ -384,8 +384,22 @@ export default function QRGeneratorIsland() {
       {/* Edit-mode banner */}
       {editId && (
         <div className="w-full mb-6 px-4 py-3 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 rounded-lg flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className="flex-1 text-sm font-medium text-amber-800 dark:text-amber-200">
-            {editLoading ? "Loading QR…" : `Editing: ${editName ?? "Untitled"}`}
+          <div className="flex-1 flex items-center gap-2 min-w-0">
+            {editLoading ? (
+              <span className="text-sm font-medium text-amber-800 dark:text-amber-200">Loading QR…</span>
+            ) : (
+              <>
+                <span className="text-sm font-medium text-amber-800 dark:text-amber-200 shrink-0">Editing:</span>
+                <input
+                  type="text"
+                  value={editName ?? ""}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="flex-1 min-w-0 text-sm px-2 py-1 rounded border border-amber-300 dark:border-amber-600
+                             bg-white dark:bg-amber-900/50 text-amber-900 dark:text-amber-100
+                             focus:outline-none focus:ring-1 focus:ring-amber-500"
+                />
+              </>
+            )}
           </div>
           <div className="flex gap-2">
             <button
