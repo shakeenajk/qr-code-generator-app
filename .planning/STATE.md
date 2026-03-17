@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Monetization
 status: executing
-stopped_at: Phase 9 Plan 03 complete — auth-aware QR island + Pro gate overlays committed
-last_updated: "2026-03-17T02:50:34.243Z"
+stopped_at: Phase 9 Plan 04 complete — QRLibrary component + dashboard wiring committed
+last_updated: "2026-03-17T03:07:05.195Z"
 last_activity: 2026-03-17 — Phase 9 Plan 02 (savedQrCodes schema + CRUD API routes) complete
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 16
-  completed_plans: 14
+  completed_plans: 15
   percent: 81
 ---
 
@@ -63,6 +63,7 @@ Progress: [████████░░] 81%
 | Phase 09 P01 | 3min | 2 tasks | 5 files |
 | Phase 09 P02 | 248s | 2 tasks | 4 files |
 | Phase 09 P03 | 12min | 2 tasks | 6 files |
+| Phase 09 P04 | 860s | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -105,6 +106,8 @@ Recent decisions affecting v1.1:
 - [Phase 09-03]: userTier null = unlocked — anonymous users and Clerk-loading state never see lock overlays (no-flash requirement)
 - [Phase 09-03]: Pro gate click interception: isProLocked tiles intercept onClick to show sonner toast with /pricing action, not disabled button (accessibility)
 - [Phase 09-03]: LogoSection locked state replaces drop-zone entirely — file input not rendered at all for non-Pro signed-in users
+- [Phase 09]: Toaster moved to page level in dashboard/index.astro — avoids duplicate Toaster when QR codes present, ensures toast works in all component states
+- [Phase 09]: QRLibrary viewMode persisted via localStorage key 'qrlibrary-view-mode' — grid/list preference survives page refreshes
 
 ### Pending Todos
 
@@ -118,6 +121,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-17T02:50:34.239Z
-Stopped at: Phase 9 Plan 03 complete — auth-aware QR island + Pro gate overlays committed
+Last session: 2026-03-17T03:07:05.182Z
+Stopped at: Phase 9 Plan 04 complete — QRLibrary component + dashboard wiring committed
 Resume file: None
