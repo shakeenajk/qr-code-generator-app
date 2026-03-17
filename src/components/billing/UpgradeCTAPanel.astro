@@ -73,7 +73,6 @@ const { tier } = Astro.props;
       annualBtn.addEventListener('click', () => setActive('annual'));
 
       upgradeBtn.addEventListener('click', async () => {
-        console.log('[CTA] click fired, priceId =', PRICES[cadence]);
         upgradeBtn.disabled = true;
         upgradeBtn.textContent = 'Loading...';
         try {
@@ -82,13 +81,10 @@ const { tier } = Astro.props;
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ priceId: PRICES[cadence] }),
           });
-          console.log('[CTA] response status:', res.status);
           const body = await res.json();
-          console.log('[CTA] response body:', body);
           if (!res.ok) throw new Error('checkout failed');
           window.location.href = body.url;
         } catch (err) {
-          console.error('[CTA] error:', err);
           upgradeBtn.disabled = false;
           upgradeBtn.textContent = 'Upgrade to Pro';
         }
