@@ -37,8 +37,8 @@ export const GET: APIRoute = async ({ locals, params }) => {
       id: row.id,
       name: row.name,
       contentType: row.contentType,
-      contentData: typeof row.contentData === 'string' ? JSON.parse(row.contentData) : row.contentData,
-      styleData: typeof row.styleData === 'string' ? JSON.parse(row.styleData) : row.styleData,
+      contentData: JSON.parse(row.contentData),
+      styleData: JSON.parse(row.styleData),
       logoData: row.logoData ?? null,
     }),
     { status: 200, headers: { 'Content-Type': 'application/json' } }

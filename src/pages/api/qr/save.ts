@@ -37,8 +37,8 @@ export const POST: APIRoute = async ({ locals, request }) => {
   const { name, contentType, contentData, styleData, logoData, thumbnailData } = body as {
     name?: string;
     contentType?: string;
-    contentData?: string;
-    styleData?: string;
+    contentData?: unknown;
+    styleData?: unknown;
     logoData?: string;
     thumbnailData?: string;
   };
@@ -59,8 +59,8 @@ export const POST: APIRoute = async ({ locals, request }) => {
   }
 
   try {
-    const parsedStyle = JSON.parse(styleData);
-    const dotType = parsedStyle?.dotsOptions?.type ?? parsedStyle?.dotType;
+    const parsedStyle = typeof styleData === 'string' ? JSON.parse(styleData) : styleData;
+    const dotType = (parsedStyle as Record<string, unknown>)?.dotType;
     if ((dotType === 'classy' || dotType === 'classy-rounded') && tier !== 'pro') {
       return new Response(JSON.stringify({ error: 'Pro required' }), {
         status: 403,
@@ -77,8 +77,8 @@ export const POST: APIRoute = async ({ locals, request }) => {
     userId,
     name,
     contentType,
-    contentData,
-    styleData,
+    contentData: typeof contentData === 'string' ? contentData : JSON.stringify(contentData),
+    styleData: typeof styleData === 'string' ? styleData : JSON.stringify(styleData),
     logoData: logoData ?? null,
     thumbnailData: thumbnailData ?? null,
   });
