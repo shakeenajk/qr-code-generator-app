@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { Lock } from "lucide-react";
 
 export type LogoSectionState = {
   logoSrc: string | null;
@@ -8,11 +9,16 @@ export type LogoSectionState = {
 export type LogoSectionProps = {
   value: LogoSectionState;
   onChange: (next: LogoSectionState) => void;
+  userTier?: "free" | "starter" | "pro" | null;
 };
 
-export function LogoSection({ value, onChange }: LogoSectionProps) {
+export function LogoSection({ value, onChange, userTier }: LogoSectionProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+
+  // CRITICAL: null means anonymous or still loading — treat as unlocked
+  // Lock only when: signed in AND not pro (userTier is explicitly 'free' or 'starter')
+  const isLocked = userTier !== null && userTier !== undefined && userTier !== "pro";
 
   function handleFileSelect(file: File) {
     if (!file.type.match(/^image\/(png|jpeg|svg\+xml|webp)$/)) return;
@@ -43,8 +49,27 @@ export function LogoSection({ value, onChange }: LogoSectionProps) {
         Logo
       </h3>
 
-      {/* Drop zone — shown when no logo uploaded */}
-      {!value.logoSrc && (
+      {/* Pro-locked state — shown for signed-in non-Pro users; anonymous users always see the drop-zone */}
+      {isLocked && (
+        <div
+          data-testid="logo-locked"
+          className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6
+                     flex flex-col items-center justify-center gap-2 text-gray-500 dark:text-gray-400"
+        >
+          <Lock size={20} className="text-gray-400 dark:text-gray-500" />
+          <p className="text-sm font-medium">Pro feature</p>
+          <p className="text-xs text-center">Upgrade to unlock logo upload</p>
+          <a
+            href="/pricing"
+            className="mt-1 text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline"
+          >
+            Upgrade to Pro
+          </a>
+        </div>
+      )}
+
+      {/* Drop zone — shown when no logo uploaded AND user is not locked */}
+      {!isLocked && !value.logoSrc && (
         <div
           data-testid="logo-dropzone"
           onDragOver={(e) => {
@@ -79,8 +104,8 @@ export function LogoSection({ value, onChange }: LogoSectionProps) {
         </div>
       )}
 
-      {/* Thumbnail + remove — shown when logo is uploaded */}
-      {value.logoSrc && (
+      {/* Thumbnail + remove — shown when logo is uploaded AND user is not locked */}
+      {!isLocked && value.logoSrc && (
         <div className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg bg-white dark:bg-slate-700 dark:border-slate-600">
           <img
             data-testid="logo-thumbnail"
@@ -103,7 +128,7 @@ export function LogoSection({ value, onChange }: LogoSectionProps) {
       )}
 
       {/* ECL info note — visible when logo is active (LOGO-02 communication) */}
-      {value.logoSrc && (
+      {!isLocked && value.logoSrc && (
         <div
           data-testid="logo-ecl-notice"
           className="mt-2 text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded px-3 py-2"

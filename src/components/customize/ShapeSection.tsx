@@ -1,3 +1,5 @@
+import { Lock } from "lucide-react";
+import { toast } from "sonner";
 import type { DotType, CornerSquareType, CornerDotType } from "qr-code-styling";
 
 export type ShapeSectionState = {
@@ -9,6 +11,7 @@ export type ShapeSectionState = {
 export type ShapeSectionProps = {
   value: ShapeSectionState;
   onChange: (next: ShapeSectionState) => void;
+  userTier?: "free" | "starter" | "pro" | null;
 };
 
 // ── Inline SVG thumbnails (20×20, currentColor) ──────────────────────────────
@@ -162,7 +165,28 @@ const CORNER_PUPILS: { type: CornerDotType; label: string; icon: React.ReactNode
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export function ShapeSection({ value, onChange }: ShapeSectionProps) {
+export function ShapeSection({ value, onChange, userTier }: ShapeSectionProps) {
+  // CRITICAL: null means anonymous or still loading — treat as unlocked
+  // Lock only when: signed in AND not pro (userTier is explicitly 'free' or 'starter')
+  const isProLocked = (type: DotType) =>
+    (type === "classy" || type === "classy-rounded") &&
+    userTier !== null &&
+    userTier !== undefined &&
+    userTier !== "pro";
+
+  const handleDotShapeClick = (type: DotType) => {
+    if (isProLocked(type)) {
+      toast("Upgrade to Pro to use this shape", {
+        action: {
+          label: "Upgrade",
+          onClick: () => { window.location.href = "/pricing"; },
+        },
+      });
+      return;
+    }
+    onChange({ ...value, dotType: type });
+  };
+
   return (
     <section aria-labelledby="shapes-heading">
       <h3
@@ -175,23 +199,36 @@ export function ShapeSection({ value, onChange }: ShapeSectionProps) {
       {/* Dot shape grid (CUST-04) */}
       <p className="text-xs text-gray-500 mb-2 dark:text-slate-400">Dot style</p>
       <div className="grid grid-cols-6 gap-2 mb-4">
-        {DOT_SHAPES.map(({ type, label, icon }) => (
-          <button
-            key={type}
-            data-testid={`dot-shape-${type}`}
-            onClick={() => onChange({ ...value, dotType: type })}
-            className={`p-2 rounded-lg border-2 flex items-center justify-center transition-colors ${
-              value.dotType === type
-                ? "border-blue-600 bg-blue-50 text-blue-600"
-                : "border-gray-200 bg-white hover:border-gray-300 text-gray-600 dark:border-slate-600 dark:bg-slate-700 dark:hover:border-slate-500 dark:text-slate-300"
-            }`}
-            title={label}
-            aria-label={`${label} dot style`}
-            aria-pressed={value.dotType === type}
-          >
-            {icon}
-          </button>
-        ))}
+        {DOT_SHAPES.map(({ type, label, icon }) => {
+          const locked = isProLocked(type);
+          return (
+            <div key={type} className="relative">
+              <button
+                data-testid={`dot-shape-${type}`}
+                onClick={() => handleDotShapeClick(type)}
+                className={`w-full p-2 rounded-lg border-2 flex items-center justify-center transition-colors ${
+                  value.dotType === type
+                    ? "border-blue-600 bg-blue-50 text-blue-600"
+                    : "border-gray-200 bg-white hover:border-gray-300 text-gray-600 dark:border-slate-600 dark:bg-slate-700 dark:hover:border-slate-500 dark:text-slate-300"
+                }`}
+                title={locked ? `${label} — Pro feature` : label}
+                aria-label={locked ? `${label} dot style (Pro feature — upgrade to unlock)` : `${label} dot style`}
+                aria-pressed={value.dotType === type}
+              >
+                {icon}
+              </button>
+              {/* Pro lock overlay */}
+              {locked && (
+                <div
+                  className="absolute inset-0 bg-white/70 dark:bg-gray-900/70 rounded-lg flex items-center justify-center pointer-events-none"
+                  aria-hidden="true"
+                >
+                  <Lock size={12} className="text-gray-500 dark:text-gray-400" />
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* Corner frame row (CUST-05) */}
