@@ -18,3 +18,16 @@ export const stripeEvents = sqliteTable('stripe_events', {
   eventId: text('event_id').primaryKey(),
   processedAt: integer('processed_at').notNull().$defaultFn(() => Math.floor(Date.now() / 1000)),
 });
+
+export const savedQrCodes = sqliteTable('saved_qr_codes', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id').notNull(),
+  name: text('name').notNull(),
+  contentType: text('content_type').notNull(),
+  contentData: text('content_data').notNull(),
+  styleData: text('style_data').notNull(),
+  logoData: text('logo_data'),
+  thumbnailData: text('thumbnail_data'),
+  createdAt: integer('created_at').notNull().$defaultFn(() => Math.floor(Date.now() / 1000)),
+  updatedAt: integer('updated_at').notNull().$defaultFn(() => Math.floor(Date.now() / 1000)),
+});
