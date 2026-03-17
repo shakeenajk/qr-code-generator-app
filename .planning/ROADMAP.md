@@ -118,7 +118,7 @@ Plans:
 | 5. Complete Dark Mode | v1.0 | 3/3 | Complete | 2026-03-11 |
 | 6. Fix Ghost Placeholder + Lighthouse | v1.0 | 3/3 | Complete | 2026-03-11 |
 | 7. SSR Foundation + Auth | v1.1 | 5/5 | Complete | 2026-03-16 |
-| 8. Stripe Billing | 3/6 | In Progress|  | - |
+| 8. Stripe Billing | 4/6 | In Progress|  | - |
 | 9. Saved QR Library + Pro Gates | v1.1 | 0/TBD | Not started | - |
 | 10. Dynamic QR Redirect Service | v1.1 | 0/TBD | Not started | - |
 | 11. Scan Analytics Dashboard | v1.1 | 0/TBD | Not started | - |

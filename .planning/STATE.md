@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Monetization
 status: executing
-stopped_at: Completed 08-03-PLAN.md
-last_updated: "2026-03-17T00:17:35.878Z"
+stopped_at: Completed 08-04-PLAN.md
+last_updated: "2026-03-17T00:26:10.277Z"
 last_activity: 2026-03-16 — Phase 8 Plan 01 (DB schema + singletons + test stubs) complete
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 11
-  completed_plans: 8
+  completed_plans: 9
   percent: 21
 ---
 
@@ -57,6 +57,7 @@ Progress: [███░░░░░░░] 21%
 | Phase 08 P01 | 9min | 2 tasks | 9 files |
 | Phase 08 P02 | 2min | 2 tasks | 2 files |
 | Phase 08 P03 | 15min | 2 tasks | 3 files |
+| Phase 08 P04 | 147s | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -85,6 +86,8 @@ Recent decisions affecting v1.1:
 - [Phase 08]: handleSubscriptionUpdated conflicts on stripeSubscriptionId (not userId) for safe upsert with out-of-order events
 - [Phase 08]: clerkClient from @clerk/astro/server takes full APIContext — not a static client, must pass context to call .users.getUser()
 - [Phase 08]: Checkout endpoint wraps only Stripe API calls in try/catch — DB errors surface as 500 (correct behavior)
+- [Phase 08]: SubscriptionPolling uses client:only='react' — component uses window.location directly and must be browser-only
+- [Phase 08]: DashboardLayout.astro threads tier prop from index.astro through to Sidebar to avoid duplicate server-side subscription fetches
 
 ### Pending Todos
 
@@ -98,6 +101,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-17T00:17:35.875Z
-Stopped at: Completed 08-03-PLAN.md
+Last session: 2026-03-17T00:26:10.274Z
+Stopped at: Completed 08-04-PLAN.md
 Resume file: None
