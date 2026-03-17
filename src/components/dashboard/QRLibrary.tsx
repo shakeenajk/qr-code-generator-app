@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Grid2X2, List, Pencil, Trash2, QrCode } from 'lucide-react';
-import { Toaster, toast } from 'sonner';
+import { toast } from 'sonner';
 
 interface SavedQR {
   id: string;
@@ -181,8 +181,6 @@ export default function QRLibrary() {
 
   return (
     <>
-      <Toaster theme="system" position="bottom-right" />
-
       {/* Library header */}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white">My QR Codes</h2>
