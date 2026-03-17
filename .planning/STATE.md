@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Monetization
 status: executing
-stopped_at: Phase 9 Plan 02 complete — savedQrCodes schema + CRUD API routes committed
-last_updated: "2026-03-17T02:32:49.845Z"
+stopped_at: Phase 9 Plan 03 complete — auth-aware QR island + Pro gate overlays committed
+last_updated: "2026-03-17T02:50:34.243Z"
 last_activity: 2026-03-17 — Phase 9 Plan 02 (savedQrCodes schema + CRUD API routes) complete
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 16
-  completed_plans: 13
-  percent: 25
+  completed_plans: 14
+  percent: 81
 ---
 
 # Project State
@@ -62,6 +62,7 @@ Progress: [████████░░] 81%
 | Phase 08 P06 | continuation | 2 tasks | 5 files |
 | Phase 09 P01 | 3min | 2 tasks | 5 files |
 | Phase 09 P02 | 248s | 2 tasks | 4 files |
+| Phase 09 P03 | 12min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -101,6 +102,9 @@ Recent decisions affecting v1.1:
 - [Phase 09]: IDOR prevention: PUT/DELETE use compound WHERE (id + userId) — 404 not 403 for wrong-user rows (avoids leaking existence)
 - [Phase 09]: GET /api/qr/list uses explicit column SELECT to exclude logoData — prevents large payload for list view
 - [Phase 09]: savedQrCodes.id uses crypto.randomUUID() text PK — integers in URLs are guessable enumeration vectors
+- [Phase 09-03]: userTier null = unlocked — anonymous users and Clerk-loading state never see lock overlays (no-flash requirement)
+- [Phase 09-03]: Pro gate click interception: isProLocked tiles intercept onClick to show sonner toast with /pricing action, not disabled button (accessibility)
+- [Phase 09-03]: LogoSection locked state replaces drop-zone entirely — file input not rendered at all for non-Pro signed-in users
 
 ### Pending Todos
 
@@ -114,6 +118,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-17T02:32:49.842Z
-Stopped at: Phase 9 Plan 02 complete — savedQrCodes schema + CRUD API routes committed
-Resume file: .planning/phases/09-saved-qr-library-pro-gates/09-02-SUMMARY.md
+Last session: 2026-03-17T02:50:34.239Z
+Stopped at: Phase 9 Plan 03 complete — auth-aware QR island + Pro gate overlays committed
+Resume file: None
