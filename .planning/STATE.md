@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Monetization
 status: executing
-stopped_at: Completed 08-04-PLAN.md
-last_updated: "2026-03-17T00:26:10.277Z"
-last_activity: 2026-03-16 — Phase 8 Plan 01 (DB schema + singletons + test stubs) complete
+stopped_at: Completed 08-05-PLAN.md
+last_updated: "2026-03-16T00:00:00.000Z"
+last_activity: 2026-03-16 — Phase 8 Plan 05 (public pricing page + hero Pro mention) complete
 progress:
   total_phases: 5
   completed_phases: 1
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-03-11)
 ## Current Position
 
 Phase: 8 of 11 (Stripe Billing)
-Plan: 1 of 6 complete
+Plan: 5 of 6 complete
 Status: Executing
-Last activity: 2026-03-16 — Phase 8 Plan 01 (DB schema + singletons + test stubs) complete
+Last activity: 2026-03-16 — Phase 8 Plan 05 (public pricing page + hero Pro mention) complete
 
 Progress: [███░░░░░░░] 21%
 
@@ -58,6 +58,7 @@ Progress: [███░░░░░░░] 21%
 | Phase 08 P02 | 2min | 2 tasks | 2 files |
 | Phase 08 P03 | 15min | 2 tasks | 3 files |
 | Phase 08 P04 | 147s | 2 tasks | 8 files |
+| Phase 08 P05 | 176s | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -88,6 +89,9 @@ Recent decisions affecting v1.1:
 - [Phase 08]: Checkout endpoint wraps only Stripe API calls in try/catch — DB errors surface as 500 (correct behavior)
 - [Phase 08]: SubscriptionPolling uses client:only='react' — component uses window.location directly and must be browser-only
 - [Phase 08]: DashboardLayout.astro threads tier prop from index.astro through to Sidebar to avoid duplicate server-side subscription fetches
+- [Phase 08-05]: Pricing page is fully static (no prerender=false) — public SEO page benefits from CDN caching
+- [Phase 08-05]: 401 from /api/checkout/create on pricing page redirects to /login?redirect=/pricing to preserve billing intent
+- [Phase 08-05]: data-testid=billing-toggle wraps entire toggle group (not individual buttons) — matches Playwright test selector
 
 ### Pending Todos
 
@@ -101,6 +105,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-17T00:26:10.274Z
-Stopped at: Completed 08-04-PLAN.md
+Last session: 2026-03-16T00:00:00.000Z
+Stopped at: Completed 08-05-PLAN.md
 Resume file: None
