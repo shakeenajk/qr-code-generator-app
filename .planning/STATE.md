@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Monetization
 status: executing
-stopped_at: Phase 9 context gathered
-last_updated: "2026-03-17T02:05:42.091Z"
-last_activity: 2026-03-16 — Phase 8 Plan 05 (public pricing page + hero Pro mention) complete
+stopped_at: "Phase 9 Plan 01 complete — Wave 0 test scaffolds committed"
+last_updated: "2026-03-17T02:25:13Z"
+last_activity: 2026-03-17 — Phase 9 Plan 01 (Wave 0 test scaffolds — 5 fixme spec files) complete
 progress:
   total_phases: 5
   completed_phases: 2
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-03-11)
 
 ## Current Position
 
-Phase: 8 of 11 (Stripe Billing)
-Plan: 5 of 6 complete
+Phase: 9 of 11 (Saved QR Library + Pro Gates)
+Plan: 1 of 4 complete
 Status: Executing
-Last activity: 2026-03-16 — Phase 8 Plan 05 (public pricing page + hero Pro mention) complete
+Last activity: 2026-03-17 — Phase 9 Plan 01 (Wave 0 test scaffolds — 5 fixme spec files) complete
 
-Progress: [███░░░░░░░] 21%
+Progress: [████░░░░░░] 25%
 
 ## Performance Metrics
 
@@ -60,6 +60,7 @@ Progress: [███░░░░░░░] 21%
 | Phase 08 P04 | 147s | 2 tasks | 8 files |
 | Phase 08 P05 | 176s | 2 tasks | 2 files |
 | Phase 08 P06 | continuation | 2 tasks | 5 files |
+| Phase 09 P01 | 3min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -94,6 +95,8 @@ Recent decisions affecting v1.1:
 - [Phase 08-05]: 401 from /api/checkout/create on pricing page redirects to /login?redirect=/pricing to preserve billing intent
 - [Phase 08-05]: data-testid=billing-toggle wraps entire toggle group (not individual buttons) — matches Playwright test selector
 - [Phase 08]: Strict mode violation in pricing smoke test fixed inline — aria snapshot for billing toggle matched wrapping div after selector correction
+- [Phase 09-01]: Wave 0 scaffolding pattern: create test.fixme stubs in all spec files before any implementation begins (Nyquist compliance)
+- [Phase 09-01]: Stubs use test.fixme (not test.skip) — project standard from Phase 07 for visible pending tests in reports
 
 ### Pending Todos
 
@@ -107,6 +110,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-17T02:05:42.088Z
-Stopped at: Phase 9 context gathered
-Resume file: .planning/phases/09-saved-qr-library-pro-gates/09-CONTEXT.md
+Last session: 2026-03-17T02:25:13Z
+Stopped at: Phase 9 Plan 01 complete — Wave 0 test scaffolds committed
+Resume file: .planning/phases/09-saved-qr-library-pro-gates/09-01-SUMMARY.md

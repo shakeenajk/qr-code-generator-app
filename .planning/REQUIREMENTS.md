@@ -23,10 +23,10 @@
 
 ### Saved QR Library
 
-- [ ] **LIB-01**: Pro user can save a generated QR code to their library with a custom name
-- [ ] **LIB-02**: Pro user can view all saved QR codes in a dashboard
-- [ ] **LIB-03**: Pro user can reopen and edit a saved QR code
-- [ ] **LIB-04**: Pro user can delete a saved QR code from their library
+- [x] **LIB-01**: Pro user can save a generated QR code to their library with a custom name
+- [x] **LIB-02**: Pro user can view all saved QR codes in a dashboard
+- [x] **LIB-03**: Pro user can reopen and edit a saved QR code
+- [x] **LIB-04**: Pro user can delete a saved QR code from their library
 
 ### Dynamic QR Codes
 
@@ -45,9 +45,9 @@
 
 ### Pro Feature Gates
 
-- [ ] **GATE-01**: Logo upload in QR generator requires a Pro account (anonymous users remain ungated)
-- [ ] **GATE-02**: Advanced dot shapes require a Pro account (anonymous users remain ungated)
-- [ ] **GATE-03**: Anonymous users can use all static QR generation features without creating an account
+- [x] **GATE-01**: Logo upload in QR generator requires a Pro account (anonymous users remain ungated)
+- [x] **GATE-02**: Advanced dot shapes require a Pro account (anonymous users remain ungated)
+- [x] **GATE-03**: Anonymous users can use all static QR generation features without creating an account
 
 ## v2 Requirements
 
@@ -106,10 +106,10 @@
 | BILL-03 | Phase 8 | Complete |
 | BILL-04 | Phase 8 | Complete |
 | BILL-05 | Phase 8 | Complete |
-| LIB-01 | Phase 9 | Pending |
-| LIB-02 | Phase 9 | Pending |
-| LIB-03 | Phase 9 | Pending |
-| LIB-04 | Phase 9 | Pending |
+| LIB-01 | Phase 9 | Complete |
+| LIB-02 | Phase 9 | Complete |
+| LIB-03 | Phase 9 | Complete |
+| LIB-04 | Phase 9 | Complete |
 | DYN-01 | Phase 10 | Pending |
 | DYN-02 | Phase 10 | Pending |
 | DYN-03 | Phase 10 | Pending |
@@ -119,9 +119,9 @@
 | ANAL-02 | Phase 11 | Pending |
 | ANAL-03 | Phase 11 | Pending |
 | ANAL-04 | Phase 11 | Pending |
-| GATE-01 | Phase 9 | Pending |
-| GATE-02 | Phase 9 | Pending |
-| GATE-03 | Phase 9 | Pending |
+| GATE-01 | Phase 9 | Complete |
+| GATE-02 | Phase 9 | Complete |
+| GATE-03 | Phase 9 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 26 total
