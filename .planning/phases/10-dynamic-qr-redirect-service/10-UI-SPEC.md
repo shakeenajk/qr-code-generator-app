@@ -54,17 +54,17 @@ Source: pre-populated from existing QRLibrary.tsx pattern analysis (p-4 cards, g
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 14px (text-sm) | 400 (regular) | 1.5 |
-| Label | 14px (text-sm) | 500 (medium) | 1.4 |
 | Heading | 20px (text-xl) | 600 (semibold) | 1.2 |
-| Display | 28px (text-2xl) | 700 (bold) | 1.15 |
+| Display | 28px (text-2xl) | 600 (semibold) | 1.15 |
 
 Notes:
-- Body/label distinction: body for secondary metadata (date, truncated URL), label for form field labels and button text
-- Holding page uses Display (28px / 700) for the message headline; Body for sub-copy
-- Inline edit affordance for destination URL: text-sm (14px) / weight 400 in read state, same in edit state
-- Badge text ("Dynamic"): text-xs (12px) / weight 600
+- Body (14px / 400) is used for: secondary metadata (date, truncated URL), button text, form field labels, and inline editor text in both read and edit states
+- Holding page uses Display (28px / 600) for the message headline; Body (14px / 400) for sub-copy
+- Badge text ("Dynamic"): text-xs (12px) / weight 600 — badge is a decorative label, not a content size; it does not enter the body/heading/display scale
 
-Source: pre-populated from existing patterns in QRLibrary.tsx (text-xl font-semibold for headings, text-sm for body, text-xs for metadata)
+Weight constraint: only 400 (regular) and 600 (semibold) are used. No 500 (medium) or 700 (bold) anywhere in Phase 10.
+
+Source: pre-populated from existing patterns in QRLibrary.tsx (text-xl font-semibold for headings, text-sm for body, text-xs for metadata). Weights reduced to 2 per contract rule.
 
 ---
 
@@ -79,7 +79,7 @@ Source: pre-populated from existing patterns in QRLibrary.tsx (text-xl font-semi
 
 Accent (`indigo-600 / dark:indigo-500`) reserved for:
 1. Active state of grid/list view toggle buttons (bg-indigo-600 text-white)
-2. Primary CTA buttons ("Go to Generator", "Save" in inline edit)
+2. Primary CTA buttons ("Go to Generator", "Save URL" in inline edit)
 3. Loading spinner border (border-indigo-600)
 4. "Dynamic QR" toggle enabled state (the toggle thumb/track when on)
 5. Focus ring on URL destination input (focus:ring-indigo-500)
@@ -126,8 +126,8 @@ Note on brand color: `--color-brand` in global.css is `#2563EB` (blue-600). Exis
 #### 4. InlineDestinationEditor (on QR card)
 - Activated by: clicking Pencil icon next to destination URL
 - Input: `w-full px-2 py-1 text-xs border border-indigo-500 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:bg-slate-800 dark:text-slate-100`
-- Action row below input: "Save" button (`text-xs px-2 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700`) + "Cancel" link (`text-xs text-gray-500 dark:text-slate-400 hover:text-gray-700 ml-2`)
-- Loading state: "Save" button shows spinner, becomes disabled (`opacity-60 cursor-wait`)
+- Action row below input: "Save URL" button (`text-xs px-2 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700`) + "Discard" link (`text-xs text-gray-500 dark:text-slate-400 hover:text-gray-700 ml-2`)
+- Loading state: "Save URL" button shows spinner, becomes disabled (`opacity-60 cursor-wait`)
 - Max width: same as card body width (no horizontal overflow)
 
 #### 5. PauseToggle (on QR card)
@@ -143,8 +143,8 @@ Note on brand color: `--color-brand` in global.css is `#2563EB` (blue-600). Exis
 - Layout: Full-page centered flex column, `min-h-screen bg-white dark:bg-[#0f172a]`
 - No navigation, no footer — bare page
 - QRCraft logo: centered, `w-32` image or text wordmark
-- Message: Display typography (28px / 700) centered, `text-gray-900 dark:text-white`
-- Sub-copy: Body typography (16px / 400), `text-gray-500 dark:text-slate-400`, centered, `max-w-xs`
+- Message: Display typography (28px / 600) centered, `text-gray-900 dark:text-white`
+- Sub-copy: Body typography (14px / 400), `text-gray-500 dark:text-slate-400`, centered, `max-w-xs`
 - Padding: `px-6 py-16` (mobile-first)
 - Dark mode supported
 
@@ -161,7 +161,7 @@ Note on brand color: `--color-brand` in global.css is `#2563EB` (blue-600). Exis
 | Element | Copy |
 |---------|------|
 | Primary CTA (generator) | "Save Dynamic QR" (replaces "Save to Library" label when Dynamic QR toggle is on) |
-| Primary CTA (inline edit) | "Save" (destination URL inline editor save button) |
+| Primary CTA (inline edit) | "Save URL" (destination URL inline editor save button) |
 | Dynamic QR toggle label | "Dynamic QR" |
 | Toggle info tooltip | "Destination can be changed after printing without a new QR code." |
 | Toggle disabled tooltip (non-URL tab) | "Dynamic QR only works with URL content." |
@@ -179,7 +179,7 @@ Note on brand color: `--color-brand` in global.css is `#2563EB` (blue-600). Exis
 | Holding page — paused body | "The owner has disabled this link." |
 | Holding page — invalid heading | "This QR code is no longer active." |
 | Holding page — invalid body | "The link you scanned is no longer available." |
-| Inline edit cancel | "Cancel" |
+| Inline edit dismiss | "Discard" |
 | Inline edit input placeholder | "https://example.com" |
 | Loading state (library fetch) | (spinner only, no text — matches existing pattern) |
 | Error state (destination save fails) | "Failed to update destination. Please try again." (toast.error) |
@@ -191,6 +191,8 @@ Destructive actions in this phase:
 |--------|-----------------------|
 | Delete dynamic QR | Inline two-step on card: "Are you sure?" → "Yes, delete" / "Cancel" (matches existing static QR delete pattern in QRLibrary.tsx — no change to existing approach) |
 | Pause QR | No confirmation — direct toggle + toast. Copy: "QR paused — scanners will see a holding page" provides sufficient warning. |
+
+Note on "Cancel" in destructive delete flow: the two-step delete confirmation uses "Cancel" as the dismiss label. This is carried over unchanged from the existing static QR delete pattern in QRLibrary.tsx. It is a pre-existing pattern, not a new label introduced in Phase 10.
 
 Source: D-08, D-09, D-15, D-16 from 10-CONTEXT.md; delete pattern pre-populated from QRLibrary.tsx existing implementation.
 
@@ -205,7 +207,7 @@ All interactive elements must declare all five states:
 | DynamicQRToggle (enabled) | indigo track, white thumb | no change | ring-2 ring-indigo-500 on wrapper | thumb slides | opacity-60, cursor-wait |
 | DynamicQRToggle (limit hit) | Lock icon, opacity-40 | cursor-not-allowed, no change | focus ring on wrapper | triggers upgrade toast | — |
 | DynamicQRToggle (non-URL tab) | opacity-40 | cursor-not-allowed | — | no action | — |
-| InlineDestinationEditor Save | indigo-600 bg | indigo-700 bg | ring-2 ring-indigo-500 | scale-95 | opacity-60 cursor-wait, spinner |
+| InlineDestinationEditor Save URL | indigo-600 bg | indigo-700 bg | ring-2 ring-indigo-500 | scale-95 | opacity-60 cursor-wait, spinner |
 | PauseToggle (active) | green border/text | green-50 bg | ring-2 ring-green-400 | scale-95 | opacity-60 cursor-wait |
 | PauseToggle (paused) | amber border/text | amber-50 bg | ring-2 ring-amber-400 | scale-95 | opacity-60 cursor-wait |
 | Pencil edit icon | text-gray-400 | text-gray-600 | ring-1 ring-gray-300 rounded | — | — |
