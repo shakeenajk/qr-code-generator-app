@@ -112,13 +112,14 @@ Note on brand color: `--color-brand` in global.css is `#2563EB` (blue-600). Exis
 - Dark mode: full `dark:` variant coverage
 
 #### 2. DynamicBadge (on QR card)
-- Pill badge: `text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-400`
+- Pill badge: `text-xs font-semibold px-2 py-1 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-400`
+- If badge appears too tall at py-1 (4px), add `leading-none` to the badge text element
 - Text: "Dynamic"
 - Position: Inline after QR name in card header row (matches TierBadge positioning pattern)
 
 #### 3. DynamicCardExtension (additions to existing card)
 - Destination URL row: `text-xs text-gray-500 dark:text-slate-400 truncate max-w-[240px]` with edit icon
-- Edit icon: Lucide `Pencil` (`w-3 h-3 text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 cursor-pointer ml-1`)
+- Edit icon: Lucide `Pencil` (`w-3 h-3 text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 cursor-pointer ml-1`) with `<span class="sr-only">Edit destination URL</span>` inside the button element
 - Status row: Status dot + status text in same `text-xs` size
 - Active text: `text-green-600 dark:text-green-400`
 - Paused text: `text-amber-600 dark:text-amber-400`
@@ -126,7 +127,7 @@ Note on brand color: `--color-brand` in global.css is `#2563EB` (blue-600). Exis
 #### 4. InlineDestinationEditor (on QR card)
 - Activated by: clicking Pencil icon next to destination URL
 - Input: `w-full px-2 py-1 text-xs border border-indigo-500 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:bg-slate-800 dark:text-slate-100`
-- Action row below input: "Save URL" button (`text-xs px-2 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700`) + "Discard" link (`text-xs text-gray-500 dark:text-slate-400 hover:text-gray-700 ml-2`)
+- Action row below input: "Save URL" button (`text-xs px-2 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700`) + "Discard changes" link (`text-xs text-gray-500 dark:text-slate-400 hover:text-gray-700 ml-2`)
 - Loading state: "Save URL" button shows spinner, becomes disabled (`opacity-60 cursor-wait`)
 - Max width: same as card body width (no horizontal overflow)
 
@@ -152,7 +153,7 @@ Note on brand color: `--color-brand` in global.css is `#2563EB` (blue-600). Exis
 - Triggered: when free/Starter user tries to enable Dynamic QR toggle after 3 exist
 - Delivery: Sonner toast (matches existing pattern) — not a modal
 - Toast type: `toast.error()` with action button
-- Toast content: "Upgrade to Pro for unlimited dynamic QR codes" + "Upgrade" action → navigates to `/pricing`
+- Toast content: "Upgrade to Pro for unlimited dynamic QR codes" + "Upgrade to Pro" action → navigates to `/pricing`
 
 ---
 
@@ -174,12 +175,12 @@ Note on brand color: `--color-brand` in global.css is `#2563EB` (blue-600). Exis
 | Toast — QR paused | "QR paused — scanners will see a holding page" |
 | Toast — QR activated | "QR activated" |
 | Toast — upgrade limit | "Upgrade to Pro for unlimited dynamic QR codes" |
-| Toast action (upgrade) | "Upgrade" |
+| Toast action (upgrade) | "Upgrade to Pro" |
 | Holding page — paused heading | "This QR code is temporarily paused." |
 | Holding page — paused body | "The owner has disabled this link." |
 | Holding page — invalid heading | "This QR code is no longer active." |
 | Holding page — invalid body | "The link you scanned is no longer available." |
-| Inline edit dismiss | "Discard" |
+| Inline edit dismiss | "Discard changes" |
 | Inline edit input placeholder | "https://example.com" |
 | Loading state (library fetch) | (spinner only, no text — matches existing pattern) |
 | Error state (destination save fails) | "Failed to update destination. Please try again." (toast.error) |
@@ -223,6 +224,7 @@ All interactive elements must declare all five states:
 - Status dots: `aria-hidden="true"` on dot element; text label carries meaning
 - Holding page: `<main>` landmark with `lang` on `<html>`; heading is `<h1>`; no interactive elements needed
 - All buttons: minimum 44px touch target via `min-h-[44px]` on mobile (Tailwind responsive: default `min-h-[44px]`, `sm:min-h-auto`)
+- Pencil edit icon button: contains `<span class="sr-only">Edit destination URL</span>` for screen reader label
 
 ---
 
