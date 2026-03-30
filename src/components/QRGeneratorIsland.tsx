@@ -46,6 +46,8 @@ const qrInitialOptions = {
   backgroundOptions: { color: "#ffffff" },
 };
 
+const REDIRECT_BASE = "https://qr-code-generator-app.com/r/";
+
 export default function QRGeneratorIsland() {
   // QRCodeStyling instance — created client-side only (useEffect) to avoid SSR window access
   const qrCodeRef = useRef<QRCodeStyling | null>(null);
@@ -87,6 +89,11 @@ export default function QRGeneratorIsland() {
     org: "",
   });
 
+  // Dynamic QR state
+  const [isDynamic, setIsDynamic] = useState(false);
+  const [dynamicCount, setDynamicCount] = useState<number | null>(null);
+  const [savedSlug, setSavedSlug] = useState<string | null>(null);
+
   // Customization state — defaults match Phase 2 initial options (no visual change on launch)
   const [colorOptions, setColorOptions] = useState<ColorSectionState>({
     dotColor: "#1e293b",
@@ -108,6 +115,41 @@ export default function QRGeneratorIsland() {
     logoFilename: null,
   });
 
+  // Derived: is the user at the dynamic QR limit?
+  // dynamicLocked = true only for signed-in non-pro users at/over the 3-QR limit
+  const dynamicLocked = userTier !== "pro" && userTier !== null && isSignedIn && (dynamicCount ?? 0) >= 3;
+
+  // Fetch dynamic QR count once user auth resolves (for limit gate)
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn || userTier === "pro") return;
+    fetch("/api/qr/list")
+      .then((r) => r.json())
+      .then((data: { items?: Array<{ isDynamic?: boolean }> }) => {
+        const items = data.items ?? [];
+        const count = items.filter((item) => item.isDynamic === true).length;
+        setDynamicCount(count);
+      })
+      .catch(() => {
+        // Fail open — don't lock the toggle if we can't fetch count
+        setDynamicCount(0);
+      });
+  }, [isLoaded, isSignedIn, userTier]);
+
+  // Toggle handler — intercepts if locked or not signed in
+  const handleToggleDynamic = useCallback((enabled: boolean) => {
+    if (!isSignedIn) {
+      toast.error("Sign in to create dynamic QR codes");
+      return;
+    }
+    if (dynamicLocked) {
+      toast.error("Upgrade to Pro for unlimited dynamic QR codes", {
+        action: { label: "Upgrade to Pro", onClick: () => { window.location.href = "/pricing"; } },
+      });
+      return;
+    }
+    setIsDynamic(enabled);
+  }, [isSignedIn, dynamicLocked]);
+
   // Derive the raw QR data string from active tab state
   const rawContent = useMemo(() => {
     switch (activeTab) {
@@ -125,6 +167,15 @@ export default function QRGeneratorIsland() {
   const debouncedColor = useDebounce(colorOptions, 300);
   const debouncedShape = useDebounce(shapeOptions, 300);
   const debouncedLogo = useDebounce(logoOptions, 300);
+
+  // The actual data to encode in the QR code.
+  // When dynamic + URL tab: encode the redirect URL (using savedSlug if available, else placeholder dashes)
+  const qrData = useMemo(() => {
+    if (isDynamic && activeTab === "url") {
+      return `${REDIRECT_BASE}${savedSlug || "--------"}`;
+    }
+    return debouncedContent;
+  }, [isDynamic, activeTab, savedSlug, debouncedContent]);
 
   // isPulsing: true during the debounce window (rawContent updated, debouncedContent not yet)
   const isPulsing = rawContent !== debouncedContent;
@@ -187,6 +238,14 @@ export default function QRGeneratorIsland() {
         if (data.contentType === "wifi") setWifiValue(content as WifiState);
         if (data.contentType === "vcard") setVcardValue(content as VCardState);
 
+        // Edit-mode: restore isDynamic toggle state and slug
+        if (content.isDynamic === true) {
+          setIsDynamic(true);
+          if (content.slug) {
+            setSavedSlug(content.slug);
+          }
+        }
+
         // Hydrate style
         if (data.styleData) {
           const s = data.styleData;
@@ -248,7 +307,9 @@ export default function QRGeneratorIsland() {
     try {
       const thumbnailData = await generateThumbnail();
 
-      // Build contentData from active tab
+      // Build contentData from active tab.
+      // For dynamic QRs, include isDynamic:true and slug (after save, slug is stored in contentData
+      // so edit-mode can restore it). On first save, slug is not yet known — it will be set after response.
       let contentData: Record<string, unknown>;
       switch (activeTab) {
         case "url":   contentData = { url: urlValue }; break;
@@ -257,21 +318,48 @@ export default function QRGeneratorIsland() {
         case "vcard": contentData = { ...vcardValue }; break;
       }
 
+      const body: Record<string, unknown> = {
+        name,
+        contentType: activeTab,
+        contentData,
+        styleData: { ...colorOptions, ...shapeOptions },
+        logoData: logoOptions.logoSrc ?? null,
+        thumbnailData,
+      };
+
+      // Add dynamic fields when toggle is on and we're on URL tab
+      if (isDynamic && activeTab === "url") {
+        body.isDynamic = true;
+        body.destinationUrl = urlValue;
+      }
+
       const res = await fetch("/api/qr/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          contentType: activeTab,
-          contentData,
-          styleData: { ...colorOptions, ...shapeOptions },
-          logoData: logoOptions.logoSrc ?? null,
-          thumbnailData,
-        }),
+        body: JSON.stringify(body),
       });
 
-      if (!res.ok) throw new Error("Save failed");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        if (errorData.error === "dynamic_limit_reached") {
+          toast.error("Upgrade to Pro for unlimited dynamic QR codes", {
+            action: { label: "Upgrade to Pro", onClick: () => { window.location.href = "/pricing"; } },
+          });
+          return;
+        }
+        throw new Error("Save failed");
+      }
+
+      const responseData = await res.json();
       setShowSaveModal(false);
+
+      // Handle dynamic QR slug from response
+      if (isDynamic && responseData.slug) {
+        setSavedSlug(responseData.slug);
+        // Increment count so limit gate updates without refetch
+        setDynamicCount((prev) => (prev ?? 0) + 1);
+      }
+
       toast("Saved to library", {
         action: { label: "Go to Library", onClick: () => { window.location.href = "/dashboard"; } },
       });
@@ -280,7 +368,7 @@ export default function QRGeneratorIsland() {
     } finally {
       setIsSaving(false);
     }
-  }, [activeTab, urlValue, textValue, wifiValue, vcardValue, colorOptions, shapeOptions, logoOptions]);
+  }, [activeTab, urlValue, textValue, wifiValue, vcardValue, colorOptions, shapeOptions, logoOptions, isDynamic]);
 
   // Edit save handler — PUT /api/qr/[id]
   const handleEditSave = useCallback(async () => {
@@ -354,7 +442,7 @@ export default function QRGeneratorIsland() {
         : { type: dotType, color: dotColor };
 
       qrCodeRef.current.update({
-        data: debouncedContent,
+        data: qrData,
         dotsOptions,
         backgroundOptions: { color: bgColor },
         cornersSquareOptions: { type: cornerSquareType },
@@ -366,7 +454,7 @@ export default function QRGeneratorIsland() {
     } catch {
       // Content too long or encoding error — handled silently
     }
-  }, [debouncedContent, debouncedColor, debouncedShape, debouncedLogo, isEmpty]);
+  }, [qrData, debouncedColor, debouncedShape, debouncedLogo, isEmpty]);
 
   const handleTabChange = useCallback((tabId: TabId) => {
     setActiveTab(tabId);
@@ -374,10 +462,19 @@ export default function QRGeneratorIsland() {
 
   // Determine save button rendering
   // - anonymous (userTier === null): hide button
-  // - signed-in non-Pro: greyed button with lock
+  // - signed-in non-Pro: greyed button with lock (for static saves)
+  //   BUT signed-in non-Pro CAN save dynamic QRs (if not at limit)
   // - Pro: active save button
   const isPro = userTier === "pro";
   const isNonProSignedIn = isLoaded && isSignedIn && userTier !== null && userTier !== "pro";
+
+  // Non-Pro users can save if they're saving a dynamic QR and haven't hit the limit
+  const canSaveDynamic = isDynamic && activeTab === "url" && isSignedIn && !dynamicLocked;
+  const showSaveButton = isPro || canSaveDynamic;
+  const showLockedSaveButton = isNonProSignedIn && !editId && !canSaveDynamic;
+
+  // Save button label
+  const saveButtonLabel = isDynamic && activeTab === "url" ? "Save Dynamic QR" : "Save to Library";
 
   return (
     <div className="w-full">
@@ -463,7 +560,15 @@ export default function QRGeneratorIsland() {
             aria-labelledby="tab-url"
             className={activeTab === "url" ? "" : "hidden"}
           >
-            <UrlTab value={urlValue} onChange={setUrlValue} />
+            <UrlTab
+              value={urlValue}
+              onChange={setUrlValue}
+              isDynamic={isDynamic}
+              onToggleDynamic={handleToggleDynamic}
+              dynamicLocked={dynamicLocked}
+              isUrlTab={activeTab === "url"}
+              showDynamicToggle={isSignedIn}
+            />
           </div>
 
           <div
@@ -521,8 +626,8 @@ export default function QRGeneratorIsland() {
             debouncedContent={debouncedContent}
           />
 
-          {/* Save to Library button — only shown for signed-in users */}
-          {isNonProSignedIn && !editId && (
+          {/* Save to Library button — locked state for non-Pro users without dynamic toggle */}
+          {showLockedSaveButton && (
             <button
               data-testid="save-to-library-locked"
               onClick={() => toast("Upgrade to Pro to save QR codes to your library", {
@@ -539,7 +644,7 @@ export default function QRGeneratorIsland() {
             </button>
           )}
 
-          {isPro && !editId && (
+          {showSaveButton && !editId && (
             <button
               data-testid="save-to-library"
               onClick={() => setShowSaveModal(true)}
@@ -548,7 +653,7 @@ export default function QRGeneratorIsland() {
                          text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors
                          disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Save to Library
+              {saveButtonLabel}
             </button>
           )}
         </div>
@@ -562,6 +667,7 @@ export default function QRGeneratorIsland() {
         onSave={handleSave}
         onClose={() => setShowSaveModal(false)}
         isSaving={isSaving}
+        isDynamic={isDynamic && activeTab === "url"}
       />
     </div>
   );

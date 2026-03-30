@@ -6,9 +6,10 @@ export interface SaveQRModalProps {
   onSave: (name: string) => Promise<void>;
   onClose: () => void;
   isSaving: boolean;
+  isDynamic?: boolean;
 }
 
-export function SaveQRModal({ isOpen, defaultName, onSave, onClose, isSaving }: SaveQRModalProps) {
+export function SaveQRModal({ isOpen, defaultName, onSave, onClose, isSaving, isDynamic = false }: SaveQRModalProps) {
   const [name, setName] = useState(defaultName);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -56,7 +57,7 @@ export function SaveQRModal({ isOpen, defaultName, onSave, onClose, isSaving }: 
           id="save-modal-heading"
           className="text-lg font-semibold text-gray-900 dark:text-white mb-4"
         >
-          Save to Library
+          {isDynamic ? "Save Dynamic QR" : "Save to Library"}
         </h2>
 
         <form onSubmit={handleSubmit}>
@@ -102,7 +103,7 @@ export function SaveQRModal({ isOpen, defaultName, onSave, onClose, isSaving }: 
                          hover:bg-blue-700 rounded-lg transition-colors
                          disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSaving ? "Saving…" : "Save"}
+              {isSaving ? "Saving…" : isDynamic ? "Save Dynamic QR" : "Save"}
             </button>
           </div>
         </form>
