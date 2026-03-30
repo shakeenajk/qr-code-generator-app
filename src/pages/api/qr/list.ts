@@ -2,7 +2,7 @@ export const prerender = false;
 
 import type { APIRoute } from 'astro';
 import { db } from '../../../db/index';
-import { savedQrCodes } from '../../../db/schema';
+import { savedQrCodes, dynamicQrCodes } from '../../../db/schema';
 import { eq, desc } from 'drizzle-orm';
 
 export const GET: APIRoute = async ({ locals }) => {
@@ -11,7 +11,8 @@ export const GET: APIRoute = async ({ locals }) => {
     return new Response('Unauthorized', { status: 401 });
   }
 
-  // Explicitly select columns — logoData intentionally excluded (size concern)
+  // LEFT JOIN dynamicQrCodes — slug/destinationUrl/isPaused are null for static QRs
+  // logoData intentionally excluded (size concern)
   const rows = await db
     .select({
       id: savedQrCodes.id,
@@ -23,13 +24,23 @@ export const GET: APIRoute = async ({ locals }) => {
       thumbnailData: savedQrCodes.thumbnailData,
       createdAt: savedQrCodes.createdAt,
       updatedAt: savedQrCodes.updatedAt,
+      // Dynamic QR fields (null for static QRs)
+      slug: dynamicQrCodes.slug,
+      destinationUrl: dynamicQrCodes.destinationUrl,
+      isPaused: dynamicQrCodes.isPaused,
     })
     .from(savedQrCodes)
+    .leftJoin(dynamicQrCodes, eq(savedQrCodes.id, dynamicQrCodes.savedQrCodeId))
     .where(eq(savedQrCodes.userId, userId))
     .orderBy(desc(savedQrCodes.createdAt))
     .limit(50);
 
-  return new Response(JSON.stringify(rows), {
+  const response = rows.map((row) => ({
+    ...row,
+    isDynamic: row.slug !== null,
+  }));
+
+  return new Response(JSON.stringify(response), {
     status: 200,
     headers: { 'Content-Type': 'application/json' },
   });
