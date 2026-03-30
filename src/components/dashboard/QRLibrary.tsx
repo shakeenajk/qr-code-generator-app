@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Grid2X2, List, Pencil, Trash2, QrCode } from 'lucide-react';
+import { Grid2X2, List, Pencil, Trash2, QrCode, Pause, Play } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface SavedQR {
@@ -12,6 +12,10 @@ interface SavedQR {
   thumbnailData: string | null;
   createdAt: number;
   updatedAt: number;
+  slug?: string | null;
+  destinationUrl?: string | null;
+  isPaused?: boolean | null;
+  isDynamic?: boolean;
 }
 
 type ViewMode = 'grid' | 'list';
@@ -23,6 +27,17 @@ function ThumbnailPlaceholder({ className }: { className?: string }) {
     <div className={`flex items-center justify-center bg-gray-100 dark:bg-slate-800 ${className ?? ''}`}>
       <QrCode className="w-10 h-10 text-gray-300 dark:text-slate-600" />
     </div>
+  );
+}
+
+function DynamicBadge() {
+  return (
+    <span
+      className="text-xs font-semibold px-2 py-1 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-400 leading-none"
+      aria-label="Dynamic QR code"
+    >
+      Dynamic
+    </span>
   );
 }
 
@@ -109,11 +124,121 @@ function CardActions({ qr, deletingId, onEdit, onDeleteRequest, onDeleteConfirm,
   );
 }
 
+interface DynamicCardBodyProps {
+  qr: SavedQR;
+  editingDestId: string | null;
+  editingDestValue: string;
+  savingDestId: string | null;
+  togglingPauseId: string | null;
+  onEditingDestValueChange: (value: string) => void;
+  onStartEditingDest: (id: string, currentUrl: string) => void;
+  onSaveDestination: (id: string) => void;
+  onDiscardDest: () => void;
+  onTogglePause: (id: string, currentlyPaused: boolean) => void;
+}
+
+function DynamicCardBody({
+  qr,
+  editingDestId,
+  editingDestValue,
+  savingDestId,
+  togglingPauseId,
+  onEditingDestValueChange,
+  onStartEditingDest,
+  onSaveDestination,
+  onDiscardDest,
+  onTogglePause,
+}: DynamicCardBodyProps) {
+  const isPaused = Boolean(qr.isPaused);
+
+  return (
+    <>
+      {/* Status indicator */}
+      <div className="flex items-center gap-1.5 mt-1">
+        <span
+          className={`w-2 h-2 rounded-full inline-block ${isPaused ? 'bg-amber-400' : 'bg-green-500'}`}
+          aria-hidden="true"
+        />
+        <span className={`text-xs ${isPaused ? 'text-amber-600 dark:text-amber-400' : 'text-green-600 dark:text-green-400'}`}>
+          {isPaused ? 'Paused' : 'Active'}
+        </span>
+      </div>
+
+      {/* Destination URL display or inline editor */}
+      {editingDestId === qr.id ? (
+        <div className="mt-2">
+          <input
+            type="url"
+            value={editingDestValue}
+            onChange={e => onEditingDestValueChange(e.target.value)}
+            aria-label="Destination URL"
+            placeholder="https://example.com"
+            className="w-full px-2 py-1 text-xs border border-indigo-500 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:bg-slate-800 dark:text-slate-100"
+          />
+          <div className="flex items-center mt-1">
+            <button
+              onClick={() => onSaveDestination(qr.id)}
+              disabled={savingDestId === qr.id}
+              className={`text-xs px-2 py-1 rounded bg-indigo-600 text-white hover:bg-indigo-700 transition-colors ${savingDestId === qr.id ? 'opacity-60 cursor-wait' : ''}`}
+            >
+              Save URL
+            </button>
+            <button
+              onClick={onDiscardDest}
+              className="text-xs text-gray-500 dark:text-slate-400 hover:text-gray-700 ml-2 cursor-pointer"
+            >
+              Discard changes
+            </button>
+          </div>
+        </div>
+      ) : (
+        qr.destinationUrl && (
+          <div className="flex items-center gap-1 mt-1">
+            <span className="text-xs text-gray-500 dark:text-slate-400 truncate max-w-[240px]">
+              {qr.destinationUrl}
+            </span>
+            <button
+              onClick={() => onStartEditingDest(qr.id, qr.destinationUrl!)}
+              className="text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 cursor-pointer ml-1 focus:outline-none focus:ring-1 focus:ring-gray-300 rounded"
+            >
+              <Pencil className="w-3 h-3" />
+              <span className="sr-only">Edit destination URL</span>
+            </button>
+          </div>
+        )
+      )}
+
+      {/* Pause/Activate toggle */}
+      <div className="mt-2">
+        <button
+          onClick={() => onTogglePause(qr.id, isPaused)}
+          disabled={togglingPauseId === qr.id}
+          aria-label={isPaused ? 'Activate QR code' : 'Pause QR code'}
+          className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-full border transition-colors min-h-[44px] sm:min-h-0 ${
+            togglingPauseId === qr.id ? 'opacity-60 cursor-wait' : ''
+          } ${
+            isPaused
+              ? 'border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950'
+              : 'border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-950'
+          }`}
+        >
+          {isPaused ? <Play className="w-3 h-3" /> : <Pause className="w-3 h-3" />}
+          {isPaused ? 'Activate' : 'Pause'}
+        </button>
+      </div>
+    </>
+  );
+}
+
 export default function QRLibrary() {
   const [qrCodes, setQrCodes] = useState<SavedQR[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [editingDestId, setEditingDestId] = useState<string | null>(null);
+  const [editingDestValue, setEditingDestValue] = useState('');
+  const [savingDestId, setSavingDestId] = useState<string | null>(null);
+  const [togglingPauseId, setTogglingPauseId] = useState<string | null>(null);
 
   // Load persisted view mode preference
   useEffect(() => {
@@ -166,6 +291,57 @@ export default function QRLibrary() {
       setDeletingId(null);
     }
   }
+
+  const startEditingDest = (id: string, currentUrl: string) => {
+    setEditingDestId(id);
+    setEditingDestValue(currentUrl);
+  };
+
+  const discardDest = () => {
+    setEditingDestId(null);
+    setEditingDestValue('');
+  };
+
+  const saveDestination = async (id: string) => {
+    setSavingDestId(id);
+    try {
+      const res = await fetch(`/api/qr/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ destinationUrl: editingDestValue }),
+      });
+      if (!res.ok) throw new Error();
+      setQrCodes(prev => prev.map(qr =>
+        qr.id === id ? { ...qr, destinationUrl: editingDestValue } : qr
+      ));
+      setEditingDestId(null);
+      toast.success('Destination updated');
+    } catch {
+      toast.error('Failed to update destination. Please try again.');
+    } finally {
+      setSavingDestId(null);
+    }
+  };
+
+  const togglePause = async (id: string, currentlyPaused: boolean) => {
+    setTogglingPauseId(id);
+    try {
+      const res = await fetch(`/api/qr/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isPaused: !currentlyPaused }),
+      });
+      if (!res.ok) throw new Error();
+      setQrCodes(prev => prev.map(qr =>
+        qr.id === id ? { ...qr, isPaused: !currentlyPaused } : qr
+      ));
+      toast.success(currentlyPaused ? 'QR activated' : 'QR paused — scanners will see a holding page');
+    } catch {
+      toast.error('Could not update status. Please try again.');
+    } finally {
+      setTogglingPauseId(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -231,11 +407,33 @@ export default function QRLibrary() {
 
               {/* Card body */}
               <div className="p-4 flex flex-col gap-1 flex-1">
-                <p className="font-semibold text-gray-900 dark:text-white truncate">{qr.name}</p>
+                {/* Name row with optional Dynamic badge */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="font-semibold text-gray-900 dark:text-white truncate">{qr.name}</p>
+                  {qr.isDynamic && <DynamicBadge />}
+                </div>
                 <p className="text-sm text-gray-500 dark:text-slate-400">
                   {new Date(qr.createdAt * 1000).toLocaleDateString()}
                 </p>
-                <p className="text-xs text-gray-400 dark:text-slate-500 truncate">{qr.contentData}</p>
+                {!qr.isDynamic && (
+                  <p className="text-xs text-gray-400 dark:text-slate-500 truncate">{qr.contentData}</p>
+                )}
+
+                {/* Dynamic QR metadata */}
+                {qr.isDynamic && (
+                  <DynamicCardBody
+                    qr={qr}
+                    editingDestId={editingDestId}
+                    editingDestValue={editingDestValue}
+                    savingDestId={savingDestId}
+                    togglingPauseId={togglingPauseId}
+                    onEditingDestValueChange={setEditingDestValue}
+                    onStartEditingDest={startEditingDest}
+                    onSaveDestination={saveDestination}
+                    onDiscardDest={discardDest}
+                    onTogglePause={togglePause}
+                  />
+                )}
               </div>
 
               {/* Actions */}
@@ -260,7 +458,7 @@ export default function QRLibrary() {
           {qrCodes.map(qr => (
             <div
               key={qr.id}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex items-center gap-4 p-3"
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex items-start gap-4 p-3"
             >
               {/* Small thumbnail */}
               {qr.thumbnailData ? (
@@ -275,11 +473,33 @@ export default function QRLibrary() {
 
               {/* Info */}
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-gray-900 dark:text-white truncate">{qr.name}</p>
+                {/* Name row with optional Dynamic badge */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="font-semibold text-gray-900 dark:text-white truncate">{qr.name}</p>
+                  {qr.isDynamic && <DynamicBadge />}
+                </div>
                 <p className="text-sm text-gray-500 dark:text-slate-400">
                   {new Date(qr.createdAt * 1000).toLocaleDateString()}
                 </p>
-                <p className="text-xs text-gray-400 dark:text-slate-500 truncate">{qr.contentData}</p>
+                {!qr.isDynamic && (
+                  <p className="text-xs text-gray-400 dark:text-slate-500 truncate">{qr.contentData}</p>
+                )}
+
+                {/* Dynamic QR metadata */}
+                {qr.isDynamic && (
+                  <DynamicCardBody
+                    qr={qr}
+                    editingDestId={editingDestId}
+                    editingDestValue={editingDestValue}
+                    savingDestId={savingDestId}
+                    togglingPauseId={togglingPauseId}
+                    onEditingDestValueChange={setEditingDestValue}
+                    onStartEditingDest={startEditingDest}
+                    onSaveDestination={saveDestination}
+                    onDiscardDest={discardDest}
+                    onTogglePause={togglePause}
+                  />
+                )}
               </div>
 
               {/* Actions */}
