@@ -124,8 +124,8 @@ export default function QRGeneratorIsland() {
     if (!isLoaded || !isSignedIn || userTier === "pro") return;
     fetch("/api/qr/list")
       .then((r) => r.json())
-      .then((data: { items?: Array<{ isDynamic?: boolean }> }) => {
-        const items = data.items ?? [];
+      .then((data: Array<{ isDynamic?: boolean }>) => {
+        const items = Array.isArray(data) ? data : [];
         const count = items.filter((item) => item.isDynamic === true).length;
         setDynamicCount(count);
       })
