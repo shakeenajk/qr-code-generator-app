@@ -44,8 +44,6 @@ Declared values (must be multiples of 4). Source: inferred from existing dashboa
 
 Exceptions:
 - Stat card grid: `gap-4` (16px) between cards on mobile, `gap-6` (24px) on md+ screens
-- Progress bar row: `gap-3` (12px) between label, bar, and count — allowed as a 4px-multiple exception for density
-- Touch targets for icon-only buttons (Analytics, Edit, Delete): minimum 36px height via `py-1.5 px-2.5` — matches existing card action buttons
 
 ---
 
@@ -57,10 +55,10 @@ Source: inferred from existing `QRLibrary.tsx` and `dashboard/index.astro` patte
 |------|------|--------|-------------|-------|
 | Body | 14px (`text-sm`) | 400 (regular) | 1.5 | Card metadata, progress bar labels, tooltip copy, country/device names |
 | Label | 12px (`text-xs`) | 600 (semibold) | 1.4 | Stat card sub-labels ("Total Scans"), badge text, section sub-headers |
-| Heading | 20px (`text-xl`) | 700 (bold) | 1.2 | Stat card numbers (total/unique scan counts), section headings |
-| Display | 24px (`text-2xl`) | 700 (bold) | 1.2 | Page heading (QR name — "Analytics: [QR Name]"), matches dashboard `h1` |
+| Heading | 20px (`text-xl`) | 600 (semibold) | 1.2 | Stat card numbers (total/unique scan counts), section headings |
+| Display | 24px (`text-2xl`) | 600 (semibold) | 1.2 | Page heading (QR name — "Analytics: [QR Name]"), matches dashboard `h1` |
 
-Font weight contract: regular (400) for body/metadata, bold (700) for headings/numbers. Semibold (600) reserved for labels and secondary emphasis only (matches existing `font-semibold` badge pattern).
+Font weight contract: regular (400) for body/metadata, semibold (600) for all headings, numbers, labels, and secondary emphasis. Two weights only — no bold (700) in Phase 11 components.
 
 ---
 
@@ -93,14 +91,14 @@ New components required for Phase 11:
 ### AnalyticsPage (`src/pages/dashboard/analytics/[slug].astro`)
 - SSR Astro page (source: CONTEXT.md "Claude's Discretion")
 - Wraps `DashboardLayout` with `activeSection="my-qr-codes"` and `tier` prop
-- Page header: QR name as `<h1>` (Display/24px/bold) + slug in `text-xs text-gray-500` + back link `← My QR Codes` linking to `/dashboard`
+- Page header: QR name as `<h1>` (Display/24px/semibold) + slug in `text-xs text-gray-500` + back link `← My QR Codes` linking to `/dashboard`
 - Content padding: `p-6 md:p-8` — exact match to dashboard/index.astro
 
 ### StatCard (inline component or small React component)
 - Two-up grid: `grid grid-cols-2 gap-4 md:gap-6`
 - Each card: `bg-white dark:bg-slate-800 rounded-xl p-5 border border-gray-200 dark:border-slate-700`
 - Label: 12px semibold, `text-gray-500 dark:text-slate-400`
-- Number: 20px bold, `text-gray-900 dark:text-white`
+- Number: 20px semibold, `text-gray-900 dark:text-white`
 - Unique scan card shows label as "~Unique Scans" with tilde prefix to communicate approximation (CONTEXT.md D-16)
 
 ### ScanChart (React island, `client:only="react"`)
@@ -118,7 +116,7 @@ New components required for Phase 11:
 - Section wrapper: `bg-white dark:bg-slate-800 rounded-xl p-5 border border-gray-200 dark:border-slate-700`
 - Section heading: 14px semibold, `text-gray-700 dark:text-slate-300 mb-4`
 - Each row: label (14px regular) | fill bar | count + percentage (12px regular, right-aligned)
-- Row spacing: `space-y-3`
+- Row spacing: `space-y-2` (8px)
 - Bar container: `flex-1 h-2 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden`
 - Bar fill: `h-2 bg-indigo-500 dark:bg-indigo-400 rounded-full` with inline `style="width: {pct}%"`
 - Device labels: "iOS", "Android", "Desktop" (sentence case, not all-caps)
@@ -127,7 +125,7 @@ New components required for Phase 11:
 ### AnalyticsButton (addition to `QRLibrary.tsx` dynamic card actions)
 - New icon button alongside Edit and Delete in `CardActions`
 - Icon: `BarChart2` from lucide-react (or `LineChart` — choose `BarChart2` for semantic clarity)
-- Appearance: `flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md border border-indigo-200 dark:border-indigo-900 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950 transition-colors`
+- Appearance: `flex items-center gap-1 text-xs px-4 py-2 rounded-md border border-indigo-200 dark:border-indigo-900 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950 transition-colors`
 - Label: "Analytics" (text visible, not icon-only — matches existing Edit/Delete button pattern)
 - Navigates to `/dashboard/analytics/[slug]` — standard `<a href>` link, no JS navigation needed
 - Only rendered when `qr.isDynamic === true` and `qr.slug !== null`
@@ -142,7 +140,7 @@ Top-to-bottom scroll order (CONTEXT.md D-04):
 [DashboardLayout wrapper]
   [p-6 md:p-8 content area]
     [Back link row]            — "← My QR Codes" text-sm, indigo link
-    [Page header]              — h1: QR name (24px bold) + slug sub-label (12px gray)
+    [Page header]              — h1: QR name (24px semibold) + slug sub-label (12px gray)
     [gap: 32px (mb-8)]
     [Stat cards row]           — 2-column grid (Total Scans | ~Unique Scans)
     [gap: 24px (mb-6)]
