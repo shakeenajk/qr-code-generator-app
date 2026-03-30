@@ -238,11 +238,11 @@ export default function QRGeneratorIsland() {
         if (data.contentType === "wifi") setWifiValue(content as WifiState);
         if (data.contentType === "vcard") setVcardValue(content as VCardState);
 
-        // Edit-mode: restore isDynamic toggle state and slug
-        if (content.isDynamic === true) {
+        // Edit-mode: restore isDynamic toggle state and slug from dynamic metadata
+        if (data.isDynamic === true) {
           setIsDynamic(true);
-          if (content.slug) {
-            setSavedSlug(content.slug);
+          if (data.slug) {
+            setSavedSlug(data.slug);
           }
         }
 

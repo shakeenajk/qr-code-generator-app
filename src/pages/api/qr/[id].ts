@@ -28,11 +28,24 @@ export const GET: APIRoute = async ({ locals, params }) => {
     });
   }
 
-  const [row] = await db
-    .select()
+  const rows = await db
+    .select({
+      id: savedQrCodes.id,
+      name: savedQrCodes.name,
+      contentType: savedQrCodes.contentType,
+      contentData: savedQrCodes.contentData,
+      styleData: savedQrCodes.styleData,
+      logoData: savedQrCodes.logoData,
+      slug: dynamicQrCodes.slug,
+      destinationUrl: dynamicQrCodes.destinationUrl,
+      isPaused: dynamicQrCodes.isPaused,
+    })
     .from(savedQrCodes)
+    .leftJoin(dynamicQrCodes, eq(savedQrCodes.id, dynamicQrCodes.savedQrCodeId))
     .where(and(eq(savedQrCodes.id, id), eq(savedQrCodes.userId, userId)))
     .limit(1);
+
+  const row = rows[0];
 
   if (!row) {
     return new Response(JSON.stringify({ error: 'Not found' }), {
@@ -49,6 +62,11 @@ export const GET: APIRoute = async ({ locals, params }) => {
       contentData: typeof row.contentData === 'string' ? tryParse(row.contentData) : row.contentData,
       styleData: typeof row.styleData === 'string' ? tryParse(row.styleData) : row.styleData,
       logoData: row.logoData ?? null,
+      // Dynamic QR metadata (null for static QRs)
+      isDynamic: row.slug !== null,
+      slug: row.slug ?? null,
+      destinationUrl: row.destinationUrl ?? null,
+      isPaused: row.isPaused ?? null,
     }),
     { status: 200, headers: { 'Content-Type': 'application/json' } }
   );
