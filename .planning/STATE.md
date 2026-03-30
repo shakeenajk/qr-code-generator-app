@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Monetization
 status: Ready to execute
-stopped_at: Completed 10-02-PLAN.md
-last_updated: "2026-03-30T12:37:41.722Z"
+stopped_at: Completed 10-04-PLAN.md
+last_updated: "2026-03-30T12:42:00.999Z"
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 21
-  completed_plans: 18
+  completed_plans: 19
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-11)
 ## Current Position
 
 Phase: 10 (Dynamic QR Redirect Service) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 
 ## Performance Metrics
 
@@ -62,6 +62,7 @@ Plan: 3 of 5
 | Phase 09 P05 | continuation | 2 tasks | 5 files |
 | Phase 10 P01 | 125s | 2 tasks | 6 files |
 | Phase 10 P02 | 2min | 2 tasks | 3 files |
+| Phase 10 P04 | 5min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -114,6 +115,8 @@ Recent decisions affecting v1.1:
 - [Phase 10]: Free/starter users can create dynamic QRs (up to 3); static QR saves remain Pro-only
 - [Phase 10]: Explicit dynamicQrCodes DELETE before savedQrCodes in DELETE handler as Turso FK cascade safety belt
 - [Phase 10]: isDynamic computed from slug !== null in list response — no stored column needed
+- [Phase 10]: DynamicCardBody sub-component encapsulates all dynamic-QR-specific UI to keep static card paths clean
+- [Phase 10]: isPaused from SQLite is 0|1 integer; wrap in Boolean() in UI for correct conditional rendering
 
 ### Pending Todos
 
@@ -127,6 +130,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-30T12:37:41.717Z
-Stopped at: Completed 10-02-PLAN.md
+Last session: 2026-03-30T12:42:00.995Z
+Stopped at: Completed 10-04-PLAN.md
 Resume file: None
