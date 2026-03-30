@@ -92,16 +92,23 @@ Plans:
 - [ ] 09-05-PLAN.md — Activate smoke suite + human verification checkpoint
 
 ### Phase 10: Dynamic QR Redirect Service
-**Goal**: Pro users can create dynamic QR codes whose destination URL is editable post-print; scanning the QR code redirects with low latency via an edge function
+**Goal**: Pro users can create dynamic QR codes whose destination URL is editable post-print; scanning the QR code redirects with low latency via a serverless function
 **Depends on**: Phase 9
 **Requirements**: DYN-01, DYN-02, DYN-03, DYN-04, DYN-05
 **Success Criteria** (what must be TRUE):
   1. Pro user can create a dynamic QR code that encodes a short /r/[slug] redirect URL
   2. Pro user can change the destination URL of a dynamic QR code and the next scan redirects to the new destination without reprinting
-  3. Scanning a dynamic QR code resolves to the destination via a Vercel edge function (export const runtime = 'edge'); redirect P99 latency is under 100ms globally
+  3. Scanning a dynamic QR code resolves to the destination via a Vercel serverless function; redirect latency is low globally (Turso HTTP API is edge-distributed)
   4. Pro user can toggle a dynamic QR code to paused; scanning a paused code shows a holding page rather than the destination
   5. Free authenticated user attempting to create a 4th dynamic QR code is blocked with an upgrade prompt (limit: 3)
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 10-01-PLAN.md — dynamicQrCodes schema, /r/[slug] redirect endpoint, Wave 0 test scaffolds
+- [ ] 10-02-PLAN.md — Extend save/list/[id] API routes for dynamic QR CRUD (slug gen, tier limit, PATCH dest/pause)
+- [ ] 10-03-PLAN.md — Dynamic QR toggle in generator (UrlTab toggle, save flow extension, edit-mode restoration)
+- [ ] 10-04-PLAN.md — Dashboard card extensions (Dynamic badge, inline dest editor, pause toggle, status indicators)
+- [ ] 10-05-PLAN.md — Activate smoke tests + human verification checkpoint
 
 ### Phase 11: Scan Analytics Dashboard
 **Goal**: Pro users can view meaningful scan analytics per dynamic QR code — totals, time-series, device breakdown, and geography — with bot traffic filtered out of displayed counts
@@ -127,5 +134,5 @@ Plans:
 | 7. SSR Foundation + Auth | v1.1 | 5/5 | Complete | 2026-03-16 |
 | 8. Stripe Billing | v1.1 | 6/6 | Complete | 2026-03-17 |
 | 9. Saved QR Library + Pro Gates | 5/5 | Complete   | 2026-03-17 | - |
-| 10. Dynamic QR Redirect Service | v1.1 | 0/TBD | Not started | - |
+| 10. Dynamic QR Redirect Service | v1.1 | 0/5 | Planned | - |
 | 11. Scan Analytics Dashboard | v1.1 | 0/TBD | Not started | - |
