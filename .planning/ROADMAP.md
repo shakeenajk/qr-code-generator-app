@@ -133,6 +133,6 @@ Plans:
 | 6. Fix Ghost Placeholder + Lighthouse | v1.0 | 3/3 | Complete | 2026-03-11 |
 | 7. SSR Foundation + Auth | v1.1 | 5/5 | Complete | 2026-03-16 |
 | 8. Stripe Billing | v1.1 | 6/6 | Complete | 2026-03-17 |
-| 9. Saved QR Library + Pro Gates | 5/5 | Complete   | 2026-03-17 | - |
-| 10. Dynamic QR Redirect Service | v1.1 | 5/5 | Complete   | 2026-03-30 |
+| 9. Saved QR Library + Pro Gates | v1.1 | 5/5 | Complete | 2026-03-17 |
+| 10. Dynamic QR Redirect Service | v1.1 | 5/5 | Complete | 2026-03-30 |
 | 11. Scan Analytics Dashboard | v1.1 | 0/TBD | Not started | - |

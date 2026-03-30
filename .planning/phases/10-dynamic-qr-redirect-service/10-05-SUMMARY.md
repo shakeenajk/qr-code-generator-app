@@ -22,27 +22,28 @@ decisions:
   - "Playwright port changed from 4321 to 4323 to avoid conflict with another project's dev server running on 4321"
   - "Session-dependent tests remain test.fixme per Phase 07 convention — cannot automate Clerk sessions in CI"
 metrics:
-  duration: "256s"
+  duration: "256s + continuation"
   completed_date: "2026-03-30"
-  tasks_completed: 1
-  tasks_pending_checkpoint: 1
+  tasks_completed: 2
+  tasks_pending_checkpoint: 0
   files_modified: 5
 ---
 
 # Phase 10 Plan 05: Smoke Tests + Human Verification Summary
 
-Activated Wave 0 test.fixme stubs into real smoke tests for the dynamic QR redirect service. All unauthenticated 401 checks and invalid-slug holding page checks now pass. Session-dependent tests remain test.fixme per project convention.
+Activated Wave 0 test.fixme stubs into real smoke tests for the dynamic QR redirect service. All unauthenticated 401 checks and invalid-slug holding page checks now pass. Session-dependent tests remain test.fixme per project convention. Human verification of all 10 checklist items approved — Phase 10 complete.
 
 ## Status
 
 **Task 1: COMPLETE** — 15 smoke tests pass, 24 fixme stubs visible in report.
-**Task 2: AWAITING HUMAN VERIFICATION** — Checkpoint reached, waiting for user sign-off on all 5 DYN requirements.
+**Task 2: COMPLETE** — Human verification approved. All 10 checklist items passed. All 5 DYN requirements confirmed.
 
 ## Tasks Completed
 
 | Task | Name | Commit | Files |
 |------|------|--------|-------|
 | 1 | Activate smoke tests | b01afe6 | tests/dynamic/*.spec.ts, playwright.config.ts |
+| 2 | Human verification sign-off | (docs commit) | 10-05-SUMMARY.md |
 
 ## Smoke Test Results
 
@@ -82,18 +83,20 @@ None — all activated tests assert real behavior.
 
 ## Human Verification Checklist (Task 2)
 
-The following items require manual testing in the browser at http://localhost:4323:
+All 10 items approved by user on 2026-03-30:
 
-1. Create a dynamic QR (DYN-01): Go to generator, URL tab, enter URL, enable toggle, save, verify in dashboard
-2. Verify dashboard card (DYN-02, DYN-04): Dynamic badge, destination URL, green Active status
-3. Edit destination URL (DYN-02): Click pencil, change URL, save, verify toast
-4. Pause/activate toggle (DYN-04): Pause, verify amber status, activate, verify green status
-5. Test redirect (DYN-03): Visit /r/[slug], verify 307 redirect
-6. Test redirect latency (DYN-03): Visit /r/[slug] in DevTools Network tab, verify under 2s
-7. Test invalid slug (DYN-03): Visit /r/doesnotexist, verify holding page with dark mode
-8. Test free tier limit (DYN-05): Create 3, try 4th, verify lock + upgrade toast
-9. Verify non-URL tab: Switch tabs, verify toggle greyed out
-10. Edit-mode restoration: Edit existing dynamic QR, verify toggle restored to enabled
+1. [x] Create a dynamic QR (DYN-01): generator URL tab toggle, save, dashboard card appears
+2. [x] Verify dashboard card (DYN-02, DYN-04): Dynamic badge, destination URL, green Active status
+3. [x] Edit destination URL (DYN-02): pencil click, URL change, save toast confirmed
+4. [x] Pause/activate toggle (DYN-04): pause shows amber status, activate restores green status
+5. [x] Test redirect (DYN-03): /r/[slug] returns 307 redirect to destination
+6. [x] Test redirect latency (DYN-03): redirect completes under 2s in DevTools Network tab
+7. [x] Test invalid slug (DYN-03): /r/doesnotexist shows holding page with dark mode support
+8. [x] Test free tier limit (DYN-05): 4th dynamic QR blocked with upgrade toast
+9. [x] Verify non-URL tab: toggle greyed out on non-URL tabs
+10. [x] Edit-mode restoration: editing existing dynamic QR restores toggle to enabled state
+
+**Result: All 5 DYN requirements verified. Phase 10 COMPLETE.**
 
 ## Self-Check: PASSED
 
@@ -101,3 +104,4 @@ The following items require manual testing in the browser at http://localhost:43
 - [x] All 4 test files modified and committed
 - [x] playwright.config.ts updated and committed
 - [x] 15 smoke tests pass on port 4323
+- [x] Human verification approved — all 10 items confirmed
