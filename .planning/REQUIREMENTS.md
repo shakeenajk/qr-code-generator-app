@@ -30,11 +30,11 @@
 
 ### Dynamic QR Codes
 
-- [ ] **DYN-01**: Pro user can create a dynamic QR code that encodes a short redirect URL
-- [ ] **DYN-02**: Pro user can change the destination URL of a dynamic QR code without reprinting
+- [x] **DYN-01**: Pro user can create a dynamic QR code that encodes a short redirect URL
+- [x] **DYN-02**: Pro user can change the destination URL of a dynamic QR code without reprinting
 - [x] **DYN-03**: Scanning a dynamic QR code redirects to the current destination via an edge function (low latency)
-- [ ] **DYN-04**: Pro user can toggle a dynamic QR code active or paused
-- [ ] **DYN-05**: Free authenticated user is limited to 3 dynamic QR codes
+- [x] **DYN-04**: Pro user can toggle a dynamic QR code active or paused
+- [x] **DYN-05**: Free authenticated user is limited to 3 dynamic QR codes
 
 ### Scan Analytics
 
@@ -110,11 +110,11 @@
 | LIB-02 | Phase 9 | Complete |
 | LIB-03 | Phase 9 | Complete |
 | LIB-04 | Phase 9 | Complete |
-| DYN-01 | Phase 10 | Pending |
-| DYN-02 | Phase 10 | Pending |
+| DYN-01 | Phase 10 | Complete |
+| DYN-02 | Phase 10 | Complete |
 | DYN-03 | Phase 10 | Complete |
-| DYN-04 | Phase 10 | Pending |
-| DYN-05 | Phase 10 | Pending |
+| DYN-04 | Phase 10 | Complete |
+| DYN-05 | Phase 10 | Complete |
 | ANAL-01 | Phase 11 | Pending |
 | ANAL-02 | Phase 11 | Pending |
 | ANAL-03 | Phase 11 | Pending |

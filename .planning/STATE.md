@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Monetization
 status: Ready to execute
-stopped_at: Completed 10-01-PLAN.md
-last_updated: "2026-03-30T12:33:24.439Z"
+stopped_at: Completed 10-02-PLAN.md
+last_updated: "2026-03-30T12:37:41.722Z"
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 21
-  completed_plans: 17
+  completed_plans: 18
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-11)
 ## Current Position
 
 Phase: 10 (Dynamic QR Redirect Service) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 
 ## Performance Metrics
 
@@ -61,6 +61,7 @@ Plan: 2 of 5
 | Phase 09 P04 | 860s | 2 tasks | 2 files |
 | Phase 09 P05 | continuation | 2 tasks | 5 files |
 | Phase 10 P01 | 125s | 2 tasks | 6 files |
+| Phase 10 P02 | 2min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -110,6 +111,9 @@ Recent decisions affecting v1.1:
 - [Phase 10]: Separate dynamicQrCodes table (not extending savedQrCodes) for Phase 11 analytics FK readiness
 - [Phase 10]: 307 Temporary Redirect for /r/[slug] — not 301 — so destination updates take effect without browser cache
 - [Phase 10]: No edge runtime on redirect endpoint — Vercel serverless + Turso HTTP API satisfies DYN-03 latency requirement
+- [Phase 10]: Free/starter users can create dynamic QRs (up to 3); static QR saves remain Pro-only
+- [Phase 10]: Explicit dynamicQrCodes DELETE before savedQrCodes in DELETE handler as Turso FK cascade safety belt
+- [Phase 10]: isDynamic computed from slug !== null in list response — no stored column needed
 
 ### Pending Todos
 
@@ -123,6 +127,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-30T12:33:24.435Z
-Stopped at: Completed 10-01-PLAN.md
+Last session: 2026-03-30T12:37:41.717Z
+Stopped at: Completed 10-02-PLAN.md
 Resume file: None
