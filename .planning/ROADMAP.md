@@ -28,7 +28,7 @@ Full details: `.planning/milestones/v1.0-ROADMAP.md`
 - [x] **Phase 7: SSR Foundation + Auth** — Vercel adapter, Clerk auth, Turso DB schema, middleware, sign-up/sign-in/sign-out (completed 2026-03-16)
 - [x] **Phase 8: Stripe Billing** — Checkout (monthly + annual), Customer Portal, idempotent webhook with all 6 lifecycle events (completed 2026-03-17)
 - [x] **Phase 9: Saved QR Library + Pro Gates** — QR CRUD, dashboard library view, Pro gates on logo/shapes, anonymous flow unchanged (completed 2026-03-17)
-- [ ] **Phase 10: Dynamic QR Redirect Service** — Edge function at /r/[slug], editable destination, active/paused toggle, free tier limit
+- [x] **Phase 10: Dynamic QR Redirect Service** — Edge function at /r/[slug], editable destination, active/paused toggle, free tier limit (completed 2026-03-30)
 - [ ] **Phase 11: Scan Analytics Dashboard** — Analytics API, total/unique scans, 30-day chart, device breakdown, top countries, bot filtering
 
 ## Phase Details
@@ -108,7 +108,7 @@ Plans:
 - [x] 10-02-PLAN.md — Extend save/list/[id] API routes for dynamic QR CRUD (slug gen, tier limit, PATCH dest/pause)
 - [x] 10-03-PLAN.md — Dynamic QR toggle in generator (UrlTab toggle, save flow extension, edit-mode restoration)
 - [x] 10-04-PLAN.md — Dashboard card extensions (Dynamic badge, inline dest editor, pause toggle, status indicators)
-- [ ] 10-05-PLAN.md — Activate smoke tests + human verification checkpoint
+- [x] 10-05-PLAN.md — Activate smoke tests + human verification checkpoint
 
 ### Phase 11: Scan Analytics Dashboard
 **Goal**: Pro users can view meaningful scan analytics per dynamic QR code — totals, time-series, device breakdown, and geography — with bot traffic filtered out of displayed counts
@@ -134,5 +134,5 @@ Plans:
 | 7. SSR Foundation + Auth | v1.1 | 5/5 | Complete | 2026-03-16 |
 | 8. Stripe Billing | v1.1 | 6/6 | Complete | 2026-03-17 |
 | 9. Saved QR Library + Pro Gates | 5/5 | Complete   | 2026-03-17 | - |
-| 10. Dynamic QR Redirect Service | v1.1 | 4/5 | In Progress|  |
+| 10. Dynamic QR Redirect Service | v1.1 | 5/5 | Complete   | 2026-03-30 |
 | 11. Scan Analytics Dashboard | v1.1 | 0/TBD | Not started | - |
