@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Monetization
 status: Ready to execute
-stopped_at: Completed 10-04-PLAN.md
-last_updated: "2026-03-30T12:42:00.999Z"
+stopped_at: Completed 10-03-PLAN.md
+last_updated: "2026-03-30T12:45:21.794Z"
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 21
-  completed_plans: 19
+  completed_plans: 20
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-11)
 ## Current Position
 
 Phase: 10 (Dynamic QR Redirect Service) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 
 ## Performance Metrics
 
@@ -63,6 +63,7 @@ Plan: 4 of 5
 | Phase 10 P01 | 125s | 2 tasks | 6 files |
 | Phase 10 P02 | 2min | 2 tasks | 3 files |
 | Phase 10 P04 | 5min | 2 tasks | 1 files |
+| Phase 10 P03 | 245s | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -117,6 +118,8 @@ Recent decisions affecting v1.1:
 - [Phase 10]: isDynamic computed from slug !== null in list response — no stored column needed
 - [Phase 10]: DynamicCardBody sub-component encapsulates all dynamic-QR-specific UI to keep static card paths clean
 - [Phase 10]: isPaused from SQLite is 0|1 integer; wrap in Boolean() in UI for correct conditional rendering
+- [Phase 10]: GET /api/qr/[id] extended with leftJoin on dynamicQrCodes to return isDynamic+slug for edit-mode restoration — cleaner than storing in contentData
+- [Phase 10]: canSaveDynamic allows non-Pro signed-in users to see active save button when dynamic toggle is on and under 3-QR limit
 
 ### Pending Todos
 
@@ -130,6 +133,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-30T12:42:00.995Z
-Stopped at: Completed 10-04-PLAN.md
+Last session: 2026-03-30T12:45:21.789Z
+Stopped at: Completed 10-03-PLAN.md
 Resume file: None

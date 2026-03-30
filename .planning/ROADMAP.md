@@ -106,7 +106,7 @@ Plans:
 Plans:
 - [x] 10-01-PLAN.md — dynamicQrCodes schema, /r/[slug] redirect endpoint, Wave 0 test scaffolds
 - [x] 10-02-PLAN.md — Extend save/list/[id] API routes for dynamic QR CRUD (slug gen, tier limit, PATCH dest/pause)
-- [ ] 10-03-PLAN.md — Dynamic QR toggle in generator (UrlTab toggle, save flow extension, edit-mode restoration)
+- [x] 10-03-PLAN.md — Dynamic QR toggle in generator (UrlTab toggle, save flow extension, edit-mode restoration)
 - [x] 10-04-PLAN.md — Dashboard card extensions (Dynamic badge, inline dest editor, pause toggle, status indicators)
 - [ ] 10-05-PLAN.md — Activate smoke tests + human verification checkpoint
 
@@ -134,5 +134,5 @@ Plans:
 | 7. SSR Foundation + Auth | v1.1 | 5/5 | Complete | 2026-03-16 |
 | 8. Stripe Billing | v1.1 | 6/6 | Complete | 2026-03-17 |
 | 9. Saved QR Library + Pro Gates | 5/5 | Complete   | 2026-03-17 | - |
-| 10. Dynamic QR Redirect Service | v1.1 | 3/5 | In Progress|  |
+| 10. Dynamic QR Redirect Service | v1.1 | 4/5 | In Progress|  |
 | 11. Scan Analytics Dashboard | v1.1 | 0/TBD | Not started | - |
