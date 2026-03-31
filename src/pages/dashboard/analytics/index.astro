@@ -1,0 +1,7 @@
+---
+export const prerender = false;
+
+// No standalone analytics index page — analytics is per-QR.
+// Redirect to dashboard where users can click Analytics on individual QR cards.
+return Astro.redirect('/dashboard');
+---

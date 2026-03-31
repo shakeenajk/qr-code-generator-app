@@ -6,8 +6,8 @@ import ScanChart from '../../../components/analytics/ScanChart';
 import ProgressBarList from '../../../components/analytics/ProgressBarList';
 import { Toaster } from 'sonner';
 import { db } from '../../../db/index';
-import { subscriptions } from '../../../db/schema';
-import { eq } from 'drizzle-orm';
+import { subscriptions, scanEvents, dynamicQrCodes, savedQrCodes } from '../../../db/schema';
+import { eq, and, gte, desc, count, sql } from 'drizzle-orm';
 
 const { userId } = Astro.locals.auth();
 if (!userId) {
@@ -31,22 +31,62 @@ if (tier !== 'pro') {
   return Astro.redirect('/pricing');
 }
 
-// Fetch analytics data (ownership check and 404 handled by API)
-const analyticsRes = await fetch(
-  `${import.meta.env.PUBLIC_BASE_URL}/api/analytics/${slug}`,
-  { headers: { cookie: Astro.request.headers.get('cookie') ?? '' } }
-);
-
-if (analyticsRes.status === 403) return Astro.redirect('/pricing');
-if (analyticsRes.status === 404) return Astro.redirect('/dashboard');
+// Query analytics data directly (avoids self-fetch which fails without PUBLIC_BASE_URL in production)
+function dayBucketToLabel(bucket: number): string {
+  const date = new Date(bucket * 86400 * 1000);
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
 
 let analyticsData: any = null;
 let analyticsError = false;
 
-if (!analyticsRes.ok) {
+// Ownership check: verify slug belongs to userId
+const [dynamicQr] = await db
+  .select({ id: dynamicQrCodes.id, name: savedQrCodes.name, qrSlug: dynamicQrCodes.slug })
+  .from(dynamicQrCodes)
+  .innerJoin(savedQrCodes, eq(dynamicQrCodes.savedQrCodeId, savedQrCodes.id))
+  .where(and(eq(dynamicQrCodes.slug, slug), eq(dynamicQrCodes.userId, userId)))
+  .limit(1);
+
+if (!dynamicQr) {
+  return Astro.redirect('/dashboard');
+}
+
+try {
+  const thirtyDaysAgo = Math.floor(Date.now() / 1000) - 30 * 24 * 60 * 60;
+  const nowBucket = Math.floor(Date.now() / 1000 / 86400);
+
+  const [totalRows, uniqueRows, timeSeriesRows, deviceRows, countryRows] = await Promise.all([
+    db.select({ count: count() }).from(scanEvents).where(eq(scanEvents.dynamicQrCodeId, dynamicQr.id)),
+    db.select({ unique: sql<number>`count(distinct (cast(${scanEvents.scannedAt} / 86400 as int) || coalesce(${scanEvents.device},'') || coalesce(${scanEvents.country},'')))` })
+      .from(scanEvents).where(and(eq(scanEvents.dynamicQrCodeId, dynamicQr.id), gte(scanEvents.scannedAt, thirtyDaysAgo))),
+    db.select({ day: sql<number>`cast(${scanEvents.scannedAt} / 86400 as int)`, scans: count() })
+      .from(scanEvents).where(and(eq(scanEvents.dynamicQrCodeId, dynamicQr.id), gte(scanEvents.scannedAt, thirtyDaysAgo)))
+      .groupBy(sql`cast(${scanEvents.scannedAt} / 86400 as int)`),
+    db.select({ device: scanEvents.device, scans: count() }).from(scanEvents)
+      .where(eq(scanEvents.dynamicQrCodeId, dynamicQr.id)).groupBy(scanEvents.device),
+    db.select({ country: scanEvents.country, scans: count() }).from(scanEvents)
+      .where(eq(scanEvents.dynamicQrCodeId, dynamicQr.id)).groupBy(scanEvents.country)
+      .orderBy(desc(count())).limit(5),
+  ]);
+
+  const timeSeriesMap = new Map(timeSeriesRows.map(r => [r.day, r.scans]));
+  const timeSeries = Array.from({ length: 30 }, (_, i) => {
+    const bucket = nowBucket - 29 + i;
+    return { date: dayBucketToLabel(bucket), scans: timeSeriesMap.get(bucket) ?? 0 };
+  });
+
+  analyticsData = {
+    name: dynamicQr.name,
+    slug: dynamicQr.qrSlug,
+    total: totalRows[0]?.count ?? 0,
+    unique: uniqueRows[0]?.unique ?? 0,
+    timeSeries,
+    devices: deviceRows.map(r => ({ device: r.device ?? 'unknown', scans: r.scans })),
+    countries: countryRows.map(r => ({ country: r.country ?? 'unknown', scans: r.scans })),
+  };
+} catch {
   analyticsError = true;
-} else {
-  analyticsData = await analyticsRes.json();
 }
 
 // Pre-compute percentage values for progress-bar lists (avoid division in template)

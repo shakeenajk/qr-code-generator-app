@@ -20,13 +20,14 @@ export const GET: APIRoute = async ({ locals, params }) => {
     });
   }
 
-  // Pro gate (per D-14)
+  // Pro gate (per D-14) — check both tier and status for consistency with subscription/status API
   const [sub] = await db
-    .select({ tier: subscriptions.tier })
+    .select({ tier: subscriptions.tier, status: subscriptions.status })
     .from(subscriptions)
     .where(eq(subscriptions.userId, userId))
     .limit(1);
-  if (sub?.tier !== 'pro') {
+  const effectiveTier = (sub?.status === 'active' || sub?.status === 'past_due') ? sub?.tier : 'free';
+  if (effectiveTier !== 'pro') {
     return new Response(JSON.stringify({ error: 'pro_required' }), {
       status: 403,
       headers: { 'Content-Type': 'application/json' },
