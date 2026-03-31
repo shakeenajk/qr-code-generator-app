@@ -23,6 +23,9 @@ import VCardTab from "./tabs/VCardTab";
 import { ColorSection, type ColorSectionState } from "./customize/ColorSection";
 import { ShapeSection, type ShapeSectionState } from "./customize/ShapeSection";
 import { LogoSection, type LogoSectionState } from "./customize/LogoSection";
+import { FrameSection } from "./customize/FrameSection";
+import { TemplateSection } from "./customize/TemplateSection";
+import type { TemplatePreset, FrameSectionState } from "../types/frames";
 import { SaveQRModal } from "./SaveQRModal";
 
 type TabId = "url" | "text" | "wifi" | "vcard";
@@ -114,6 +117,14 @@ export default function QRGeneratorIsland() {
     logoSrc: null,
     logoFilename: null,
   });
+
+  const [frameOptions, setFrameOptions] = useState<FrameSectionState>({
+    frameType: "none",
+    frameText: "",
+  });
+
+  // Track which template preset is selected (null = no template active)
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
 
   // Derived: is the user at the dynamic QR limit?
   // dynamicLocked = true only for signed-in non-pro users at/over the 3-QR limit
@@ -460,6 +471,29 @@ export default function QRGeneratorIsland() {
     setActiveTab(tabId);
   }, []);
 
+  const handleApplyTemplate = useCallback((preset: TemplatePreset) => {
+    // Apply frame
+    setFrameOptions({ frameType: preset.frameType, frameText: preset.frameText });
+
+    // Apply color — update dotColor and bgColor (leave gradient settings unchanged)
+    setColorOptions((prev) => ({
+      ...prev,
+      dotColor: preset.dotColor,
+      bgColor: preset.bgColor,
+      gradientEnabled: false, // templates always use solid color (clean apply)
+    }));
+
+    // Apply shape
+    setShapeOptions((prev) => ({
+      ...prev,
+      dotType: preset.dotType,
+      cornerSquareType: preset.cornerSquareType,
+      // cornerDotType unchanged — templates don't specify pupil style
+    }));
+
+    setSelectedTemplateId(preset.id);
+  }, []);
+
   // Determine save button rendering
   // - anonymous (userTier === null): hide button
   // - signed-in non-Pro: greyed button with lock (for static saves)
@@ -604,7 +638,26 @@ export default function QRGeneratorIsland() {
           {/* Customization section — CUST-01 through CUST-07, LOGO-01 through LOGO-04 */}
           <div className="mt-8 border-t border-gray-200 pt-6 space-y-6 dark:border-slate-700">
             <h2 className="text-base font-semibold text-gray-900 dark:text-white">Customize</h2>
-            <ColorSection value={colorOptions} onChange={setColorOptions} />
+            {/* Template picker at the TOP per D-07 */}
+            <TemplateSection
+              selectedId={selectedTemplateId}
+              onApply={handleApplyTemplate}
+            />
+            {/* Frame picker */}
+            <FrameSection
+              value={frameOptions}
+              onChange={(next) => {
+                setFrameOptions(next);
+                setSelectedTemplateId(null); // deselect template when manually changing frame
+              }}
+            />
+            <ColorSection
+              value={colorOptions}
+              onChange={(next) => {
+                setColorOptions(next);
+                setSelectedTemplateId(null); // deselect template when manually changing colors
+              }}
+            />
             <ShapeSection value={shapeOptions} onChange={setShapeOptions} userTier={userTier} />
             <LogoSection value={logoOptions} onChange={setLogoOptions} userTier={userTier} />
           </div>
@@ -624,6 +677,7 @@ export default function QRGeneratorIsland() {
             shapeOptions={debouncedShape}
             logoOptions={debouncedLogo}
             debouncedContent={debouncedContent}
+            frameOptions={frameOptions}
           />
 
           {/* Save to Library button — locked state for non-Pro users without dynamic toggle */}
