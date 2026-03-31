@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Growth & Content
 status: Ready to execute
-stopped_at: Completed 13-01-PLAN.md
-last_updated: "2026-03-31T08:25:16.210Z"
+stopped_at: Completed 13-seo-and-homepage-content/13-03-PLAN.md
+last_updated: "2026-03-31T08:29:23.698Z"
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 7
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-31)
 ## Current Position
 
 Phase: 13 (SEO and Homepage Content) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 
 ## Accumulated Context
 
@@ -44,6 +44,8 @@ Recent decisions affecting current work:
 - [Phase 12-foundation-improvements]: escapeVCard escapes backslash first to avoid double-escaping; company maps to ORG;TYPE=work to distinguish from legacy org field
 - [Phase 13-seo-and-homepage-content]: Keep Layout.astro manual OG block; use astro-seo only on new Phase 13 pages via slot
 - [Phase 13-seo-and-homepage-content]: SoftwareApplication is the correct schema.org type for QRCraft (not WebApplication)
+- [Phase 13-seo-and-homepage-content]: HowTo JSON-LD placed in index.astro via slot=head (not in HowTo.astro) for correct head placement
+- [Phase 13-seo-and-homepage-content]: UseCasesTeaser uses inline static teaser data rather than importing USE_CASES — teaser descriptions differ from article excerpts
 
 ### Pending Todos
 
@@ -58,6 +60,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-31T08:25:16.206Z
-Stopped at: Completed 13-01-PLAN.md
+Last session: 2026-03-31T08:29:23.694Z
+Stopped at: Completed 13-seo-and-homepage-content/13-03-PLAN.md
 Resume file: None
