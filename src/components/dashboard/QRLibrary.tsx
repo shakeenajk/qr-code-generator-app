@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Grid2X2, List, Pencil, Trash2, QrCode, Pause, Play } from 'lucide-react';
+import { Grid2X2, List, Pencil, Trash2, QrCode, Pause, Play, BarChart2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface SavedQR {
@@ -106,6 +106,16 @@ function CardActions({ qr, deletingId, onEdit, onDeleteRequest, onDeleteConfirm,
 
   return (
     <div className="flex items-center gap-2">
+      {qr.isDynamic && qr.slug && (
+        <a
+          href={`/dashboard/analytics/${qr.slug}`}
+          aria-label={`View analytics for ${qr.name}`}
+          className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md border border-indigo-200 dark:border-indigo-900 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950 transition-colors"
+        >
+          <BarChart2 className="w-3.5 h-3.5" />
+          Analytics
+        </a>
+      )}
       <button
         onClick={() => onEdit(qr.id)}
         className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
