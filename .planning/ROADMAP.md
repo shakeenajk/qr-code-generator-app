@@ -123,7 +123,7 @@ Plans:
 | 9. Saved QR Library + Pro Gates | v1.1 | 5/5 | Complete | 2026-03-17 |
 | 10. Dynamic QR Redirect Service | v1.1 | 5/5 | Complete | 2026-03-30 |
 | 11. Scan Analytics Dashboard | v1.1 | 3/3 | Complete | 2026-03-31 |
-| 12. Foundation Improvements | v1.2 | 3/3 | Complete   | 2026-03-31 |
+| 12. Foundation Improvements | v1.2 | 3/3 | Complete    | 2026-03-31 |
 | 13. SEO and Homepage Content | v1.2 | 0/TBD | Not started | - |
 | 14. QR Frames and Templates | v1.2 | 0/TBD | Not started | - |
 | 15. Hosted Landing Pages | v1.2 | 0/TBD | Not started | - |
