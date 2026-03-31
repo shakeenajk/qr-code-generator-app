@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: Monetization
-status: Milestone complete — archived
-stopped_at: v1.1 milestone completed and archived
-last_updated: "2026-03-31T04:30:00.000Z"
+milestone: v1.2
+milestone_name: Growth & Content
+status: Ready to execute
+stopped_at: Completed 14-01-PLAN.md
+last_updated: "2026-03-31T13:06:57.167Z"
 progress:
   total_phases: 5
-  completed_phases: 5
-  total_plans: 24
-  completed_plans: 24
+  completed_phases: 2
+  total_plans: 10
+  completed_plans: 7
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-31)
 
 **Core value:** Anyone can generate a visually stunning, fully customized QR code and download it immediately — no signup, no friction.
-**Current focus:** Planning next milestone
+**Current focus:** Phase 14 — QR Frames and Templates
 
 ## Current Position
 
-Milestone v1.1 Monetization — COMPLETE (shipped 2026-03-31)
-All 5 phases (7-11), 24 plans executed. 26/26 requirements satisfied.
+Phase: 14 (QR Frames and Templates) — EXECUTING
+Plan: 2 of 3
 
 ## Accumulated Context
 
@@ -32,9 +32,31 @@ All 5 phases (7-11), 24 plans executed. 26/26 requirements satisfied.
 
 All v1.0 + v1.1 decisions archived in PROJECT.md Key Decisions table.
 
+Recent decisions affecting current work:
+
+- Phase 12 must create `src/lib/tierLimits.ts` as the very first task — all other phases import from it
+- vCard encoding: add `escapeVCard()` and `foldLine()` before adding new fields (RFC 6350 compliance)
+- Phase 15 depends on Phase 12 (tier limits centralized) but not Phase 13 or 14 — can overlap
+- Phase 16 (AdSense) depends on Phase 13 SEO pages being live and indexed — apply for AdSense after Phase 13 ships
+- [Phase 12-foundation-improvements]: Pricing nav link uses text style not accent color — navigation item not CTA (12-02)
+- [Phase 12-foundation-improvements]: Starter No ads replaced by 10 dynamic QR codes to satisfy both TIER-04 and TIER-01 simultaneously (12-02)
+- [Phase 12-foundation-improvements]: TIER_LIMITS as single source of truth for all QR count enforcement — all limit checks import from src/lib/tierLimits.ts
+- [Phase 12-foundation-improvements]: escapeVCard escapes backslash first to avoid double-escaping; company maps to ORG;TYPE=work to distinguish from legacy org field
+- [Phase 13-seo-and-homepage-content]: Keep Layout.astro manual OG block; use astro-seo only on new Phase 13 pages via slot
+- [Phase 13-seo-and-homepage-content]: SoftwareApplication is the correct schema.org type for QRCraft (not WebApplication)
+- [Phase 13-seo-and-homepage-content]: HowTo JSON-LD placed in index.astro via slot=head (not in HowTo.astro) for correct head placement
+- [Phase 13-seo-and-homepage-content]: UseCasesTeaser uses inline static teaser data rather than importing USE_CASES — teaser descriptions differ from article excerpts
+- [Phase 13-seo-and-homepage-content]: Cherry-picked Plan 01 commits into worktree to enable Plan 02 dependency on useCases.ts and astro-seo
+- [Phase 13-seo-and-homepage-content]: Committed screenshots as static assets (not generated at build time) — Playwright not available in Vercel build environment
+- [Phase 14]: Canvas composition uses createImageBitmap(blob) not img.src — eliminates canvas-taint SecurityError on export
+- [Phase 14]: Frame SVG silhouettes stored as inline path strings in FrameDefinition.svgPath — no file imports or build-time asset pipeline needed
+
 ### Pending Todos
 
-None.
+- Upgrade from Google AdSense to self-promo banner ads later
+- Phase 15 product decision: confirm whether PDF/App Store landing pages are Pro-only or available to free/Starter (gate inherits from dynamicQrCodes Pro check — verify intent before task planning)
+- Phase 15 product decision: per-user Vercel Blob file size limits (suggested: 10MB free, 25MB Pro)
+- Phase 16: capture Lighthouse CI baseline before writing any AdSense code; set <90 block gate
 
 ### Blockers/Concerns
 
@@ -42,6 +64,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-31
-Stopped at: v1.1 milestone completed and archived
+Last session: 2026-03-31T13:06:57.163Z
+Stopped at: Completed 14-01-PLAN.md
 Resume file: None
