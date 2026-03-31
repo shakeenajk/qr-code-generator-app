@@ -367,3 +367,452 @@ The following section preserves the original v1.0 feature research (static QR ge
 ---
 *Feature research for: QRCraft freemium QR code generator — v1.1 monetization layer*
 *Researched: 2026-03-11*
+
+---
+---
+
+# Feature Landscape — QRCraft v1.2 Growth & Content
+
+**Domain:** QR code generator / freemium SaaS tool
+**Researched:** 2026-03-30
+**Milestone context:** v1.2 adds content types (PDF, App Store), frames, templates, homepage marketing, SEO, and AdSense to an already-shipped product (auth, Stripe, saved library, dynamic codes, analytics all complete).
+
+---
+
+## 1. PDF Content Type — Hosted Landing Page
+
+### Table Stakes
+
+Features users expect when a competitor offers a "PDF QR code" type. Missing any of these will feel incomplete.
+
+| Field | Why Expected | Complexity | Notes |
+|-------|--------------|------------|-------|
+| PDF file upload | Primary action — source of truth | Med | Up to 20 MB is industry norm (QR Code Generator limit) |
+| Cover/welcome image | Visual context for the scanned page | Low | Shown at top of landing page |
+| Title | Tells scanner what the document is | Low | Required |
+| Description | Brief document summary | Low | Optional but standard |
+| Company/brand name | Attribution for business use cases | Low | Optional |
+| Website URL | Back-link to brand | Low | Optional |
+| "View PDF" CTA button | Primary action on landing page | Low | Must be prominent, above fold |
+| Mobile-optimized landing page | 80%+ of scans are mobile | Med | Mandatory |
+| "Link directly to PDF" option | Skip landing page, go straight to file | Low | Toggle — QR Code Generator offers this |
+
+### Differentiators
+
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| Social sharing buttons | Users forward the PDF page | Low | Share to WhatsApp, email, copy link |
+| Custom accent color on landing page | Brand matching | Low | Single color picker, apply to button/header |
+| QR scan count on landing page | Social proof ("X people scanned this") | Med | Requires analytics integration (already built in v1.1) |
+
+### Anti-Features
+
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| Multiple-file upload per QR | Complexity, unclear UX | One PDF per QR code |
+| In-browser PDF viewer (iframe) | Poor mobile experience; fails on iOS Safari | Link out to OS-native viewer |
+| Password-protecting PDFs server-side | Re-implements OS-level security, fragile | Let user encrypt PDF before upload |
+
+### Dependencies on Existing QRCraft Features
+- Dynamic QR redirect (v1.1) — PDF landing page is a specialized redirect destination; same short code infrastructure
+- Turso/Drizzle schema — needs a `pdfLandingPages` table (file URL, title, description, company, website, cover image URL, direct link toggle)
+- **New infra required:** Vercel Blob or similar for PDF + cover image storage — this is currently absent from the stack and is the highest-risk dependency
+- Pro tier gate — hosted content types are standard Pro features across all competitors
+
+---
+
+## 2. App Store Content Type — Hosted Landing Page
+
+### Table Stakes
+
+| Field | Why Expected | Complexity | Notes |
+|-------|--------------|------------|-------|
+| App name | Header of landing page | Low | Required |
+| App icon / logo upload | Visual brand recognition | Low | Required |
+| Short description | 1–2 sentence app pitch | Low | Optional but expected |
+| iOS App Store URL | Core link | Low | Required (or Android, at least one) |
+| Google Play URL | Core link | Low | Required (or iOS, at least one) |
+| "Download on App Store" button | Standard Apple badge | Low | Use official badge assets |
+| "Get it on Google Play" button | Standard Google badge | Low | Use official badge assets |
+| Auto-detect OS and redirect | iPhone scan → App Store; Android scan → Play | Med | User-agent sniffing — industry standard (Onelink.to model) |
+| Mobile-optimized landing page | 100% mobile audience | Low | Mandatory |
+
+### Differentiators
+
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| App trailer / video embed | YouTube/Vimeo URL for promo video | Low | iframe embed only — no hosting |
+| Star rating display | Manual entry (e.g. "4.8 stars") | Low | Not API-fetched; user enters manually |
+| Screenshot carousel | 2–3 app screenshots | Med | Adds visual credibility |
+| "Visit website" link | Optional brand site link | Low | Extra field |
+
+### Anti-Features
+
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| Fetching app metadata from App Store API | CORS, Apple restrictions, rate limits | Manual entry fields only |
+| Requiring both iOS and Android URLs | Many apps are iOS-only or Android-only | Make each platform URL optional; require at least one |
+| Hosting the trailer video | Storage costs + encoding complexity | YouTube/Vimeo embed URL only |
+
+### OS-Detection Redirect Logic
+When only one platform URL provided: always go there directly.
+When both URLs provided: user-agent check in the existing Vercel redirect function → correct store. Desktop or unknown OS: show landing page with both store buttons.
+
+### Dependencies on Existing QRCraft Features
+- Dynamic QR redirect (v1.1) — same short code infra
+- Vercel redirect function — add OS detection branch (low complexity addition)
+- New DB table: `appStoreLandingPages`
+- Shares file storage infra with PDF type (app icon upload)
+
+---
+
+## 3. QR Code Decorative Frames
+
+### Table Stakes
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| Rectangular border frame | Most common style — universal recognition | Med | Rendered around QR output |
+| "Scan Me" default CTA text | Industry standard — what users expect | Low | Bottom text below QR |
+| Editable CTA text | "Scan to Order", "Scan to Connect", etc. | Low | Replace default with user input |
+| Frame color control | Brand color matching | Low | Single color picker |
+| Text color control | Contrast readability | Low | |
+| No frame option (default) | Existing behavior preserved | Low | Frame is additive, never forced |
+| Frame included in PNG download | Must export with frame visible | Med | Composite render step |
+| Frame included in SVG download | Clean vector output | High | SVG composition adds complexity |
+
+### Differentiators
+
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| Rounded corners frame style | Modern, softer look | Low | SVG rx attribute |
+| Font choice for CTA text (2–3 options) | Subtle branding differentiation | Low | Embed font subset in SVG |
+| Small scan icon/arrow decoration | Visual affordance | Low | Add arrow or camera SVG icon |
+
+### Anti-Features
+
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| Phone mockup frames | Extreme render complexity, dated aesthetic | Geometric borders with text only |
+| Animated frames | Cannot export to PNG/SVG cleanly | Static frames only |
+| 70+ frame variants | Overwhelming, high maintenance | Curate 5–8 high-quality styles |
+| Frames on anonymous/free users blocked | Frames are a quality-of-life feature, not Pro differentiator | Keep frames free — gates are on Pro content types |
+
+### Rendering Approach (Technical)
+
+**Recommended: `qr-border-plugin` npm package** — a verified extension for `qr-code-styling` that adds customizable borders with text via `extensionOptions`. Since QRCraft already uses `qr-code-styling`, this is the minimum-friction implementation path.
+
+For PNG export: render QR to canvas → draw frame rect + CTA text onto same 2D canvas context → export canvas as PNG.
+For SVG export: wrap QR SVG in a parent SVG element → add `<rect>` and `<text>` children. This is the harder path; plan extra implementation time.
+
+Confidence on `qr-border-plugin` API: MEDIUM — package exists and is documented on npm; hands-on API verification needed before committing to it.
+
+### Dependencies on Existing QRCraft Features
+- `qr-code-styling` (v1.0 stack) — `qr-border-plugin` extends it
+- Live preview (v1.0) — frame must update in real-time as user edits CTA text or color
+- PNG + SVG download (v1.0) — both export paths need compositing step added
+- Preset templates (Feature 4 below) — frames are a component of templates; build frames first
+
+---
+
+## 4. Preset Style Templates
+
+### Table Stakes
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| Pre-made visual combos | "Make it look good instantly" — main user request | Med | Each preset = dot style + colors + corner style + optional frame |
+| One-click apply | Single click replaces all current style settings | Low | |
+| Thumbnail preview per template | See before applying | Low | Static images or small canvas renders |
+| Named templates | "Classic", "Bold Dark", "Neon" — names aid recall | Low | |
+| 8–12 templates minimum | Below 8 feels sparse; above 20 causes decision fatigue | Low | |
+
+### Differentiators
+
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| Category grouping | "Minimal", "Bold", "Business", "Vibrant" | Low | 4–5 categories across 12 templates |
+| "New" badge on recently added templates | Drives return visits | Low | Static flag in template data |
+
+### Anti-Features
+
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| User-generated public template gallery | Moderation burden, legal risk | Private saved templates if needed (v1.3+) |
+| Animated preview thumbnails | Slow load, JS complexity | Static images |
+| More than 30 templates | Discovery failure, maintenance burden | Curate 12–20 maximum |
+
+### Suggested Categories
+1. **Minimal** — square dots, black/white, no frame
+2. **Bold** — high-contrast, thick dots, dark frame with CTA text
+3. **Rounded** — circle dots, soft colors, no frame
+4. **Business** — navy/white, corner eye emphasis
+5. **Vibrant** — gradient foreground, colorful frame
+
+### Dependencies on Existing QRCraft Features
+- All existing customization controls (dot style, colors, corner eyes) — presets auto-fill these existing fields
+- Decorative frames (Feature 3) — templates reference frame styles; frames must be built first
+- Customization panel UI (v1.0) — must visually reflect which template is currently active
+
+---
+
+## 5. Homepage Marketing Sections
+
+### Table Stakes
+
+| Section | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| Pricing promotion / CTA block | Every SaaS homepage has one | Low | Summarize Pro benefits + "Upgrade" CTA |
+| How-to / step-by-step guide | Reduces bounce from confused visitors | Med | 3 steps: pick type → customize → download |
+| QR code use cases section | Broadens appeal, aids SEO | Low | 6–8 tiles with icons and brief descriptions |
+| Register button + pricing link in header | Navigation clarity for conversion | Low | Missing from current v1.1 header |
+
+### Differentiators
+
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| Programmatic screenshots in how-to | Authentic, auto-updates with UI changes | High | Playwright screenshot automation (test suite already exists) |
+| Dedicated use-case landing pages | SEO long-tail, specific audience targeting | Med | /qr-code-for-restaurants, /qr-code-for-business-cards etc. |
+| Scan count social proof widget | "X QR codes generated" counter | Low | DB aggregate query; motivates trial |
+
+### Anti-Features
+
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| Video hero / autoplay background | Destroys Lighthouse score on mobile | Static images + CSS animation only |
+| Testimonials without real users | Fake social proof destroys trust | Use quantitative stats instead |
+| More than 6 homepage sections | Cognitive overload, slow TTI | Max 5–6 sections; defer content to dedicated pages |
+
+### Content That Converts (MEDIUM confidence — based on competitor homepage patterns)
+1. Feature benefit bullets near hero — not a feature checklist
+2. Pricing table or teaser above the fold on pricing page, briefly referenced on homepage
+3. Use case tiles with industry icons — restaurant, retail, events, healthcare, WiFi
+4. "How it works" 3-step section with real UI screenshots
+5. Free tier prominently called out — reduces signup friction
+
+### Dependencies on Existing QRCraft Features
+- Stripe tier data (v1.1) — pricing promo section must reflect actual current tier limits
+- Existing Astro component architecture — new sections are Astro island components
+- Playwright (v1.1 test suite) — extend for programmatic screenshot capture
+
+---
+
+## 6. SEO Improvements
+
+### Table Stakes
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| Google Search Console setup | Track clicks/impressions/position | Low | GSC verification tag in head |
+| HowTo structured data (JSON-LD) | Enables rich snippets for how-to section | Med | JSON-LD already used in v1.0 |
+| FAQPage structured data | Featured snippets for FAQ section | Low | Additional JSON-LD schema |
+| Sitemap includes all new pages | Every new page must appear in sitemap.xml | Low | Astro sitemap plugin already in place |
+| Unique title + meta description per page | All new content type pages need distinct meta | Low | Astro frontmatter handles per-page |
+| Fast mobile page load maintained | Core Web Vitals are a ranking signal | Low | Already Lighthouse 100 — maintain discipline |
+
+### Target Keyword Clusters (MEDIUM confidence — no direct volume data accessed)
+
+| Keyword Cluster | Intent | Priority |
+|-----------------|--------|----------|
+| "free qr code generator" | High volume, high competition | Core — already targeting |
+| "qr code with logo" | Mid volume, differentiator | Core |
+| "dynamic qr code" | Mid volume, Pro feature | Pro upsell page |
+| "qr code for restaurants" | Lower volume, lower competition | Use case landing page |
+| "qr code for business cards" / "vcard qr code" | Mid volume | Existing type, enhance page |
+| "pdf qr code" | Low-mid volume | New page opportunity from content type |
+| "app store qr code" | Low volume | New page opportunity |
+| "custom qr code" | High volume, high competition | Core |
+
+### Differentiators
+
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| Use-case landing pages | Long-tail ranking for industry-specific queries | Med | 4–6 dedicated Astro pages, 400+ words each |
+| Expanded FAQ content | More FAQ items = more featured snippet opportunities | Low | Additive to existing FAQ section |
+| Alt text on all QR example images | Image SEO, accessibility | Low | Easy win |
+
+### Anti-Features
+
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| Keyword stuffing | Google Helpful Content Update penalizes this | Natural language with keyword intent |
+| Near-duplicate use case pages | Thin content hurts rather than helps | Each page needs 200+ unique words and a unique value proposition |
+| Blog without publishing commitment | Ghost blog signals abandonment | Skip blog unless committing to 1 post/month minimum |
+
+### Content Priority Order
+1. Fix homepage copy accuracy (freemium truth-in-advertising in hero)
+2. Add HowTo + FAQPage JSON-LD to relevant sections
+3. Use case tiles on homepage (6–8, linking to dedicated pages)
+4. 4–6 dedicated use-case landing pages
+5. Google Search Console verification + ongoing monitoring
+6. PDF and App Store pages (new content type pages auto-add indexable real estate)
+
+---
+
+## 7. Google AdSense on Free Tier
+
+### Table Stakes
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| AdSense script in layout | Standard implementation | Low | Async script tag in Astro layout head |
+| Ads visible to free-tier users only | Pro users should not see ads | Med | Clerk session check; server-side conditional |
+| Reserved min-height on ad containers | Google 2025 algo: no reserved space = 50% viewability penalty | Low | CSS `min-height` on every ad slot |
+| Ad placement below QR preview | Tool function must come first — ads below fold | Low | Never above the generator |
+| No ads in redirect path | Already confirmed out-of-scope in PROJECT.md | N/A | Confirmed — never |
+
+### CPM Expectations for This Niche (LOW confidence)
+
+Tool/utility sites are mid-tier niche for AdSense:
+- US visitors: ~$1–3 CPM estimated
+- Non-US: ~$0.20–0.80 CPM
+- Marketing/business tool niche is slightly above pure utility
+
+At ~1,000 daily free-tier visitors: realistically $30–100/month. Not transformative — supplemental to Stripe revenue. Primary value is the "upgrade to remove ads" conversion nudge.
+
+### Differentiators
+
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| "Remove ads — upgrade to Pro" CTA adjacent to ad slot | Converts ad annoyance into upgrade motivation | Low | Simple upgrade link next to ad unit |
+| Single ad unit vs. multiple | Better UX retention; users don't abandon tool | Low | One unit max on generator page |
+
+### Anti-Features
+
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| Ads covering >15% initial viewport | Google 2025 penalty — reduces CPM and ranking | Place ads below fold |
+| More than 2 ad units on generator page | Diminishing returns, UX degradation | Max 1–2 units |
+| Sticky/floating ad overlays | AdSense ToS violation risk | Static placed units only |
+| Ads shown to Pro users | Violates Pro value proposition | Conditional render: `!isProUser` |
+
+### Implementation Note
+AdSense `async` script in `<head>`. Conditional rendering via Astro server-side Clerk session check. Reserve ad slot containers with CSS `min-height` so layout doesn't shift when ads load — CLS must remain 0 to preserve Lighthouse 100.
+
+### Dependencies on Existing QRCraft Features
+- Clerk auth (v1.1) — gate ads behind `!user.isPro` check
+- Stripe subscription state (v1.1) — determines Pro status
+- Astro layout (v1.0) — script placement and conditional rendering
+
+---
+
+## 8. vCard Enhancements
+
+### Table Stakes (additions to existing name/phone/email)
+
+| Field | Why Expected | Complexity | Notes |
+|-------|--------------|------------|-------|
+| Job title | Standard business card field | Low | vCard 3.0 TITLE field |
+| Company name | Standard business card field | Low | vCard 3.0 ORG field |
+| Work phone (separate from mobile) | Business context | Low | Second PHONE entry, type=WORK |
+| Physical address (street, city, country) | Full contact record standard | Low | vCard ADR field |
+| Website URL | Portfolio or company site | Low | vCard URL field |
+| LinkedIn profile URL | Modern professional standard | Low | Second URL or NOTE field |
+
+### Differentiators
+
+| Field | Value Proposition | Complexity | Notes |
+|-------|-------------------|------------|-------|
+| Twitter/X handle | Social-forward users | Low | NOTE field |
+| Department | Enterprise org contexts | Low | vCard ORG field suffix |
+| Multiple email addresses | Work + personal | Low | Second EMAIL entry |
+| Pronouns | Inclusive, contemporary | Low | NOTE field |
+
+### Anti-Features
+
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| Profile photo in vCard | Inflates QR data density dramatically; harder to scan | Make optional with explicit scan-complexity warning |
+| Dozens of social media fields | Form bloat, rare usage | LinkedIn + Website is sufficient; user puts others on website |
+| Freeform custom fields | Support burden, unpredictable vCard output | Fixed known fields only |
+
+### Format Note
+Use vCard 3.0, not 4.0. iOS Contacts has inconsistent vCard 4.0 support as of 2025. vCard 3.0 is the safe cross-device standard.
+
+### Gate Consideration
+These fields are table stakes across all competitors — keep them free. Gating basic contact fields would be a negative differentiator.
+
+### Dependencies on Existing QRCraft Features
+- Existing vCard QR type UI (v1.0) — additive form extension, not a replacement
+- vCard string builder — append new fields to existing encoder
+- Form validation — address fields add grouping complexity (show/hide address section as a unit)
+
+---
+
+## v1.2 Feature Dependencies Map
+
+```
+Dynamic QR Redirect (v1.1)
+  ├── PDF content type  (redirect destination + new DB table + file storage)
+  └── App Store content type  (redirect destination + OS detection in redirect fn)
+
+File Storage (NEW — not in current stack)
+  ├── PDF content type  (PDF files + cover images)
+  └── App Store content type  (app icons)
+
+qr-code-styling library (v1.0)
+  ├── Decorative Frames  (qr-border-plugin extension)
+  └── Preset Templates  (templates auto-fill dot + color + frame settings)
+
+Decorative Frames
+  └── must be built before Preset Templates
+
+Homepage Marketing
+  └── Pricing promo references real Stripe tier data (v1.1)
+  └── How-to screenshots can use existing Playwright test suite
+
+AdSense
+  └── Clerk auth (v1.1) — conditional rendering for Pro users
+  └── Stripe Pro status (v1.1) — source of truth for gate
+
+vCard Enhancements
+  └── Existing vCard type (v1.0) — additive extension only
+```
+
+---
+
+## v1.2 Build Priority
+
+### Build First (high value, no new infra)
+1. **vCard enhancements** — purely additive to existing form, zero new infrastructure
+2. **AdSense setup** — script tag + conditional render; low complexity, immediate supplemental revenue + upgrade nudge
+3. **Header improvements** — Register button + pricing link; 1-hour fix with outsized conversion impact
+4. **Decorative frames** — `qr-border-plugin` extends existing library; unlocks template system
+
+### Build Second (moderate complexity, high growth value)
+5. **Preset style templates** — depends on frames; high perceived polish, low infra
+6. **Homepage marketing sections** — how-to guide, pricing promo, use case tiles
+7. **SEO improvements** — structured data, use case pages, GSC setup
+
+### Build Last (requires new infra)
+8. **PDF content type** — needs file storage infra (Vercel Blob or equivalent) — highest infra risk
+9. **App Store content type** — shares file storage with PDF; add OS detection in existing redirect function
+
+### Defer from v1.2
+- Blog / content hub — requires sustained content commitment; defer until traffic validates the investment
+- User-saved style templates — low urgency vs. other features; v1.3 candidate
+- Profile photo in vCard — QR scannability risk; needs A/B testing before shipping to all users
+
+---
+
+## Sources (v1.2 Research)
+
+- [QR Code Generator — PDF QR Code](https://www.qr-code-generator.com/solutions/pdf-qr-code/) — PDF fields spec (MEDIUM confidence)
+- [Me-QR — App Store QR Code Generator](https://me-qr.com/qr-code-generator/store) — App Store type UX (MEDIUM confidence)
+- [URLgenius — App Store QR Code Blog](https://app.urlgeni.us/blog/app-store-links-apple-itunes-google-play) — OS detection pattern (MEDIUM confidence)
+- [Onelink.to — App Store + Google Play single link](https://www.onelink.to/) — industry standard for OS detection (HIGH confidence)
+- [QR Code Generator — App Store QR](https://www.qr-code-generator.com/solutions/app-qr-code/) — hosted page fields (MEDIUM confidence)
+- [Uniqode — QR Code Frame Guide](https://www.uniqode.com/blog/qr-code-customization/qr-code-frame) — frame styles overview (MEDIUM confidence)
+- [qr-border-plugin — Socket.dev npm analysis](https://socket.dev/npm/package/qr-border-plugin) — extension for qr-code-styling (MEDIUM confidence)
+- [kozakdenys/qr-code-styling — GitHub](https://github.com/kozakdenys/qr-code-styling) — extension API (HIGH confidence)
+- [QR TIGER — Templates](https://www.qrcode-tiger.com/qr-code-templates) — competitor template categories (MEDIUM confidence)
+- [Beaconstac — PDF QR Code Marketing (Medium)](https://medium.com/@beaconstac/qr-code-generator-pdf-the-help-you-need-for-better-marketing-2cf41465e83f) — PDF content type fields (MEDIUM confidence)
+- [QR Tiger — Custom Landing Page](https://www.qrcode-tiger.com/custom-qr-code-landing-page) — landing page field pattern (MEDIUM confidence)
+- [AdPushup — AdSense CPM Rates](https://www.adpushup.com/blog/adsense-cpm/) — CPM data by niche (MEDIUM confidence)
+- [Serpzilla — AdSense Niches 2025](https://serpzilla.com/blog/10-best-google-adsense-niches-2025-a-practical-guide-for-website-owners/) — niche CPM benchmarks (LOW-MEDIUM confidence)
+- [QR Code Generator — vCard](https://www.qr-code-generator.com/solutions/vcard-qr-code/) — vCard field standards (MEDIUM confidence)
+- [QRCodeKit — QR Code Trends 2026](https://qrcodekit.com/news/qr-code-trends/) — market context (MEDIUM confidence)
+- [Dynamsoft — SVG QR Code Overlays](https://www.dynamsoft.com/codepool/draw-qr-code-overlays-using-svg-javascript.html) — SVG composition technique (HIGH confidence)
+
+---
+*v1.2 feature research appended: 2026-03-30*

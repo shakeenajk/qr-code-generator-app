@@ -1,14 +1,336 @@
 # Stack Research
 
 **Domain:** SaaS freemium add-on — auth, payments, database, dynamic QR redirect, scan analytics on existing Astro 5 + Vercel app
-**Researched:** 2026-03-11
-**Confidence:** HIGH (all primary choices verified against official docs or npm; version numbers confirmed via WebSearch against npm registry)
+**Researched (v1.1):** 2026-03-11
+**Researched (v1.2):** 2026-03-30
+**Confidence:** HIGH (primary choices verified against official docs or npm; version numbers confirmed via WebSearch against npm registry)
 
 ---
 
-## Scope Note
+## Scope Note — v1.2
 
-This file covers ONLY the new infrastructure required for v1.1 Monetization. The existing stack (Astro 5, React islands, qr-code-styling, Tailwind v4, Playwright, `@astrojs/vercel`) is validated and unchanged. The decisions answered here are:
+This file covers the new infrastructure required for v1.2 Growth & Content. The validated v1.1 stack (Astro 5, React islands, qr-code-styling, Tailwind v4, Playwright, `@astrojs/vercel`, Clerk, Turso/Drizzle, Stripe, Recharts, lucide-react) is complete and unchanged. **Do not re-research those choices.**
+
+The new decisions for v1.2 are:
+
+1. How do we serve Google AdSense on the free tier with appropriate consent handling?
+2. How do we store uploaded cover images for PDF and App Store hosted landing pages?
+3. How do we render decorative QR code frames ("Scan Me" text, phone mockup borders) around the existing qr-code-styling output and export them as PNG/SVG?
+4. How do we generate programmatic screenshots of the app for the how-to section?
+5. What (if anything) is needed for SEO improvements beyond the existing `@astrojs/sitemap`?
+6. What is needed for vCard field enhancements?
+
+---
+
+## v1.2 Recommended Additions
+
+### New Libraries
+
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| `@vercel/blob` | ^0.27.x | File storage for PDF/App Store cover image uploads | Already on Vercel — no new infra account needed. Supports client-side browser uploads via short-lived token exchange (presigned pattern). Upload goes directly browser → Vercel Blob CDN without hitting your server. 1 GB free on Vercel hobby, then $0.023/GB/month. Returned URLs are public CDN URLs suitable for `<img>` tags on hosted landing pages. |
+| `astro-seo` | ^1.1.0 | Per-page SEO meta tags, Open Graph, Twitter cards, canonical URLs | Maintained (updated Feb 2026, healthy release cadence). Reduces boilerplate for per-page meta tags on the new PDF/App Store landing pages. The existing index.astro already handles head tags manually — this library standardizes it across the new dynamic pages. |
+| `astro-seo-schema` | ^7.x | JSON-LD structured data components for Astro | Part of the `@codiume/orbit` monorepo. Outputs `<script type="application/ld+json">` with escaped schema. Powered by `schema-dts` for TypeScript safety. Required for adding SoftwareApplication and BreadcrumbList schema to App Store landing pages and HowTo schema to the how-to section. |
+| `schema-dts` | ^1.x | TypeScript type definitions for Schema.org | Peer dependency of `astro-seo-schema`. Provides compile-time safety for all JSON-LD structures. No runtime overhead — types only. |
+
+### What is Already Covered (Do Not Add)
+
+| Need | Already Solved By | Why Not a New Addition |
+|------|-------------------|------------------------|
+| Playwright screenshots | `@playwright/test` ^1.58.2 (devDep) | Already installed. Write a separate `scripts/generate-screenshots.ts` that runs before build. No new package needed. |
+| QR code frame rendering | Browser Canvas API + `qr-code-styling` | Implemented as pure client-side canvas composition. No library needed — see Architecture section. |
+| Sitemap generation | `@astrojs/sitemap` ^3.7.0 | Already installed. New dynamic pages (PDF/App Store landing pages) auto-included when added to Astro routes. |
+| vCard field additions | No library needed | vCard format (RFC 6350) is a simple text protocol. TITLE, ORG, ADR, URL, X-SOCIALPROFILE fields are added by extending the existing string template in the vCard content type builder. |
+| QR code SVG/PNG export | `qr-code-styling` | Already installed. Frame compositing extends the existing export flow using browser Canvas; no new QR library needed. |
+| Consent management (US only) | No CMP needed yet | Google AdSense only requires a Google-certified CMP (IAB TCF v2.3) for EEA/UK/Switzerland visitors. For a US-only-targeted site, no CMP is required. Add a Google-certified CMP (CookieYes or similar) only if/when the site explicitly targets EEA traffic. Do not add CMP complexity before it is required. |
+
+---
+
+## Decision Rationale
+
+### (1) Google AdSense
+
+**Approach: Raw `<script>` tag in Astro `<head>`, Auto Ads enabled, no wrapper library.**
+
+AdSense integration in Astro requires no npm package. The integration is a single async script tag placed in the `<head>` of the layout:
+
+```html
+<script
+  async
+  src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXX"
+  crossorigin="anonymous"
+></script>
+```
+
+Auto Ads (Google automatically places ad units) is recommended over manual unit placement. It requires only the single head script and Google's crawler to verify the site. Manual ad units require an additional `<ins class="adsbygoogle">` block per placement — more flexibility but more implementation overhead. Start with Auto Ads; switch to manual units if the auto placement degrades UX.
+
+**Consent / GDPR:** AdSense requires a Google-certified CMP (IAB TCF v2.3) only for EEA/UK/Switzerland visitors. QRCraft does not currently target European traffic. Until European marketing channels are opened, no CMP is needed. If EEA traffic grows to >5% of sessions (visible in Google Analytics), add CookieYes (Google-certified, ~$10/month) at that point.
+
+**Performance impact:** Google Publisher Ads Lighthouse audit recommends loading AdSense with a static `async` script tag (not injected via `document.createElement`). Astro's `<head>` slot produces a static script tag — this is already correct. Estimated impact on Lighthouse: -2 to -5 points on performance (ad network JS is unavoidable). The existing score is 100; this may bring it to ~95, which is acceptable.
+
+**Placement constraint (from PROJECT.md):** AdSense only on generator page, never in the QR redirect path (`/r/[slug]`). The redirect route is a fast 307 response — no HTML, no ad opportunity, and adding ads there destroys user trust.
+
+**No npm package recommendation:** There is no maintained Astro-specific AdSense package with meaningful benefit. The `next-adsense` pattern (a React component wrapping the `<ins>` tag) does not translate usefully to Astro's static layout system. Use the raw script tag approach.
+
+---
+
+### (2) File Storage for PDF/App Store Cover Images
+
+**Recommendation: `@vercel/blob` ^0.27.x**
+
+PDF and App Store content types require users to upload a cover photo (for the hosted landing page). This image needs to be:
+- Stored persistently (not in the Turso DB as a blob — SQL is not appropriate for binary files)
+- Served on a public URL for the `<img>` tag on the landing page
+- Uploaded directly from the browser (files can be >4.5 MB)
+
+`@vercel/blob` is the right choice because:
+- Already on Vercel — no new account, no new credentials workflow, no cross-platform IAM
+- Client upload pattern uses a server-side token exchange (`handleUpload` in an Astro API route), then the file goes browser → Vercel Blob CDN directly. The master BLOB_READ_WRITE_TOKEN stays server-side only.
+- Returns a permanent CDN URL after upload — store this URL string in the `qr_codes` config JSON or a new `landing_pages` Turso table column
+- Latest stable version: `@vercel/blob` 2.3.2 (March 2026, actively maintained, 171 downstream projects)
+
+**Pattern:**
+
+```
+1. User selects cover image in React island
+2. React island calls POST /api/blob/upload-token (Astro API route)
+   → Server calls handleUpload() with BLOB_READ_WRITE_TOKEN → returns short-lived client token
+3. React island calls upload(file, { handleUploadUrl: '/api/blob/upload-token' }) from @vercel/blob/client
+   → File goes directly browser → Vercel Blob (server not in the file path)
+4. Vercel Blob returns { url: 'https://[hash].blob.vercel-storage.com/cover.jpg' }
+5. React island stores returned URL in the landing page config (saved to Turso via existing API)
+```
+
+**Alternative considered: Cloudinary.** Cloudinary has an official Astro integration (`astro-cloudinary`) and provides image transformation (resize, format conversion) on the fly. For QRCraft's use case (store an uploaded cover photo, display it), transformation capability is not needed in v1.2. Cloudinary's free tier is limited (25 credits/month in 2025). Vercel Blob is simpler to set up (one environment variable: `BLOB_READ_WRITE_TOKEN`) and already within the Vercel ecosystem. Cloudinary is the right upgrade if image transformation (thumbnail generation, WebP conversion) becomes needed in v1.3+.
+
+---
+
+### (3) QR Code Decorative Frames
+
+**Approach: Browser Canvas API composition — no new library.**
+
+The decorative frame feature (border, "Scan Me" text, phone mockup frames) is implemented as a canvas composition layer on top of the existing `qr-code-styling` output. No additional QR library is needed.
+
+**How it works:**
+
+`qr-code-styling` already produces a PNG data URL via its `getRawData('png')` method (or via `download()`). The frame renderer:
+
+1. Creates a new `<canvas>` sized to `QR_SIZE + FRAME_PADDING`
+2. Draws the frame background (solid color, rounded corners via `ctx.roundRect`)
+3. Draws the QR code image via `ctx.drawImage(qrBitmap, xOffset, yOffset)`
+4. Draws frame label text via `ctx.fillText("SCAN ME", centerX, labelY)` with chosen font
+5. For phone mockup frames: draws a pre-bundled SVG phone outline via `ctx.drawImage(phoneOutlineBitmap, ...)`
+6. Exports the composed canvas via `canvas.toDataURL('image/png')` for download, or `canvas.toBlob()` for clipboard
+
+**For SVG export with frame:** The frame must be composed as an SVG wrapper around the existing QR SVG. Use `qr-code-styling`'s `getRawData('svg')` to get the inner QR SVG string, then wrap it in a parent SVG that includes a `<rect>` border, `<text>` label, and optionally a phone outline `<path>`. Serialize with `new XMLSerializer().serializeToString(svgElement)` and offer as a download. This is pure browser DOM manipulation — no library.
+
+**Phone mockup frame asset:** Store the phone outline as a static SVG asset in `src/assets/frames/phone-mockup.svg`. Parse it into an `Image` bitmap at component mount and reuse across renders. No CDN fetch at render time.
+
+**Why no frame library:** The two available QR frame libraries (`qrcanvas`, `EasyQRCodeJS`) would require replacing `qr-code-styling` entirely, discarding all existing dot shape/gradient/eye customization. The canvas composition approach adds ~80 lines of code and zero dependencies. Compositing QR code + frame is a well-understood canvas operation.
+
+---
+
+### (4) Programmatic Screenshots for How-To Section
+
+**Approach: Playwright script run at build time — no new package.**
+
+`@playwright/test` is already installed as a dev dependency. The how-to screenshot generation is a standalone script (`scripts/generate-screenshots.ts`) that:
+
+1. Starts the Astro dev server (`astro dev`)
+2. Uses Playwright to navigate to specific app states (URL tab active, custom colors applied, download modal open)
+3. Takes element-scoped screenshots via `page.locator('.qr-preview').screenshot()`
+4. Saves PNG files to `public/how-to/` (committed to repo, served as static assets)
+
+Run this script:
+- Manually when the UI changes (`npm run screenshots`)
+- In CI before build when UI-affecting commits are detected
+
+**Package.json script:**
+
+```json
+"screenshots": "tsx scripts/generate-screenshots.ts"
+```
+
+`tsx` is already available via Node.js 18+ (or install `tsx` as a dev dep if not present — `tsx` ^4.x, ~50KB, zero risk). Alternatively, use `ts-node` if already in the project; check `devDependencies` before adding.
+
+**Why not a dedicated screenshot service (ScreenshotOne, Puppeteer service, etc.):** The app is self-owned and deployed. Playwright already runs against it for E2E tests. A screenshot service adds external dependency, cost, and authentication complexity for a task that Playwright solves locally in 30 lines of code.
+
+---
+
+### (5) SEO Improvements
+
+**Approach: `astro-seo` ^1.1.0 + `astro-seo-schema` for JSON-LD, existing `@astrojs/sitemap` for sitemap. No other additions.**
+
+The existing stack already has:
+- `@astrojs/sitemap` — auto-generates sitemap.xml from Astro pages
+- Manual `<meta>` tags in existing layout — functional but not standardized
+
+**What v1.2 adds:**
+
+- **`astro-seo`:** Standardizes Open Graph, Twitter card, canonical URL, and description meta tags for the new PDF/App Store landing pages and the new use cases / how-to pages. Install once, use in each page's `<head>`.
+
+- **`astro-seo-schema`:** Adds JSON-LD structured data for:
+  - `SoftwareApplication` schema on App Store landing pages (name, operatingSystem, applicationCategory, offers) — enables rich results in Google Search
+  - `HowTo` schema on the how-to section — enables rich result step display in SERP
+  - `BreadcrumbList` on interior content pages
+
+- **Google Search Console:** No library. Register the domain (already done as part of v1.0 with Lighthouse 100), submit the updated sitemap, and request re-indexing after v1.2 ships. Search Console is a web tool, not a code dependency.
+
+- **Content pages:** The QR use cases landing page (`/use-cases/`) and the individual use case pages (`/use-cases/business-cards/`, etc.) are new Astro static pages. Their SEO value is purely in content and internal linking — no library needed for that.
+
+---
+
+### (6) vCard Field Enhancements
+
+**Approach: No library. Extend existing string template.**
+
+vCard 4.0 (RFC 6350) is a plain-text format. The existing vCard content type builds a string like:
+
+```
+BEGIN:VCARD
+VERSION:3.0
+FN:Full Name
+TEL:+1234567890
+EMAIL:user@example.com
+END:VCARD
+```
+
+The new fields (TITLE, ORG, ADR, URL, work phone, LinkedIn) are added by extending this template:
+
+```
+TITLE:Software Engineer
+ORG:Acme Corp
+ADR;TYPE=work:;;123 Main St;City;State;12345;Country
+URL:https://example.com
+X-SOCIALPROFILE;TYPE=linkedin:https://linkedin.com/in/username
+TEL;TYPE=work:+1234567890
+```
+
+**LinkedIn:** The `X-SOCIALPROFILE;TYPE=linkedin:` property is a widely-used non-standard extension (vCard 4.0 does not have an official social profile field in RFC 6350). iOS Contacts, Android Contacts, and most vCard-compatible apps support it via the `X-` extension mechanism. A draft IETF extension (`draft-george-vcarddav-vcard-extension`) exists for standardizing this but has not been ratified. The `X-SOCIALPROFILE` approach is the de facto standard as of 2026 — HIGH confidence that target scanners (smartphone cameras) will parse it correctly.
+
+**No new npm package is needed.** The QR code payload for vCard is a client-side string — this is already how `qr-code-styling` receives its content. Extend the existing form state and template function.
+
+---
+
+## Installation (v1.2 Additions Only)
+
+```bash
+# File storage for cover image uploads (PDF/App Store content types)
+npm install @vercel/blob
+
+# SEO — per-page meta tags
+npm install astro-seo
+
+# SEO — JSON-LD structured data
+npm install astro-seo-schema schema-dts
+```
+
+**Environment variable to add in Vercel dashboard:**
+
+```
+BLOB_READ_WRITE_TOKEN=vercel_blob_rw_...   # from Vercel Blob store creation
+```
+
+---
+
+## Alternatives Considered (v1.2)
+
+| Category | Recommended | Alternative | Why Not |
+|----------|-------------|-------------|---------|
+| File storage | `@vercel/blob` | Cloudinary | No image transformation needed in v1.2. Cloudinary free tier is restrictive. Vercel Blob is one env var away. |
+| File storage | `@vercel/blob` | AWS S3 | Adds AWS account, IAM roles, bucket policies — operational overhead with no benefit vs Vercel Blob at this scale. |
+| SEO meta | `astro-seo` | Manual `<head>` | Already doing this on index.astro. Works fine for one page. Becomes error-prone across 10+ new dynamic pages. |
+| SEO schema | `astro-seo-schema` | Raw JSON-LD string in `<script>` tag | Works but loses TypeScript safety. One malformed schema object silently breaks rich results. `astro-seo-schema` + `schema-dts` catches type errors at build time. |
+| QR frame rendering | Canvas API (no library) | EasyQRCodeJS | EasyQRCodeJS is an entirely different QR engine. Using it requires replacing `qr-code-styling` and losing all existing dot styles, gradients, and eye customization. Not worth it. |
+| Screenshot generation | Playwright (existing) | Puppeteer | Playwright is already installed and configured. Adding Puppeteer as a duplicate browser automation tool has no upside. |
+| AdSense consent | No CMP (US-only) | CookieConsent / CookieYes | CMP is only required for EEA/UK/Switzerland visitors per Google's policy. Add only if EEA traffic exceeds ~5% of sessions. |
+
+---
+
+## What NOT to Add (v1.2)
+
+| Avoid | Why |
+|-------|-----|
+| Any QR frame npm library | All available options require replacing `qr-code-styling`; canvas composition achieves the same result in ~80 lines |
+| Cloudinary / Cloudinary Astro SDK | Overkill for storing one cover image per landing page; adds external account dependency |
+| A CMP (CookieYes, cookieconsent, Osano) | Not required until EEA targeting is active; adds script weight and consent friction for current US-focused users |
+| `puppeteer` or `playwright-core` as a new dep | Playwright is already installed (`@playwright/test`); use it directly in a build script |
+| `react-helmet` or Next.js-style `<Head>` | Not applicable in Astro — use `astro-seo` for the `<head>` slot in `.astro` files |
+| `vcard-creator` or similar npm vCard library | The vCard string format is trivial; a library adds a dependency to a 10-line string template function |
+| Any PDF generation library (PDFKit, jsPDF) | The "PDF content type" is a hosted landing page for a PDF (the user's document), not server-side PDF rendering |
+
+---
+
+## Version Compatibility (v1.2 New Additions)
+
+| Package | Version | Compatible With | Confidence |
+|---------|---------|-----------------|------------|
+| `@vercel/blob` | ^0.27.x (latest ~2.3.2 as of Mar 2026) | Vercel serverless functions, Astro 5 API routes | HIGH — official Vercel package, 171 downstream projects |
+| `astro-seo` | ^1.1.0 | Astro 5.x | HIGH — updated Feb 2026, healthy release cadence |
+| `astro-seo-schema` | ^7.x | Astro 5.x | MEDIUM — part of active `@codiume/orbit` monorepo; verify current version before install |
+| `schema-dts` | ^1.x | TypeScript 5.x | HIGH — types only, no runtime |
+
+---
+
+## Full Resolved Stack (v1.0 + v1.1 + v1.2)
+
+| Layer | Technology | Version |
+|-------|------------|---------|
+| Framework | Astro | ^5.17.1 |
+| UI Components | React + React DOM | ^19.2.4 |
+| Styling | Tailwind CSS v4 | ^4.2.1 |
+| QR Generation | qr-code-styling | ^1.9.2 |
+| Auth | @clerk/astro | ^3.0.4 |
+| Database client | @libsql/client | ^0.17.0 |
+| ORM | drizzle-orm | ^0.45.1 |
+| Payments | stripe | ^20.4.1 |
+| Charts | recharts | ^3.8.1 |
+| Icons | lucide-react + lucide-astro | ^1.7.0 / ^0.556.0 |
+| Toasts | sonner | ^2.0.7 |
+| Sitemap | @astrojs/sitemap | ^3.7.0 |
+| Vercel adapter | @astrojs/vercel | ^9.0.5 |
+| **File storage (NEW)** | **@vercel/blob** | **^0.27.x** |
+| **SEO meta (NEW)** | **astro-seo** | **^1.1.0** |
+| **SEO schema (NEW)** | **astro-seo-schema** | **^7.x** |
+| **SEO schema types (NEW)** | **schema-dts** | **^1.x** |
+| Testing | @playwright/test | ^1.58.2 |
+| Migration CLI | drizzle-kit | 0.31.9 |
+
+---
+
+## Sources
+
+- [Vercel Blob documentation](https://vercel.com/docs/vercel-blob) — client upload pattern, token exchange, presigned URLs. HIGH confidence (official Vercel docs).
+- [Vercel Blob client upload guide](https://vercel.com/docs/vercel-blob/client-upload) — `handleUpload` + `upload()` from `@vercel/blob/client`. HIGH confidence.
+- [@vercel/blob npm page](https://www.npmjs.com/package/@vercel/blob) — version 2.3.2, published March 2026, 171 downstream packages. HIGH confidence.
+- [astro-seo npm page](https://www.npmjs.com/package/astro-seo) — version 1.1.0, published ~2 months before March 2026, Snyk health: Healthy. HIGH confidence.
+- [astro-seo-schema (orbit monorepo)](https://github.com/codiume/orbit/tree/main/packages/astro-seo-schema) — `<Schema>` component backed by schema-dts. MEDIUM confidence (verify current version on npm before install).
+- [Google AdSense head placement](https://support.google.com/adsense/answer/9274516) — official guidance to place script in `<head>`. HIGH confidence.
+- [Google Publisher Ads Lighthouse audit: load scripts statically](https://developers.google.com/publisher-ads-audits/reference/audits/script-injected-tags) — confirms static `async` script tag is preferred over JS-injected tags. HIGH confidence.
+- [Google AdSense TCF/CMP requirement](https://support.google.com/adsense/answer/13554116) — CMP required only for EEA/UK/Switzerland; US visitors do not require a certified CMP. HIGH confidence (official Google AdSense Help).
+- [RFC 6350 — vCard 4.0](https://www.rfc-editor.org/rfc/rfc6350) — TITLE, ORG, ADR, URL field definitions. HIGH confidence (official IETF standard).
+- [vCard QR code format (vcardqrcodegenerator.com)](https://www.vcardqrcodegenerator.com/blog/vcard-qr-code-format/) — practical examples of X-SOCIALPROFILE;TYPE=linkedin usage in QR context. MEDIUM confidence (third-party, but consistent with RFC 6350 extension mechanism).
+- [Playwright screenshot docs](https://playwright.dev/docs/screenshots) — `page.locator().screenshot()` API for element-scoped captures. HIGH confidence (official Playwright docs).
+- WebSearch: "Using Playwright to Automatically Generate Screenshots for Documentation" (Medium, March 2026) — confirms build-time script pattern for documentation screenshots. MEDIUM confidence.
+- WebSearch: `@vercel/blob` version confirmed at 2.3.2 published March 2026. HIGH confidence.
+- WebSearch: `astro-seo` version confirmed at 1.1.0, Snyk health Healthy. HIGH confidence.
+
+---
+
+*Stack research for: QRCraft v1.2 Growth & Content — AdSense, file storage, QR frames, screenshots, SEO, vCard*
+*Researched: 2026-03-30*
+
+---
+
+## v1.1 Historical Research (Preserved)
+
+The section below is the original v1.1 stack research. It documents the decisions already made and validated. Do not revisit these unless requirements change.
+
+---
+
+### v1.1 Scope Note
+
+This section covers the new infrastructure for v1.1 Monetization. The existing stack (Astro 5, React islands, qr-code-styling, Tailwind v4, Playwright, `@astrojs/vercel`) is validated and unchanged. The decisions answered here are:
 
 1. Which auth provider fits Astro 5 + Vercel with the least friction?
 2. Which database fits a small SaaS with users, QR codes, and scan events?
@@ -18,315 +340,22 @@ This file covers ONLY the new infrastructure required for v1.1 Monetization. The
 
 ---
 
-## Recommended Stack
-
-### Core Technologies (New for v1.1)
+### v1.1 Core Technologies
 
 | Technology | Version | Purpose | Why Recommended |
 |------------|---------|---------|-----------------|
-| `@clerk/astro` | ^2.16.2 | Auth — sign-up, sign-in, session, user management | Official Astro SDK (updated March 2026). Pre-built UI components (`<SignIn>`, `<UserButton>`). `clerkMiddleware()` for route protection in 5 lines. Provides `locals.auth()` and `locals.currentUser()` in Astro components and API routes. 10K MAU free. Eliminates custom auth UI entirely. |
-| `stripe` | ^20.4.1 | Stripe server SDK — subscriptions, Checkout sessions, webhooks | Official Node SDK for Stripe API. Works in Vercel serverless functions. Handles Checkout session creation, subscription lifecycle events, webhook signature verification via `stripe.webhooks.constructEvent()`. |
-| `@stripe/stripe-js` | ^5.x | Stripe client SDK — Checkout redirect | Loads Stripe.js in the browser. Used client-side to redirect to hosted Checkout page. Required by Stripe for PCI-compliant flows. |
-| `@libsql/client` | ^0.14.x | Turso/libSQL database client | HTTP-based SQLite client for Turso cloud. Works in both Vercel serverless and edge runtimes. Use `@libsql/client` for serverless, `@libsql/client/web` for edge runtime files. Sub-5ms connection overhead — no TCP connection pooling needed. |
-| `drizzle-orm` | ^0.45.1 | ORM — type-safe SQL against Turso/libSQL | Native libSQL driver support. TypeScript-first, schema-as-code. Compiles to plain SQL with no runtime overhead. Works in Vercel edge and serverless. Pairs with `drizzle-kit` for migrations. |
-| `drizzle-kit` | ^0.30.x | Migration CLI for Drizzle schema | Generates and runs SQL migrations from Drizzle schema definitions. Run `npx drizzle-kit generate` then `npx drizzle-kit migrate` locally or in CI before deploy. |
-| `nanoid` | ^5.x | Short-code generation for dynamic QR slugs | Generates collision-resistant 8–10 character slugs (e.g., `abc123xy`) for redirect URLs. Tiny (~130 bytes), no dependencies, works in edge runtime. ESM-native — compatible with Astro 5. |
+| `@clerk/astro` | ^2.16.2 | Auth — sign-up, sign-in, session, user management | Official Astro SDK (updated March 2026). Pre-built UI components. `clerkMiddleware()` for route protection in 5 lines. 10K MAU free. |
+| `stripe` | ^20.4.1 | Stripe server SDK — subscriptions, Checkout sessions, webhooks | Official Node SDK. Handles Checkout session creation, subscription lifecycle events, webhook signature verification. |
+| `@stripe/stripe-js` | ^5.x | Stripe client SDK — Checkout redirect | Loads Stripe.js in the browser. Required by Stripe for PCI-compliant flows. |
+| `@libsql/client` | ^0.14.x | Turso/libSQL database client | HTTP-based SQLite client. Works in both Vercel serverless and edge runtimes. Sub-5ms connection overhead. |
+| `drizzle-orm` | ^0.45.1 | ORM — type-safe SQL against Turso/libSQL | Native libSQL driver support. TypeScript-first. Works in Vercel edge and serverless. |
+| `drizzle-kit` | ^0.30.x | Migration CLI for Drizzle schema | Generates and runs SQL migrations from Drizzle schema definitions. |
+| `nanoid` | ^5.x | Short-code generation for dynamic QR slugs | 8–10 character collision-resistant slugs. ESM-native — compatible with Astro 5. |
 
-### Supporting Libraries
+### v1.1 Critical Architecture Change
 
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| `svix` | ^1.x | Webhook signature verification for Clerk events | Only needed if syncing Clerk user events (e.g., `user.deleted`) to your database. The `stripe` SDK handles its own webhook verification natively — `svix` is for Clerk webhooks only. |
+Switching Astro from `output: 'static'` to `output: 'server'` was the key v1.1 infrastructure decision. Static pages opt back in with `export const prerender = true`. The `output: 'hybrid'` mode has a documented Astro 5 + Vercel bug where API routes return HTML or 405 errors — use `output: 'server'` only.
 
-### Development Tools (New for v1.1)
+### v1.1 Sources
 
-| Tool | Purpose | Notes |
-|------|---------|-------|
-| `drizzle-kit` | Schema migration CLI | `npx drizzle-kit generate` then `npx drizzle-kit migrate`. Run before each deploy when schema changes. |
-| Turso CLI | DB management, local dev inspection | `brew install tursodatabase/tap/turso`. Create DBs, inspect schema, run queries in shell. |
-| Stripe CLI | Local webhook forwarding during development | `stripe listen --forward-to localhost:4321/api/stripe/webhook`. Required to test webhook flows locally without a public URL. |
-| Clerk Dashboard | API key management, user management, OAuth config | No install. Configure JWT templates, OAuth providers, and webhook endpoints (for user sync) via web UI. |
-
----
-
-## Critical Architecture Change: Static to Server Output
-
-The most important infrastructure decision for v1.1 is switching Astro from `output: 'static'` to `output: 'server'`. This is a one-line change in `astro.config.mjs` but has meaningful consequences.
-
-**Current (v1.0):** `output: 'static'` — all pages pre-rendered at build, no server runtime
-**Required (v1.1):** `output: 'server'` — server runtime enabled; opt static pages back in with `export const prerender = true`
-
-```js
-// astro.config.mjs — required change
-import vercel from '@astrojs/vercel';  // NOT '@astrojs/vercel/serverless' (deprecated path)
-
-export default defineConfig({
-  output: 'server',           // was: 'static'
-  adapter: vercel(),
-  // ... all existing integrations unchanged
-});
-```
-
-**Pages that must keep `export const prerender = true`** (stay static, preserve Lighthouse 100):
-- `src/pages/index.astro` — the QR generator (client-side React island, no server needed)
-- `src/pages/sitemap.xml.ts`, `src/pages/robots.txt.ts`
-
-**Pages/routes that require SSR (new in v1.1):**
-- `src/pages/dashboard.astro` — saved QR library (reads from DB)
-- `src/pages/api/stripe/checkout.ts` — creates Checkout session
-- `src/pages/api/stripe/webhook.ts` — receives Stripe events
-- `src/pages/r/[slug].ts` — dynamic QR redirect + scan event recording
-
-**Why `output: 'server'` over `output: 'hybrid'`:** The `hybrid` mode has a documented issue in Astro 5 + Vercel where API routes are treated as static assets, returning HTML or 405 errors. The fix is `output: 'server'` with explicit `prerender = true` flags on static pages. This is the Astro-recommended approach as of early 2026.
-
----
-
-## Auth Decision: Clerk
-
-**Recommendation: Clerk (`@clerk/astro` ^2.16.2)**
-
-### Comparison Matrix
-
-| Criterion | Clerk | Supabase Auth | Auth.js v5 | Better Auth |
-|-----------|-------|---------------|------------|-------------|
-| Official Astro SDK | Yes (Jul 2024, updated Mar 2026) | No (community wrappers only) | Community integration only | Yes (first-class) |
-| Pre-built UI components | Full — SignIn, SignUp, UserButton, OrganizationProfile | None — build your own forms | None — build your own forms | Partial |
-| React island compatible | Yes — components work inside React islands | Manual JWT parsing | Manual | Manual |
-| Astro middleware integration | `clerkMiddleware()` — 5 lines | Manual JWT validation on every protected route | `auth()` helper | `auth()` helper |
-| Astro locals (`locals.auth()`) | Built-in | Manual | Manual | Manual |
-| Free tier | 10K MAU free | 50K MAU free | Self-hosted (free) | Self-hosted (free) |
-| Paid tier cost | $25/mo + $0.02/MAU over 10K | $25/mo (Pro, includes auth) | Infrastructure cost only | Infrastructure cost only |
-| Setup time (estimated) | 30–60 min | 3–5 hours | 4–8 hours | 3–5 hours |
-| Database coupling | None — standalone auth service | Requires Supabase Postgres for RLS | None | None |
-| Session storage | Managed by Clerk (no extra config) | JWT in cookies (manual setup) | `unstorage`-based (manual driver config) | Manual |
-
-**Why not Supabase Auth:** Supabase Auth's main value is tight integration with Supabase Postgres via Row Level Security. QRCraft uses Turso (not Supabase Postgres), so there is no RLS benefit. Using Supabase Auth without Supabase Postgres adds auth complexity without the ecosystem payoff. The result is more setup work than Clerk with no advantage.
-
-**Why not Auth.js v5:** The Astro integration is community-maintained (`auth-astro`, not `@auth/astro`). There is no official `@auth/astro` package from the Auth.js team. Community packages have documented friction with Astro 5. No pre-built UI. Not worth choosing over Clerk when Clerk has an official, actively maintained SDK with Astro-native helpers.
-
-**Why not Better Auth:** Better Auth is an excellent self-hosted option, and it has first-class Astro integration. The case for choosing it over Clerk is cost (self-hosted = free at any scale) and data sovereignty. The case against: you must configure session storage, email delivery (SMTP), and potentially an OAuth provider. For a bootstrapped MVP at <10K MAU, this is unnecessary operational overhead. Better Auth becomes the right choice if QRCraft grows past ~50K MAU and Clerk cost becomes a line item worth optimizing.
-
----
-
-## Database Decision: Turso (libSQL)
-
-**Recommendation: Turso via `@libsql/client` + Drizzle ORM**
-
-### Comparison Matrix
-
-| Criterion | Turso (libSQL) | Supabase Postgres | Neon Postgres | PlanetScale |
-|-----------|----------------|-------------------|---------------|-------------|
-| Free tier | 5 GB storage, unlimited DBs | 500 MB, 2 projects | 0.5 GB, 20 projects | No hobby tier (removed 2024) |
-| Minimum paid cost | $4.99/mo (Developer) | $25/mo | $19/mo | $39/mo |
-| Cold start in Vercel serverless | <5ms (HTTP-based client) | 100–300ms (TCP, needs pooler) | 50–200ms | 50–200ms |
-| Edge runtime compatible | Yes — `@libsql/client/web` | No (requires TCP) | Partial (HTTP extension required) | No |
-| Concurrent writes | Single-writer per DB (sufficient at this scale) | Full concurrent | Full concurrent | Full concurrent |
-| ORM support | Drizzle (native), Prisma (experimental) | Drizzle, Prisma, Supabase JS | Drizzle, Prisma | Drizzle, Prisma |
-| Auth coupling | None | Optional (Supabase Auth + RLS) | None | None |
-| Geo replication | Yes (edge replicas) | No (single region) | Multi-region (paid) | Multi-region |
-
-**Why Turso over Supabase Postgres:** QRCraft's write pattern is low-frequency (save QR, record scan). The read pattern is simple point lookups (fetch QR by slug, fetch user's QR library). Turso's single-writer limitation is not a constraint at this scale. The HTTP client eliminates Postgres connection pool management. The free tier is dramatically more generous. The monthly cost difference is $0 vs $25 at MVP stage — this is the right default.
-
-**Why Turso over Neon Postgres:** Neon is the right call if the data model requires Postgres-specific features (JSONB operators, pg_vector, full-text search, complex CTEs). QRCraft's schema is simple — three tables with straightforward queries. SQLite is sufficient. Neon is a valid upgrade path if complex analytics queries emerge later.
-
-**Why Turso over PlanetScale:** PlanetScale removed its hobby plan in 2024. The lowest available tier is $39/mo. This is not appropriate for a bootstrapped MVP.
-
-**Recommended schema (logical, not final DDL):**
-
-```
-users
-  clerk_user_id TEXT PRIMARY KEY   -- from Clerk JWT
-  stripe_customer_id TEXT          -- set when Stripe customer created
-  plan TEXT DEFAULT 'free'         -- 'free' | 'pro'
-  created_at INTEGER               -- unix timestamp
-
-qr_codes
-  id TEXT PRIMARY KEY              -- nanoid
-  user_id TEXT                     -- FK → users.clerk_user_id
-  name TEXT
-  content_type TEXT                -- 'url' | 'text' | 'wifi' | 'vcard'
-  config_json TEXT                 -- serialized qr-code-styling options
-  is_dynamic INTEGER DEFAULT 0     -- boolean: 0 | 1
-  slug TEXT UNIQUE                 -- only for dynamic QR codes, e.g. 'abc123xy'
-  destination_url TEXT             -- only for dynamic QR codes
-  created_at INTEGER
-  updated_at INTEGER
-
-scan_events
-  id TEXT PRIMARY KEY              -- nanoid
-  qr_code_id TEXT                  -- FK → qr_codes.id
-  scanned_at INTEGER               -- unix timestamp
-  user_agent TEXT
-  country TEXT                     -- from Vercel x-vercel-ip-country header
-```
-
----
-
-## Payments: Stripe Checkout (Hosted)
-
-**Recommendation: Stripe Checkout (hosted payment page) + server-side webhooks**
-
-Stripe is the only serious choice for a consumer SaaS. The question is which Stripe integration pattern. Use hosted Checkout, not custom Elements.
-
-**Why Stripe Checkout over Stripe Elements:**
-- Checkout handles PCI compliance (SAQ A vs SAQ D), 3DS, Apple Pay, Google Pay automatically
-- ~2 hours to implement vs ~2+ days for a custom Elements form built correctly
-- Customer billing portal (`stripe.billingPortal.sessions.create()`) is included — users can manage their subscription without any additional UI
-- No card number UI to build, test, or maintain
-
-**Integration flow:**
-
-```
-1. User clicks "Upgrade to Pro"
-   → POST /api/stripe/checkout (Astro API route, serverless function)
-   → stripe.checkout.sessions.create({ mode: 'subscription', priceId, customerId, successUrl, cancelUrl })
-   → Return { url: checkoutSessionUrl }
-   → Client-side redirect to Stripe-hosted checkout
-
-2. Stripe sends POST to /api/stripe/webhook after payment:
-   - customer.subscription.created  → UPDATE users SET plan = 'pro'
-   - customer.subscription.deleted  → UPDATE users SET plan = 'free'
-   - invoice.payment_failed         → (optional) flag for dunning email
-
-3. User clicks "Manage billing"
-   → POST /api/stripe/portal (creates billing portal session)
-   → Redirect to Stripe-hosted portal
-```
-
-**Critical implementation detail:** The webhook handler must read the raw request body as text (`await request.text()`) before JSON parsing, then verify with `stripe.webhooks.constructEvent(rawBody, signatureHeader, STRIPE_WEBHOOK_SECRET)`. Parsing JSON first corrupts the signature validation.
-
----
-
-## Redirect Service: Vercel Edge Function
-
-**Recommendation: Vercel edge function at `src/pages/r/[slug].ts`**
-
-Dynamic QR codes encode a URL like `https://qrcraft.app/r/abc123xy`. When a physical QR code is scanned:
-
-1. Edge function at `/r/[slug]` receives the request
-2. Looks up the slug in Turso (via `@libsql/client/web`)
-3. Records a scan event (timestamp, user agent, country from Vercel geo headers)
-4. Returns a `302` redirect to the destination URL
-
-**Why edge over serverless for this route:**
-- Edge functions run globally at Vercel's CDN edge nodes — ~50ms end-to-end for a redirect
-- Serverless functions run from a single region — ~200–300ms for users far from that region
-- A physical QR code is scanned by a user staring at a loading screen. Latency matters.
-- Vercel edge functions expose `request.headers.get('x-vercel-ip-country')` — free geo data for scan analytics without an external IP lookup service
-
-**Key implementation constraint:** The default `@libsql/client` import uses Node.js APIs that are unavailable in the edge runtime. Use `@libsql/client/web` specifically in edge-runtime files.
-
-```ts
-// src/pages/r/[slug].ts
-export const prerender = false;
-export const runtime = 'edge';
-
-import { createClient } from '@libsql/client/web';  // NOT '@libsql/client'
-```
-
-**Why not a separate redirect microservice:** Unnecessary complexity. Vercel edge functions are globally distributed — this IS the globally-distributed redirect service. No additional domain, no separate deployment, no additional infrastructure cost.
-
----
-
-## Pro Feature Gating
-
-Feature gating operates at two layers:
-
-1. **Server-side (authoritative):** API routes and server-rendered pages check `user.plan === 'pro'` from the database before returning data or accepting mutations. This is the real gate — it cannot be bypassed.
-
-2. **Client-side (UX only):** React island disables/hides Pro controls when the user is on the free tier. This is cosmetic — it improves UX but provides no security. Never rely on client-side gating alone.
-
-**Pattern:** When a Pro-only API route is called:
-- Load user from DB by `locals.auth().userId`
-- If `user.plan !== 'pro'`, return `403 { error: 'pro_required' }`
-- Client renders upgrade prompt on `403`
-
----
-
-## Installation
-
-```bash
-# Auth
-npm install @clerk/astro
-
-# Payments
-npm install stripe @stripe/stripe-js
-
-# Database + ORM
-npm install @libsql/client drizzle-orm
-npm install -D drizzle-kit
-
-# Utilities
-npm install nanoid
-
-# Adapter (upgrade if needed — import path changed in v8+)
-npm install @astrojs/vercel@latest
-```
-
----
-
-## Alternatives Considered
-
-| Recommended | Alternative | When to Use Alternative |
-|-------------|-------------|-------------------------|
-| Clerk (`@clerk/astro`) | Better Auth (self-hosted) | When MAU exceeds ~50K and Clerk's $0.02/MAU charge becomes significant; or when you require fully on-premises auth with no third-party dependency |
-| Clerk | Supabase Auth | Only when already committed to Supabase Postgres and want Row Level Security without a separate auth layer |
-| Turso (libSQL) | Neon Postgres | When the data model requires Postgres-specific features: JSONB operators, pg_vector, full-text search, complex window functions |
-| Turso | Supabase Postgres | When buying into the full Supabase ecosystem (auth + realtime + storage + edge functions) and want everything managed in one dashboard |
-| Stripe Checkout (hosted) | Stripe Elements (custom form) | When the product requires a fully custom payment UI and the team has 2+ weeks to implement and test a PCI-compliant card form |
-| Vercel edge function for redirect | Cloudflare Worker | When the app is deployed on Cloudflare Pages or needs multi-platform deployments; Workers have equivalent edge latency |
-| Drizzle ORM | Prisma | When the team is deeply familiar with Prisma and the schema is complex enough that Prisma's migration tooling adds value; note Prisma's edge runtime support for libSQL is experimental as of early 2026 |
-
----
-
-## What NOT to Use
-
-| Avoid | Why | Use Instead |
-|-------|-----|-------------|
-| `import vercel from '@astrojs/vercel/serverless'` | Deprecated import path in `@astrojs/vercel` v8+; causes import errors in Astro 5 | `import vercel from '@astrojs/vercel'` |
-| `output: 'hybrid'` in Astro config | Documented issue: Vercel treats API routes as static assets in hybrid mode, returning HTML or 405 errors | `output: 'server'` with explicit `export const prerender = true` on static pages |
-| Prisma with Turso/libSQL | Prisma's libSQL/edge runtime support is marked experimental; documented compatibility issues and slow build times | Drizzle ORM (native libSQL support, lightweight, production-ready) |
-| `@libsql/client` (default) in edge runtime files | Uses Node.js APIs unavailable in the Vercel edge runtime — throws at runtime | `@libsql/client/web` in any file with `export const runtime = 'edge'` |
-| Supabase Auth standalone (without Supabase DB) | Adds auth complexity (custom forms, RLS setup) without the bundled database that makes Supabase worthwhile | Clerk |
-| PlanetScale | Removed hobby plan in 2024; minimum tier is $39/mo | Turso (free tier) or Neon ($19/mo) |
-| Stripe Elements (custom card form) without PCI review | Custom card input forms expand PCI scope to SAQ D, requiring annual assessment | Stripe Checkout (hosted, SAQ A — simplest compliance path) |
-| Rolling custom JWT session management | High security surface area; weeks of work to implement token refresh, revocation, CSRF protection correctly | Clerk (handles all of this as a managed service) |
-
----
-
-## Version Compatibility
-
-| Package | Compatible With | Notes |
-|---------|-----------------|-------|
-| `@clerk/astro` ^2.16.2 | Astro 5.x | Official SDK; docs last updated March 2026 |
-| `@astrojs/vercel` ^9.0.4 | Astro 5.x | Use `import vercel from '@astrojs/vercel'` (not the old `/serverless` sub-path) |
-| `drizzle-orm` ^0.45.1 | `@libsql/client` ^0.14.x | Use these together — Drizzle has native libSQL driver for this version range |
-| `@libsql/client` ^0.14.x | Turso cloud | Default import for serverless; `/web` import for edge runtime |
-| `stripe` ^20.4.1 | Node 18+ | Vercel serverless functions run Node 18/20 — compatible |
-| `nanoid` ^5.x | Astro 5 (ESM) | v5 is ESM-only; Astro 5 is ESM-native — no compatibility issues |
-| `drizzle-orm` ^0.45.1 | Vercel edge runtime | Confirmed by Drizzle's official "Drizzle with Vercel Edge Functions" tutorial |
-
----
-
-## Sources
-
-- [Clerk Astro SDK overview](https://clerk.com/docs/reference/astro/overview) — integration setup, locals API, middleware. Updated March 2026. HIGH confidence.
-- [Clerk Astro quickstart](https://clerk.com/docs/astro/getting-started/quickstart) — step-by-step setup with `@astrojs/node` adapter pattern. HIGH confidence.
-- [Clerk pricing](https://clerk.com/pricing) — 10K MAU free, $25/mo Pro plan. Confirmed by multiple 2026 sources. MEDIUM confidence (official site, but pricing can change).
-- [Turso pricing](https://turso.tech/pricing) — 5 GB storage, unlimited databases on free tier. HIGH confidence (official site).
-- [Drizzle ORM + Turso tutorial](https://orm.drizzle.team/docs/tutorials/drizzle-with-turso) — integration pattern, libSQL driver. HIGH confidence (official Drizzle docs).
-- [Drizzle + Vercel Edge Functions](https://orm.drizzle.team/docs/tutorials/drizzle-with-vercel-edge-functions) — edge runtime compatibility confirmed. HIGH confidence (official Drizzle docs).
-- [Stripe subscriptions guide](https://docs.stripe.com/billing/subscriptions/build-subscriptions) — Checkout + webhook lifecycle. HIGH confidence (official Stripe docs).
-- [Astro Vercel adapter docs](https://docs.astro.build/en/guides/integrations-guide/vercel/) — `output: 'server'`, import path change, `prerender` flag pattern. HIGH confidence (official Astro docs).
-- [Vercel edge vs serverless latency](https://www.openstatus.dev/blog/monitoring-latency-vercel-edge-vs-serverless) — 167ms edge vs 287ms serverless for warm executions. MEDIUM confidence (third-party benchmark).
-- [Supabase + Clerk integration docs](https://supabase.com/docs/guides/auth/third-party/clerk) — confirms Clerk works as a standalone auth layer with non-Supabase databases. HIGH confidence.
-- WebSearch: `output: 'hybrid'` API route issues on Astro 5 + Vercel — documented in GitHub issues and community posts recommending `output: 'server'` as the fix. MEDIUM confidence.
-- `@clerk/astro` version 2.16.2 — confirmed via WebSearch npm metadata (published ~March 11, 2026). HIGH confidence.
-- `stripe` version 20.4.1 — confirmed via WebSearch npm metadata (published ~March 8, 2026). HIGH confidence.
-- `@astrojs/vercel` version 9.0.4 — confirmed via WebSearch npm metadata. HIGH confidence.
-- `drizzle-orm` version 0.45.1 — confirmed via WebSearch npm metadata. HIGH confidence.
-
----
-
-*Stack research for: QRCraft v1.1 Monetization — auth, payments, database, dynamic QR redirect, scan analytics*
-*Researched: 2026-03-11*
+- Clerk Astro SDK, Turso pricing, Drizzle + Turso tutorial, Stripe subscriptions guide, Astro Vercel adapter docs — all HIGH confidence, official documentation, verified March 2026.

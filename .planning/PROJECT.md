@@ -33,7 +33,20 @@ Anyone can generate a visually stunning, fully customized QR code and download i
 
 ### Active
 
-(None yet — define with `/gsd:new-milestone`)
+- [ ] Fix marketing copy (hero, FAQs) for freemium accuracy — v1.2
+- [ ] SEO improvements (Search Console, meta, structured data, content pages) — v1.2
+- [ ] PDF content type with hosted landing page — v1.2
+- [ ] App Store content type with hosted landing page — v1.2
+- [ ] Pricing promotion section on homepage — v1.2
+- [ ] How-to section with programmatic screenshots — v1.2
+- [ ] QR code use cases section + dedicated landing page — v1.2
+- [ ] QR code decorative frames — v1.2
+- [ ] Preset style templates (frame + color + shape combos) — v1.2
+- [ ] vCard enhancements (Title, Company, Work Phone, Address, Website, LinkedIn) — v1.2
+- [ ] Register button + pricing navigation link in header — v1.2
+- [ ] Fix pricing page (dynamic QR limits, tier accuracy) — v1.2
+- [ ] Google AdSense ads on free tier — v1.2
+- [ ] Updated tier limits (Free: 5/3, Starter: 100/10, Pro: 250/100) — v1.2
 
 ### Out of Scope
 
@@ -42,10 +55,26 @@ Anyone can generate a visually stunning, fully customized QR code and download i
 - Mobile native app — web-first; native is a separate project
 - Multiple pages per content type — SEO cannibalization risk
 - Custom short domains (e.g. go.brand.com) — enterprise-only; defer to v2+
-- Ads in redirect path — anti-pattern; destroys user trust
+- Ads in redirect path — anti-pattern; destroys user trust (AdSense only on generator page, never in QR redirect)
 - Watermarks on free QR output — kills acquisition funnel
 - Requiring account for static QR generation — breaks core acquisition model
 - Deleting data on subscription cancel — gate create/edit, not read
+
+## Current Milestone: v1.2 Growth & Content
+
+**Goal:** Improve SEO and discoverability, expand content types (PDF landing pages, App Store pages), add homepage marketing sections, introduce QR code frames/templates, enhance vCard, fix pricing accuracy, and add ads to free tier.
+
+**Target features:**
+- Fix marketing copy for freemium accuracy
+- SEO improvements for Google discoverability
+- PDF and App Store content types with hosted landing pages
+- Homepage sections: pricing promo, how-to guide, QR use cases
+- Decorative QR code frames and preset style templates
+- vCard field enhancements
+- Header navigation improvements (Register button, pricing link)
+- Pricing page accuracy (tier limits, ad claims)
+- Google AdSense on free tier
+- Updated tier limits: Free 5/3, Starter 100/10, Pro 250/100
 
 ## Context
 
@@ -81,4 +110,4 @@ Domain: qr-code-generator-app.com (Porkbun → Vercel).
 - **Deployment**: Vercel with serverless functions (not edge) — Clerk incompatible with Edge runtime
 
 ---
-*Last updated: 2026-03-31 after v1.1 milestone completion*
+*Last updated: 2026-03-31 after v1.2 milestone start*
