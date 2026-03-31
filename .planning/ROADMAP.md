@@ -105,7 +105,13 @@ Plans:
   1. User can create a PDF landing page QR code by uploading a cover photo and entering title, description, website URL, and social sharing links; scanning the QR opens a hosted /p/[slug] page
   2. User can create an App Store listing QR code by entering app name, description, branding, and all store URLs; scanning the QR opens a hosted /p/[slug] page with the correct store buttons
   3. PDF and App Store landing pages respect the same tier limits as other QR codes (Free: 5, Starter: 100, Pro: 250); the hosted page renders og:title, og:description, og:image for social sharing
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 15-01-PLAN.md — DB schema + migration + Vercel Blob upload API + landing page CRUD APIs
+- [ ] 15-02-PLAN.md — FileUploadZone + PdfTab + AppStoreTab + QRGeneratorIsland wiring
+- [ ] 15-03-PLAN.md — /p/[slug] SSR landing page + list API update
+- [ ] 15-04-PLAN.md — QRLibrary dashboard extension + edit landing page route
+**UI hint**: yes
 
 ### Phase 16: Google AdSense
 **Goal**: Free-tier signed-in users see a below-the-fold ad unit on the generator page; all other users see nothing; site Lighthouse performance score remains at or above 90
@@ -135,5 +141,5 @@ Plans:
 | 12. Foundation Improvements | v1.2 | 3/3 | Complete    | 2026-03-31 |
 | 13. SEO and Homepage Content | v1.2 | 4/4 | Complete    | 2026-03-31 |
 | 14. QR Frames and Templates | v1.2 | 2/3 | Complete    | 2026-03-31 |
-| 15. Hosted Landing Pages | v1.2 | 0/TBD | Not started | - |
+| 15. Hosted Landing Pages | v1.2 | 0/4 | Not started | - |
 | 16. Google AdSense | v1.2 | 0/TBD | Not started | - |
