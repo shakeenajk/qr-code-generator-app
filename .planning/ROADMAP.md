@@ -76,7 +76,7 @@ Plans:
   5. Homepage displays a Pricing Promo section, a How-To section with programmatic screenshots, and a Use Cases teaser grid
 **Plans**: 4 plans
 Plans:
-- [ ] 13-01-PLAN.md — SEO infrastructure: install astro-seo, fix SoftwareApplication JSON-LD, add sitemap link, create useCases data
+- [x] 13-01-PLAN.md — SEO infrastructure: install astro-seo, fix SoftwareApplication JSON-LD, add sitemap link, create useCases data
 - [ ] 13-02-PLAN.md — Use cases hub and article pages with astro-seo meta and BreadcrumbList JSON-LD
 - [ ] 13-03-PLAN.md — Three homepage sections (PricingPromo, HowTo, UseCasesTeaser) + HowTo JSON-LD
 - [ ] 13-04-PLAN.md — Playwright screenshot script and committed step PNGs
@@ -129,7 +129,7 @@ Plans:
 | 10. Dynamic QR Redirect Service | v1.1 | 5/5 | Complete | 2026-03-30 |
 | 11. Scan Analytics Dashboard | v1.1 | 3/3 | Complete | 2026-03-31 |
 | 12. Foundation Improvements | v1.2 | 3/3 | Complete    | 2026-03-31 |
-| 13. SEO and Homepage Content | v1.2 | 0/4 | Not started | - |
+| 13. SEO and Homepage Content | v1.2 | 1/4 | In Progress|  |
 | 14. QR Frames and Templates | v1.2 | 0/TBD | Not started | - |
 | 15. Hosted Landing Pages | v1.2 | 0/TBD | Not started | - |
 | 16. Google AdSense | v1.2 | 0/TBD | Not started | - |

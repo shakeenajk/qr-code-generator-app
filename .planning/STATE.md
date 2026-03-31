@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Growth & Content
-status: Ready to plan
-stopped_at: Completed 12-03-PLAN.md
-last_updated: "2026-03-31T06:09:00.314Z"
+status: Ready to execute
+stopped_at: Completed 13-01-PLAN.md
+last_updated: "2026-03-31T08:25:16.210Z"
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 7
+  completed_plans: 4
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-31)
 
 **Core value:** Anyone can generate a visually stunning, fully customized QR code and download it immediately — no signup, no friction.
-**Current focus:** Phase 12 — Foundation Improvements
+**Current focus:** Phase 13 — SEO and Homepage Content
 
 ## Current Position
 
-Phase: 13
-Plan: Not started
+Phase: 13 (SEO and Homepage Content) — EXECUTING
+Plan: 2 of 4
 
 ## Accumulated Context
 
@@ -42,6 +42,8 @@ Recent decisions affecting current work:
 - [Phase 12-foundation-improvements]: Starter No ads replaced by 10 dynamic QR codes to satisfy both TIER-04 and TIER-01 simultaneously (12-02)
 - [Phase 12-foundation-improvements]: TIER_LIMITS as single source of truth for all QR count enforcement — all limit checks import from src/lib/tierLimits.ts
 - [Phase 12-foundation-improvements]: escapeVCard escapes backslash first to avoid double-escaping; company maps to ORG;TYPE=work to distinguish from legacy org field
+- [Phase 13-seo-and-homepage-content]: Keep Layout.astro manual OG block; use astro-seo only on new Phase 13 pages via slot
+- [Phase 13-seo-and-homepage-content]: SoftwareApplication is the correct schema.org type for QRCraft (not WebApplication)
 
 ### Pending Todos
 
@@ -56,6 +58,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-31T05:58:35.830Z
-Stopped at: Completed 12-03-PLAN.md
+Last session: 2026-03-31T08:25:16.206Z
+Stopped at: Completed 13-01-PLAN.md
 Resume file: None
