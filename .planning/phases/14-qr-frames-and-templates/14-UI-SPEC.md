@@ -62,14 +62,14 @@ Exceptions:
 **Weights declared:** 400 (regular) and 700 (bold) only.
 
 **Phase 14 specific typography:**
-- Frame picker subsection label (e.g. "Frame Style"): `text-sm font-semibold text-gray-900 dark:text-white` — matches the existing ShapeSection `h3` pattern (`text-sm font-semibold`)
-- Frame category sub-label (e.g. "Borders", "Shapes"): `text-xs text-gray-500 dark:text-slate-400 mb-2` — matches ShapeSection's "Dot style" / "Corner frame" label pattern exactly
+- Frame picker subsection label (e.g. "Frame Style"): `text-sm font-bold text-gray-900 dark:text-white` — matches the existing ShapeSection `h3` pattern (`text-sm font-bold`)
+- Frame category sub-label (e.g. "Borders", "Shapes"): `text-sm text-gray-500 dark:text-slate-400 mb-2` — matches ShapeSection's "Dot style" / "Corner frame" label pattern exactly
 - CTA text input label: `block text-sm font-normal text-gray-700 dark:text-slate-300` — matches VCardTab field label pattern
-- Template picker section heading: `text-sm font-semibold text-gray-900 dark:text-white mb-3`
-- Template preset card name: `text-xs font-normal text-gray-600 dark:text-slate-400 text-center mt-1 leading-tight` — two-line max, truncated with `truncate`
+- Template picker section heading: `text-sm font-bold text-gray-900 dark:text-white mb-3`
+- Template preset card name: `text-sm font-normal text-gray-600 dark:text-slate-400 text-center mt-1 leading-tight` — two-line max, truncated with `truncate`
 - SVG export notice (toast or inline): `text-sm` at 400 weight
 
-**Note on `font-semibold`:** The ShapeSection `h3` already uses `font-semibold` in production. This phase matches that existing pattern for subsection headings within the customization panel. No new weight class is introduced — `font-semibold` is already in the codebase.
+**Note on weights:** This phase uses only `font-normal` (400) and `font-bold` (700). No `font-semibold` (600) is used anywhere in Phase 14 components.
 
 ---
 
@@ -109,7 +109,7 @@ These are the specific UI elements introduced or modified in Phase 14.
 
 **Card anatomy:**
 - Thumbnail image: 80×72px, rounded corners `rounded-md`, shows a miniature QR code with the preset frame + color applied (static PNG generated at build time or inline SVG illustration)
-- Name label: `text-xs` below thumbnail, centered, max 2 lines
+- Name label: `text-sm` below thumbnail, centered, max 2 lines
 - Selected state: `ring-2 ring-blue-500 ring-offset-1` outer ring
 - Default state: `border border-gray-200 dark:border-slate-600 rounded-lg`
 - Hover state: `hover:border-gray-400 dark:hover:border-slate-400 transition-colors`
@@ -180,7 +180,7 @@ These are the specific UI elements introduced or modified in Phase 14.
 | `shopping-bag` | "Order Here" |
 | `clipboard` | "See Menu" |
 
-**Character limit:** 30 characters. Enforced with `maxLength={30}`. Counter shown inline: `text-xs text-gray-400 text-right mt-1` displaying `{n}/30`.
+**Character limit:** 30 characters. Enforced with `maxLength={30}`. Counter shown inline: `text-sm text-gray-400 text-right mt-1` displaying `{n}/30`.
 
 **Frame color:** Follows QR foreground color automatically (D-10). No separate color picker rendered for the frame.
 
