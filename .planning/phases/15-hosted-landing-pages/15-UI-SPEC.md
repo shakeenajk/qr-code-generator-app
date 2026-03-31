@@ -52,11 +52,13 @@ Exceptions:
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 14px | 400 (normal) | 1.5 |
-| Label | 14px | 500 (medium) | 1.4 |
+| Label | 14px | 700 (bold) | 1.4 |
 | Heading | 20px | 700 (bold) | 1.2 |
 | Display | 28px | 700 (bold) | 1.2 |
 
-Source: matched from existing VCardTab.tsx (`text-sm font-medium`), QRLibrary.tsx (`text-xs font-semibold`), and FrameSection.tsx (`text-sm font-bold`). Four sizes declared; two weights (400 normal, 700 bold) with 500 medium used only on form labels.
+Two weights only: 400 (normal) for body and placeholder text; 700 (bold) for labels, headings, and display. Weight 500 is not used.
+
+Source: matched from existing VCardTab.tsx (`text-sm font-medium`), QRLibrary.tsx (`text-xs font-semibold`), and FrameSection.tsx (`text-sm font-bold`). Four sizes declared.
 
 ---
 
@@ -95,7 +97,7 @@ Minimum height: 44px. Width: 160px minimum. Both buttons always rendered side by
 **PdfTab** — follows VCardTab.tsx pattern exactly:
 - Container: `<div className="space-y-4">`
 - Each field: `<div className="space-y-2">` wrapping label + input
-- Label class: `block text-sm font-medium text-gray-700 dark:text-slate-300`
+- Label class: `block text-sm font-bold text-gray-700 dark:text-slate-300`
 - Input class: `w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-800 dark:text-slate-100 dark:border-slate-600 dark:placeholder-slate-400`
 - Required fields marked: `<span className="text-red-500">*</span>` after label text
 - Fields: Title*, Description* (textarea, 3 rows), Website URL, Company Name, CTA Button Text, Cover Photo upload, PDF File upload, Social Buttons (Facebook / Twitter / LinkedIn checkboxes)
@@ -120,7 +122,7 @@ Visual contract:
 Three checkboxes rendered as pill-shaped toggle buttons: Facebook, Twitter/X, LinkedIn.
 
 - Default (unchecked): `px-3 py-1 text-sm rounded-full border border-gray-300 dark:border-slate-600 text-gray-600 dark:text-slate-400`
-- Checked: `px-3 py-1 text-sm rounded-full border border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-medium`
+- Checked: `px-3 py-1 text-sm rounded-full border border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-bold`
 - Rendered as `<fieldset>` with `<legend className="sr-only">` for accessibility
 
 ### Hosted Landing Page (`/p/[slug]`)
@@ -131,7 +133,7 @@ The public-facing hosted page has two layouts.
 - Full-width hero: cover photo at top, max-height 240px, `object-cover`, fallback background `bg-gray-100 dark:bg-slate-800` with centered file icon
 - Content area: two-column on md+ screens — left: embedded PDF viewer (iframe or PDF.js), right: metadata sidebar
 - Metadata sidebar: title (Display 28px/bold), company (Body 14px/400), description (Body 14px/400, line-height 1.5), website link (Body 14px/accent color), social sharing row
-- Download button: secondary style — `border border-gray-300 dark:border-slate-600 px-4 py-2 rounded-md text-sm font-medium`
+- Download button: secondary style — `border border-gray-300 dark:border-slate-600 px-4 py-2 rounded-md text-sm font-bold`
 
 **App Store Landing Page layout:**
 - App icon: 80px × 80px, `rounded-2xl`, centered at top with app name below (Display 28px/bold)
@@ -151,7 +153,11 @@ Two new card body variants following the existing `DynamicCardBody` pattern:
 
 **PdfCardBody:** shows "PDF Landing Page" badge (indigo pill, same as DynamicBadge pattern), landing page title truncated to 1 line, "View Page" link + "Edit" icon button.
 
+- Edit icon button: `aria-label="Edit landing page"` — required for accessibility; no visible text label, icon only
+
 **AppStoreCardBody:** shows "App Store" badge (emerald pill — `bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400`), app name truncated to 1 line, "View Page" link + "Edit" icon button.
+
+- Edit icon button: `aria-label="Edit landing page"` — required for accessibility; no visible text label, icon only
 
 Edit landing page action opens edit route (full-page edit, not modal) — accessible from the card actions row.
 
@@ -180,10 +186,10 @@ Edit landing page action opens edit route (full-page edit, not modal) — access
 | Error — landing page save failed | "Could not save your landing page. Please try again." |
 | Error — landing page load failed | "Could not load this page. It may have been removed." |
 | Tier gate message (at QR limit) | "You've reached your QR code limit. Upgrade your plan to create more." |
-| Delete landing page — trigger label | "Delete" |
+| Delete landing page — trigger label | "Delete Page" |
 | Delete landing page — confirmation | "Are you sure? This will delete the QR code and its hosted page permanently." |
 | Delete landing page — confirm button | "Yes, delete" |
-| Delete landing page — cancel button | "Cancel" |
+| Delete landing page — cancel button | "Keep it" |
 | Edit landing page — page heading | "Edit Landing Page" |
 | "View Page" link label | "View Page" |
 
@@ -214,7 +220,7 @@ Source: D-01, D-02, D-04, D-05, D-06, CONTEXT.md specifics section; delete/confi
 
 ### Delete Confirmation (Dashboard)
 
-Inline confirmation — no modal. When "Delete" is clicked, the card actions row replaces with "Are you sure?" text + "Yes, delete" (red) + "Cancel" buttons. Matches existing QRLibrary.tsx `deletingId` pattern exactly.
+Inline confirmation — no modal. When "Delete Page" is clicked, the card actions row replaces with "Are you sure?" text + "Yes, delete" (red) + "Keep it" buttons. Matches existing QRLibrary.tsx `deletingId` pattern exactly.
 
 ---
 
