@@ -39,9 +39,9 @@
 ### Scan Analytics
 
 - [x] **ANAL-01**: Pro user can view total and unique scan counts for a dynamic QR code
-- [ ] **ANAL-02**: Pro user can view a 30-day time-series scan chart per QR code
-- [ ] **ANAL-03**: Pro user can view device breakdown (iOS/Android/desktop) per QR code
-- [ ] **ANAL-04**: Pro user can view top countries per QR code
+- [x] **ANAL-02**: Pro user can view a 30-day time-series scan chart per QR code
+- [x] **ANAL-03**: Pro user can view device breakdown (iOS/Android/desktop) per QR code
+- [x] **ANAL-04**: Pro user can view top countries per QR code
 
 ### Pro Feature Gates
 
@@ -116,9 +116,9 @@
 | DYN-04 | Phase 10 | Complete |
 | DYN-05 | Phase 10 | Complete |
 | ANAL-01 | Phase 11 | Complete |
-| ANAL-02 | Phase 11 | Pending |
-| ANAL-03 | Phase 11 | Pending |
-| ANAL-04 | Phase 11 | Pending |
+| ANAL-02 | Phase 11 | Complete |
+| ANAL-03 | Phase 11 | Complete |
+| ANAL-04 | Phase 11 | Complete |
 | GATE-01 | Phase 9 | Complete |
 | GATE-02 | Phase 9 | Complete |
 | GATE-03 | Phase 9 | Complete |

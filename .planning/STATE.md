@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Monetization
 status: Ready to execute
-stopped_at: Completed 11-scan-analytics-dashboard 11-01-PLAN.md
-last_updated: "2026-03-31T02:43:42.282Z"
+stopped_at: Completed 11-scan-analytics-dashboard-02-PLAN.md
+last_updated: "2026-03-31T02:48:39.894Z"
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 24
-  completed_plans: 22
+  completed_plans: 23
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-11)
 ## Current Position
 
 Phase: 11 (scan-analytics-dashboard) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 
 ## Performance Metrics
 
@@ -66,6 +66,7 @@ Plan: 2 of 3
 | Phase 10 P03 | 245s | 3 tasks | 4 files |
 | Phase 10 P05 | 256 | 1 tasks | 5 files |
 | Phase 11-scan-analytics-dashboard P01 | 109s | 2 tasks | 6 files |
+| Phase 11-scan-analytics-dashboard P02 | 8min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -125,6 +126,9 @@ Recent decisions affecting v1.1:
 - [Phase 10]: Playwright port changed from 4321 to 4323 — avoids port conflict with other project dev server
 - [Phase 11-scan-analytics-dashboard]: Bot UA patterns list follows D-09: 15 patterns covering major crawlers; filter at write time before DB insert
 - [Phase 11-scan-analytics-dashboard]: fire-and-forget insert uses .catch(() => {}) to silently swallow analytics failures; redirect latency unaffected
+- [Phase 11-scan-analytics-dashboard]: Use select API (not db.query.subscriptions.findFirst) for Pro gate in analytics endpoint — consistent with codebase
+- [Phase 11-scan-analytics-dashboard]: recharts@3.8.1 chosen over @tremor/react — Tremor incompatible with Tailwind v4 CSS-first setup (no config file)
+- [Phase 11-scan-analytics-dashboard]: D-16 unique approximation: count(distinct day+device+country) as privacy-safe proxy for unique visitor counts
 
 ### Pending Todos
 
@@ -138,6 +142,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-31T02:43:42.277Z
-Stopped at: Completed 11-scan-analytics-dashboard 11-01-PLAN.md
+Last session: 2026-03-31T02:48:39.889Z
+Stopped at: Completed 11-scan-analytics-dashboard-02-PLAN.md
 Resume file: None
