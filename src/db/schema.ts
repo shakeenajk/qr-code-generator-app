@@ -44,3 +44,16 @@ export const dynamicQrCodes = sqliteTable('dynamic_qr_codes', {
 }, (table) => [
   index('dynamic_qr_codes_user_id_idx').on(table.userId),
 ]);
+
+export const scanEvents = sqliteTable('scan_events', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  dynamicQrCodeId: text('dynamic_qr_code_id')
+    .notNull()
+    .references(() => dynamicQrCodes.id, { onDelete: 'cascade' }),
+  scannedAt: integer('scanned_at').notNull().$defaultFn(() => Math.floor(Date.now() / 1000)),
+  userAgent: text('user_agent'),
+  country: text('country'),
+  device: text('device'),
+}, (table) => [
+  index('scan_events_qr_id_scanned_at_idx').on(table.dynamicQrCodeId, table.scannedAt),
+]);
