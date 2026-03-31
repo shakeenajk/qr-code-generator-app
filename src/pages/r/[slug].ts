@@ -2,21 +2,57 @@ export const prerender = false;
 
 import type { APIRoute } from 'astro';
 import { db } from '../../db/index';
-import { dynamicQrCodes } from '../../db/schema';
+import { dynamicQrCodes, scanEvents } from '../../db/schema';
 import { eq } from 'drizzle-orm';
 
-export const GET: APIRoute = async ({ params }) => {
+const BOT_UA_PATTERNS = [
+  /Googlebot/i, /bingbot/i, /AhrefsBot/i, /facebookexternalhit/i,
+  /Twitterbot/i, /LinkedInBot/i, /Slackbot/i, /WhatsApp/i,
+  /DuckDuckBot/i, /YandexBot/i, /Baiduspider/i, /Applebot/i,
+  /SemrushBot/i, /MJ12bot/i, /Bytespider/i,
+];
+
+export function isBot(ua: string | null): boolean {
+  if (!ua) return false;
+  return BOT_UA_PATTERNS.some(pattern => pattern.test(ua));
+}
+
+export function classifyDevice(ua: string | null): 'ios' | 'android' | 'desktop' | 'unknown' {
+  if (!ua) return 'unknown';
+  if (/iPhone|iPad|iPod/i.test(ua)) return 'ios';
+  if (/Android/i.test(ua)) return 'android';
+  return 'desktop';
+}
+
+export const GET: APIRoute = async ({ params, request }) => {
   const { slug } = params;
   if (!slug) return holdingResponse('invalid');
 
   const [row] = await db
-    .select({ destinationUrl: dynamicQrCodes.destinationUrl, isPaused: dynamicQrCodes.isPaused })
+    .select({
+      id: dynamicQrCodes.id,
+      destinationUrl: dynamicQrCodes.destinationUrl,
+      isPaused: dynamicQrCodes.isPaused,
+    })
     .from(dynamicQrCodes)
     .where(eq(dynamicQrCodes.slug, slug))
     .limit(1);
 
   if (!row) return holdingResponse('invalid');
   if (row.isPaused) return holdingResponse('paused');
+
+  // Record scan event (fire-and-forget per D-09/D-10)
+  const ua = request.headers.get('user-agent');
+  if (!isBot(ua)) {
+    const country = request.headers.get('x-vercel-ip-country') ?? null;
+    const device = classifyDevice(ua);
+    db.insert(scanEvents).values({
+      dynamicQrCodeId: row.id,
+      userAgent: ua,
+      country,
+      device,
+    }).catch(() => { /* silent — analytics must not break redirects */ });
+  }
 
   return new Response(null, {
     status: 307,
