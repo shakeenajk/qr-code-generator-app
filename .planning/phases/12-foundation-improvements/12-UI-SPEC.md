@@ -54,13 +54,17 @@ Exceptions:
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 16px (`text-base`) | 400 (regular) | 1.5 |
-| Label | 14px (`text-sm`) | 500 (medium) | 1.4 |
+| Label | 14px (`text-sm`) | 400 (regular) | 1.4 |
 | Heading (section) | 30px (`text-3xl`) | 700 (bold) | 1.2 |
-| Display (hero/pricing h1) | 36–48px (`text-4xl` / `text-5xl`) | 800 (extrabold) | 1.1 |
+| Display (hero/pricing h1) | 36–48px (`text-4xl` / `text-5xl`) | 700 (bold) | 1.1 |
 
-**Source:** Detected from existing components. `VCardTab.tsx` uses `text-sm font-medium` for labels. `Hero.astro` uses `text-4xl sm:text-5xl lg:text-6xl font-extrabold`. `FAQ.astro` uses `text-3xl font-bold` for section heading and `text-base font-semibold` for question text. `pricing.astro` uses `text-xl font-bold` for card titles.
+**Weights declared:** 400 (regular) and 700 (bold) only.
 
-**Phase 12 specific — vCard new fields:** All 6 new fields (Title, Company, Work Phone, Address, Website, LinkedIn) follow the same label/input pattern as existing VCardTab fields: `text-sm font-medium text-gray-700 dark:text-slate-300` labels, `text-sm` inputs with `px-3 py-2 border border-gray-300 rounded-md`.
+**Tailwind classes:** Use `font-normal` for 400 roles (Body, Label). Use `font-bold` for 700 roles (Heading, Display). Remove `font-medium`, `font-semibold`, and `font-extrabold` from Phase 12 additions; existing occurrences in unchanged files are out of scope.
+
+**Source:** Detected from existing components. `Hero.astro` uses `text-4xl sm:text-5xl lg:text-6xl font-extrabold` — collapsed to `font-bold` per this contract. `FAQ.astro` uses `text-3xl font-bold` for section heading. `VCardTab.tsx` uses `text-sm font-medium` for labels — collapsed to `font-normal` per this contract for any Phase 12 additions. `pricing.astro` uses `text-xl font-bold` for card titles.
+
+**Phase 12 specific — vCard new fields:** All 6 new fields (Title, Company, Work Phone, Address, Website, LinkedIn) use `text-sm font-normal text-gray-700 dark:text-slate-300` labels and `text-sm` inputs with `px-3 py-2 border border-gray-300 rounded-md`.
 
 ---
 
@@ -98,8 +102,8 @@ These are the specific UI elements changed or added in Phase 12. All new element
 **Current state:** Single "Sign In" button (filled blue) shown when signed out. No Pricing link.
 
 **Required changes:**
-- Add "Pricing" text link to nav. Position: between logo and auth buttons. Style: `text-sm font-medium text-gray-700 hover:text-gray-900 dark:text-slate-300 dark:hover:text-white`. No background, no border. This is a navigation link, not a CTA — accent color not applied.
-- Add "Register" button shown alongside "Sign In" when signed out. Style: outlined variant — `border border-[#2563EB] text-[#2563EB] text-sm font-semibold px-4 py-2 rounded-lg hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`. Href: `/signup`.
+- Add "Pricing" text link to nav. Position: between logo and auth buttons. Style: `text-sm font-normal text-gray-700 hover:text-gray-900 dark:text-slate-300 dark:hover:text-white`. No background, no border. This is a navigation link, not a CTA — accent color not applied.
+- Add "Register" button shown alongside "Sign In" when signed out. Style: outlined variant — `border border-[#2563EB] text-[#2563EB] text-sm font-bold px-4 py-2 rounded-lg hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`. Href: `/signup`.
 - "Sign In" button retains filled style. Order: Pricing link → Register button → Sign In button (left to right).
 
 ### Hero copy (Hero.astro)
@@ -140,7 +144,7 @@ Any FAQ answer containing "no limits", "unlimited QR codes" without qualificatio
 | LinkedIn | url | "https://linkedin.com/in/username" | No |
 
 All six use the identical CSS pattern as existing fields:
-- Label: `block text-sm font-medium text-gray-700 dark:text-slate-300`
+- Label: `block text-sm font-normal text-gray-700 dark:text-slate-300`
 - Input: `w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-slate-800 dark:text-slate-100 dark:border-slate-600 dark:placeholder-slate-400`
 - Wrapper: `space-y-2` for label+input pair; `space-y-4` stacks all pairs
 
