@@ -57,7 +57,11 @@ Full details: `.planning/milestones/v1.1-ROADMAP.md`
   3. Header has a working navigation link to /pricing
   4. Pricing page displays the correct tier limits (Free: 5 QRs / 3 dynamic, Starter: 100 / 10, Pro: 250 / 100) with the "No ads" benefit removed from Starter/Pro
   5. vCard tab exposes Title, Company, Work Phone, Address, Website, and LinkedIn fields and encodes all values without corruption
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 12-01-PLAN.md — Tier limits centralization (tierLimits.ts + save.ts update)
+- [ ] 12-02-PLAN.md — Copy and pricing fixes (header, hero, FAQ, pricing page)
+- [ ] 12-03-PLAN.md — vCard encoding safety and 6 new fields
 **UI hint**: yes
 
 ### Phase 13: SEO and Homepage Content
@@ -119,7 +123,7 @@ Full details: `.planning/milestones/v1.1-ROADMAP.md`
 | 9. Saved QR Library + Pro Gates | v1.1 | 5/5 | Complete | 2026-03-17 |
 | 10. Dynamic QR Redirect Service | v1.1 | 5/5 | Complete | 2026-03-30 |
 | 11. Scan Analytics Dashboard | v1.1 | 3/3 | Complete | 2026-03-31 |
-| 12. Foundation Improvements | v1.2 | 0/TBD | Not started | - |
+| 12. Foundation Improvements | v1.2 | 0/3 | Not started | - |
 | 13. SEO and Homepage Content | v1.2 | 0/TBD | Not started | - |
 | 14. QR Frames and Templates | v1.2 | 0/TBD | Not started | - |
 | 15. Hosted Landing Pages | v1.2 | 0/TBD | Not started | - |
