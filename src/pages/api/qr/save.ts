@@ -5,6 +5,7 @@ import { nanoid } from 'nanoid';
 import { db } from '../../../db/index';
 import { subscriptions, savedQrCodes, dynamicQrCodes } from '../../../db/schema';
 import { count, eq } from 'drizzle-orm';
+import { TIER_LIMITS, type TierKey } from '../../../lib/tierLimits';
 
 export const POST: APIRoute = async ({ locals, request }) => {
   const { userId } = locals.auth();
@@ -16,7 +17,8 @@ export const POST: APIRoute = async ({ locals, request }) => {
   const sub = await db.query.subscriptions.findFirst({
     where: eq(subscriptions.userId, userId),
   });
-  const tier = sub?.tier ?? 'free';
+  const tier = (sub?.tier ?? 'free') as TierKey;
+  const limits = TIER_LIMITS[tier];
 
   let body: Record<string, unknown>;
   try {
@@ -47,7 +49,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
   }
 
   if (isDynamic) {
-    // Dynamic QR path: free/starter users allowed up to 3 dynamic QRs; pro users unlimited
+    // Dynamic QR path: check dynamic and total limits per tier
     if (!destinationUrl || typeof destinationUrl !== 'string' || destinationUrl.trim() === '') {
       return new Response(JSON.stringify({ error: 'destinationUrl required for dynamic QR' }), {
         status: 400,
@@ -62,19 +64,30 @@ export const POST: APIRoute = async ({ locals, request }) => {
       });
     }
 
-    // Tier limit check: free/starter users limited to 3 dynamic QRs
-    if (tier !== 'pro') {
-      const [{ value: dynamicCount }] = await db
-        .select({ value: count() })
-        .from(dynamicQrCodes)
-        .where(eq(dynamicQrCodes.userId, userId));
+    // Total QR limit check (applies to all tiers)
+    const [{ value: totalCount }] = await db
+      .select({ value: count() })
+      .from(savedQrCodes)
+      .where(eq(savedQrCodes.userId, userId));
 
-      if (dynamicCount >= 3) {
-        return new Response(JSON.stringify({ error: 'dynamic_limit_reached' }), {
-          status: 403,
-          headers: { 'Content-Type': 'application/json' },
-        });
-      }
+    if (totalCount >= limits.totalQr) {
+      return new Response(JSON.stringify({ error: 'total_limit_reached' }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Dynamic QR limit check (applies to all tiers including Pro)
+    const [{ value: dynamicCount }] = await db
+      .select({ value: count() })
+      .from(dynamicQrCodes)
+      .where(eq(dynamicQrCodes.userId, userId));
+
+    if (dynamicCount >= limits.dynamicQr) {
+      return new Response(JSON.stringify({ error: 'dynamic_limit_reached' }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     // Slug generation with retry loop (up to 3 attempts)
@@ -126,9 +139,14 @@ export const POST: APIRoute = async ({ locals, request }) => {
     });
   }
 
-  // Static QR path: must be Pro
-  if (tier !== 'pro') {
-    return new Response(JSON.stringify({ error: 'Pro required' }), {
+  // Static QR path: enforce total QR limit per tier
+  const [{ value: totalCount }] = await db
+    .select({ value: count() })
+    .from(savedQrCodes)
+    .where(eq(savedQrCodes.userId, userId));
+
+  if (totalCount >= limits.totalQr) {
+    return new Response(JSON.stringify({ error: 'total_limit_reached' }), {
       status: 403,
       headers: { 'Content-Type': 'application/json' },
     });
