@@ -40,7 +40,7 @@ Full details: `.planning/milestones/v1.1-ROADMAP.md`
 **Milestone Goal:** Improve SEO and discoverability, expand content types with hosted landing pages, add homepage marketing sections, introduce QR frames and preset templates, enhance vCard, fix pricing accuracy, and add ads to the free tier.
 
 - [x] **Phase 12: Foundation Improvements** - Fix copy accuracy, header navigation, tier limits centralization, and vCard field enhancements (completed 2026-03-31)
-- [ ] **Phase 13: SEO and Homepage Content** - Search Console setup, per-page meta/OG/JSON-LD, use cases landing page, and three new homepage sections
+- [x] **Phase 13: SEO and Homepage Content** - Search Console setup, per-page meta/OG/JSON-LD, use cases landing page, and three new homepage sections (completed 2026-03-31)
 - [ ] **Phase 14: QR Frames and Templates** - Decorative frame compositor, PNG export pipeline, and preset style templates
 - [ ] **Phase 15: Hosted Landing Pages** - PDF and App Store content types with DB-backed landing pages and Vercel Blob uploads
 - [ ] **Phase 16: Google AdSense** - Free-tier ad placement using a client-side React island with tier check
@@ -79,7 +79,7 @@ Plans:
 - [x] 13-01-PLAN.md — SEO infrastructure: install astro-seo, fix SoftwareApplication JSON-LD, add sitemap link, create useCases data
 - [x] 13-02-PLAN.md — Use cases hub and article pages with astro-seo meta and BreadcrumbList JSON-LD
 - [x] 13-03-PLAN.md — Three homepage sections (PricingPromo, HowTo, UseCasesTeaser) + HowTo JSON-LD
-- [ ] 13-04-PLAN.md — Playwright screenshot script and committed step PNGs
+- [x] 13-04-PLAN.md — Playwright screenshot script and committed step PNGs
 **UI hint**: yes
 
 ### Phase 14: QR Frames and Templates
@@ -129,7 +129,7 @@ Plans:
 | 10. Dynamic QR Redirect Service | v1.1 | 5/5 | Complete | 2026-03-30 |
 | 11. Scan Analytics Dashboard | v1.1 | 3/3 | Complete | 2026-03-31 |
 | 12. Foundation Improvements | v1.2 | 3/3 | Complete    | 2026-03-31 |
-| 13. SEO and Homepage Content | v1.2 | 3/4 | In Progress|  |
+| 13. SEO and Homepage Content | v1.2 | 4/4 | Complete   | 2026-03-31 |
 | 14. QR Frames and Templates | v1.2 | 0/TBD | Not started | - |
 | 15. Hosted Landing Pages | v1.2 | 0/TBD | Not started | - |
 | 16. Google AdSense | v1.2 | 0/TBD | Not started | - |
