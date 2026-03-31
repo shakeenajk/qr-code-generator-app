@@ -44,9 +44,9 @@
 
 ### QR Frames & Templates
 
-- [ ] **FRAME-01**: User can add a decorative frame around the QR code (e.g. "Scan Me" text border, geometric borders with custom CTA text)
-- [ ] **FRAME-02**: Framed QR codes export correctly as PNG (Canvas composition)
-- [ ] **FRAME-03**: User can choose from preset style templates (frame + color + shape combos) as quick-start options
+- [x] **FRAME-01**: User can add a decorative frame around the QR code (e.g. "Scan Me" text border, geometric borders with custom CTA text)
+- [x] **FRAME-02**: Framed QR codes export correctly as PNG (Canvas composition)
+- [x] **FRAME-03**: User can choose from preset style templates (frame + color + shape combos) as quick-start options
 
 ### Advertising
 
@@ -105,9 +105,9 @@
 | HOME-01 | Phase 13 | Complete |
 | HOME-02 | Phase 13 | Complete |
 | HOME-03 | Phase 13 | Complete |
-| FRAME-01 | Phase 14 | Pending |
-| FRAME-02 | Phase 14 | Pending |
-| FRAME-03 | Phase 14 | Pending |
+| FRAME-01 | Phase 14 | Complete |
+| FRAME-02 | Phase 14 | Complete |
+| FRAME-03 | Phase 14 | Complete |
 | CONT-01 | Phase 15 | Pending |
 | CONT-02 | Phase 15 | Pending |
 | CONT-03 | Phase 15 | Pending |
