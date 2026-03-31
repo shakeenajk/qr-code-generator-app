@@ -38,7 +38,7 @@
 
 ### Scan Analytics
 
-- [ ] **ANAL-01**: Pro user can view total and unique scan counts for a dynamic QR code
+- [x] **ANAL-01**: Pro user can view total and unique scan counts for a dynamic QR code
 - [ ] **ANAL-02**: Pro user can view a 30-day time-series scan chart per QR code
 - [ ] **ANAL-03**: Pro user can view device breakdown (iOS/Android/desktop) per QR code
 - [ ] **ANAL-04**: Pro user can view top countries per QR code
@@ -115,7 +115,7 @@
 | DYN-03 | Phase 10 | Complete |
 | DYN-04 | Phase 10 | Complete |
 | DYN-05 | Phase 10 | Complete |
-| ANAL-01 | Phase 11 | Pending |
+| ANAL-01 | Phase 11 | Complete |
 | ANAL-02 | Phase 11 | Pending |
 | ANAL-03 | Phase 11 | Pending |
 | ANAL-04 | Phase 11 | Pending |
