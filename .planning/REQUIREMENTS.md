@@ -89,36 +89,36 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| COPY-01 | — | Pending |
-| COPY-02 | — | Pending |
-| COPY-03 | — | Pending |
-| TIER-01 | — | Pending |
-| TIER-02 | — | Pending |
-| TIER-03 | — | Pending |
-| TIER-04 | — | Pending |
-| SEO-01 | — | Pending |
-| SEO-02 | — | Pending |
-| SEO-03 | — | Pending |
-| SEO-04 | — | Pending |
-| HOME-01 | — | Pending |
-| HOME-02 | — | Pending |
-| HOME-03 | — | Pending |
-| CONT-01 | — | Pending |
-| CONT-02 | — | Pending |
-| CONT-03 | — | Pending |
-| VCARD-01 | — | Pending |
-| VCARD-02 | — | Pending |
-| FRAME-01 | — | Pending |
-| FRAME-02 | — | Pending |
-| FRAME-03 | — | Pending |
-| ADS-01 | — | Pending |
-| ADS-02 | — | Pending |
+| COPY-01 | Phase 12 | Pending |
+| COPY-02 | Phase 12 | Pending |
+| COPY-03 | Phase 12 | Pending |
+| TIER-01 | Phase 12 | Pending |
+| TIER-02 | Phase 12 | Pending |
+| TIER-03 | Phase 12 | Pending |
+| TIER-04 | Phase 12 | Pending |
+| VCARD-01 | Phase 12 | Pending |
+| VCARD-02 | Phase 12 | Pending |
+| SEO-01 | Phase 13 | Pending |
+| SEO-02 | Phase 13 | Pending |
+| SEO-03 | Phase 13 | Pending |
+| SEO-04 | Phase 13 | Pending |
+| HOME-01 | Phase 13 | Pending |
+| HOME-02 | Phase 13 | Pending |
+| HOME-03 | Phase 13 | Pending |
+| FRAME-01 | Phase 14 | Pending |
+| FRAME-02 | Phase 14 | Pending |
+| FRAME-03 | Phase 14 | Pending |
+| CONT-01 | Phase 15 | Pending |
+| CONT-02 | Phase 15 | Pending |
+| CONT-03 | Phase 15 | Pending |
+| ADS-01 | Phase 16 | Pending |
+| ADS-02 | Phase 16 | Pending |
 
 **Coverage:**
 - v1.2 requirements: 24 total
-- Mapped to phases: 0
-- Unmapped: 24
+- Mapped to phases: 24
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-31*
-*Last updated: 2026-03-31 after v1.2 milestone start*
+*Last updated: 2026-03-31 — traceability complete after v1.2 roadmap creation*
