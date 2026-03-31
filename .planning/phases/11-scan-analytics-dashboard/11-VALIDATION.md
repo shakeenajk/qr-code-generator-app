@@ -38,10 +38,10 @@ created: 2026-03-30
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 11-01-01 | 01 | 1 | ANAL-01/02/03/04 | schema | `npx drizzle-kit generate && node -e "require('./src/db/schema')"` | ✅ | ⬜ pending |
-| 11-02-01 | 02 | 1 | ANAL-01 | E2E | `npx playwright test tests/analytics/scan-events.spec.ts` | ❌ W0 | ⬜ pending |
+| 11-01-01 | 01 | 1 | ANAL-01 | schema | `npx drizzle-kit generate && node -e "require('./src/db/schema')"` | ✅ | ⬜ pending |
+| 11-02-01 | 02 | 2 | ANAL-01 | E2E | `npx playwright test tests/analytics/scan-events.spec.ts` | ❌ W0 | ⬜ pending |
 | 11-03-01 | 03 | 2 | ANAL-01/02/03/04 | E2E | `npx playwright test tests/analytics/analytics-api.spec.ts` | ❌ W0 | ⬜ pending |
-| 11-04-01 | 04 | 3 | ANAL-01/02/03/04 | E2E | `npx playwright test tests/analytics/analytics-page.spec.ts` | ❌ W0 | ⬜ pending |
+| 11-04-01 | 03 | 3 | ANAL-01/02/03/04 | E2E | `npx playwright test tests/analytics/analytics-page.spec.ts` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 

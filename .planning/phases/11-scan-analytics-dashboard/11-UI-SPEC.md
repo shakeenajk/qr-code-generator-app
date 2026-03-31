@@ -22,7 +22,7 @@ created: 2026-03-30
 | Component library | none (no shadcn, no Radix) — follows project pattern |
 | Icon library | lucide-react (already installed: `Grid2X2`, `List`, `Pencil`, `Trash2`, `QrCode`, `Pause`, `Play`) |
 | Font | System font stack (Tailwind default) — no custom font declared in project |
-| Chart library | @tremor/react — new dependency for AreaChart (source: CONTEXT.md D-06) |
+| Chart library | recharts — replaces @tremor/react (incompatible with Tailwind v4; see RESEARCH.md critical finding) |
 
 **shadcn Gate Result:** Not initialized. Project is Astro 5 + React islands, not a pure React/Next.js/Vite SPA. Tailwind v4 is the design system. No shadcn init required; existing project pattern is hand-rolled Tailwind components. Registry safety gate: not applicable.
 
@@ -76,7 +76,7 @@ Source: `global.css` (`--color-brand: #2563EB`), `DashboardLayout.astro` (bg tok
 | Warning | `amber-400` (#FBBF24) | `amber-400` (#FBBF24) | Paused status dot on dynamic cards (existing pattern) |
 
 Accent reserved for:
-1. Tremor AreaChart fill color (`indigo`) — CONTEXT.md D-06 specifies indigo to match dashboard accent
+1. Recharts AreaChart fill color (indigo) — CONTEXT.md D-06 specifies indigo to match dashboard accent
 2. Analytics action button on dynamic QR cards — icon color `text-indigo-600 dark:text-indigo-400`, border `border-indigo-200 dark:border-indigo-900` (matches existing edit button border pattern at muted tone)
 3. "View Analytics" / back link CTA — `text-indigo-600 dark:text-indigo-400` underline link
 
@@ -102,12 +102,12 @@ New components required for Phase 11:
 - Unique scan card shows label as "~Unique Scans" with tilde prefix to communicate approximation (CONTEXT.md D-16)
 
 ### ScanChart (React island, `client:only="react"`)
-- Tremor `AreaChart` component
+- Recharts `AreaChart` component (replaces @tremor/react — incompatible with Tailwind v4)
 - Data: array of `{ date: string, scans: number }` — 30 entries, one per day
 - X-axis: abbreviated date label (`Mar 1`, `Mar 15`, `Mar 30`)
 - Y-axis: scan count integer
-- Colors: `["indigo"]` — Tremor color token (CONTEXT.md D-06, D-07)
-- Dark mode: Tremor built-in dark mode support (CONTEXT.md D-08)
+- Fill: `indigo-500` (light) / `indigo-400` (dark) — via Recharts stroke/fill props, not Tremor tokens
+- Dark mode: read `document.documentElement.classList.contains('dark')` to switch fill color (CONTEXT.md D-08)
 - Tooltip: shows `"date — N scans"` on hover
 - Height: `h-64` (256px) on mobile, `h-72` (288px) on md+
 - Loading state: `h-64 bg-gray-100 dark:bg-slate-800 rounded-xl animate-pulse`
@@ -247,7 +247,7 @@ All new components must implement dark mode using `dark:` Tailwind variants. Ref
 | `border-indigo-200` | `dark:border-indigo-900` | Analytics button border |
 | `hover:bg-indigo-50` | `dark:hover:bg-indigo-950` | Analytics button hover |
 
-Tremor AreaChart: uses `dark` CSS class on parent, which Tremor detects natively. No additional configuration required beyond passing `colors={["indigo"]}`.
+Recharts AreaChart: check `document.documentElement.classList.contains('dark')` in a `useEffect` to apply dark-mode fill (`#818cf8` indigo-400) vs light fill (`#6366f1` indigo-500). No external dark-mode adapter needed.
 
 ---
 
@@ -256,9 +256,9 @@ Tremor AreaChart: uses `dark` CSS class on parent, which Tremor detects natively
 | Registry | Blocks Used | Safety Gate |
 |----------|-------------|-------------|
 | shadcn official | none | not applicable — shadcn not initialized |
-| @tremor/react | AreaChart component only | npm package (not shadcn registry block) — standard npm audit applies; no shadcn view gate required |
+| recharts | AreaChart, XAxis, YAxis, Tooltip, ResponsiveContainer | npm package — standard npm audit applies; no registry gate required |
 
-@tremor/react is installed via npm, not a shadcn registry. Registry vetting gate (shadcn view + diff) does not apply. Standard due diligence: `npm audit` will flag any known vulnerabilities at install time.
+recharts is installed via npm (`npm install recharts`). @tremor/react is NOT used — it is incompatible with Tailwind v4 (no tailwind.config.ts present). Standard due diligence: `npm audit` will flag any known vulnerabilities at install time.
 
 ---
 
