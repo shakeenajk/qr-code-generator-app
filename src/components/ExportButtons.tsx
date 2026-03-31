@@ -1,5 +1,9 @@
 import { useState } from "react";
 import QRCodeStyling from "qr-code-styling";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { composeQRWithFrame } from "../lib/frameComposer";
+import type { FrameSectionState } from "../types/frames";
 import type { ColorSectionState } from "./customize/ColorSection";
 import type { ShapeSectionState } from "./customize/ShapeSection";
 import type { LogoSectionState } from "./customize/LogoSection";
@@ -19,6 +23,7 @@ export interface ExportButtonsProps {
   shapeOptions: ShapeSectionState;
   logoOptions: LogoSectionState;
   debouncedContent: string;
+  frameOptions: FrameSectionState;   // ← NEW
 }
 
 export function ExportButtons({
@@ -28,8 +33,10 @@ export function ExportButtons({
   shapeOptions,
   logoOptions,
   debouncedContent,
+  frameOptions,        // ← NEW
 }: ExportButtonsProps) {
   const [copyState, setCopyState] = useState<CopyState>("idle");
+  const [isComposing, setIsComposing] = useState(false);
 
   async function handlePngDownload() {
     const {
@@ -71,7 +78,38 @@ export function ExportButtons({
       qrOptions: { errorCorrectionLevel: logoSrc ? "H" : "Q" },
     });
 
-    await tempQr.download({ name: "qrcraft-code", extension: "png" });
+    // No frame active — use existing download path
+    if (frameOptions.frameType === "none") {
+      await tempQr.download({ name: "qrcraft-code", extension: "png" });
+      return;
+    }
+
+    // Frame active — compose via Canvas 2D
+    setIsComposing(true);
+    try {
+      const rawBlob = await tempQr.getRawData("png");
+      if (!rawBlob) throw new Error("QR data unavailable");
+
+      const composedBlob = await composeQRWithFrame(rawBlob as Blob, {
+        frameType: frameOptions.frameType,
+        frameText: frameOptions.frameText,
+        frameColor: dotColor,   // D-10: frame follows QR foreground color
+        bgColor,
+      });
+
+      // Trigger download
+      const url = URL.createObjectURL(composedBlob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "qrcraft-code.png";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Frame composition failed:", err);
+      toast.error("Export failed. Try again.");
+    } finally {
+      setIsComposing(false);
+    }
   }
 
   async function handleSvgDownload() {
@@ -85,15 +123,26 @@ export function ExportButtons({
         setTimeout(() => setCopyState("idle"), 2000);
         return;
       }
-      const blob = await qrCodeRef.current?.getRawData("png");
-      if (!blob) {
-        setCopyState("unsupported");
-        setTimeout(() => setCopyState("idle"), 2000);
-        return;
+
+      let blob: Blob | undefined;
+
+      if (frameOptions.frameType !== "none") {
+        // Get raw blob and compose with frame
+        const rawBlob = await qrCodeRef.current?.getRawData("png");
+        if (!rawBlob) { setCopyState("unsupported"); setTimeout(() => setCopyState("idle"), 2000); return; }
+        blob = await composeQRWithFrame(rawBlob as Blob, {
+          frameType: frameOptions.frameType,
+          frameText: frameOptions.frameText,
+          frameColor: colorOptions.dotColor,
+          bgColor: colorOptions.bgColor,
+        });
+      } else {
+        blob = await qrCodeRef.current?.getRawData("png") as Blob | undefined;
       }
-      await navigator.clipboard.write([
-        new ClipboardItem({ "image/png": blob as Blob }),
-      ]);
+
+      if (!blob) { setCopyState("unsupported"); setTimeout(() => setCopyState("idle"), 2000); return; }
+
+      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
       setCopyState("copied");
       setTimeout(() => setCopyState("idle"), 2000);
     } catch {
@@ -109,16 +158,22 @@ export function ExportButtons({
     <div className="flex gap-2 mt-4 w-full">
       <button
         data-testid="export-png"
-        disabled={isEmpty}
+        disabled={isEmpty || isComposing}
         onClick={handlePngDownload}
         className={buttonClass}
       >
-        Download PNG
+        {isComposing ? (
+          <span className="flex items-center justify-center gap-1">
+            <Loader2 size={14} className="animate-spin" />
+            Exporting…
+          </span>
+        ) : "Download PNG"}
       </button>
       <button
         data-testid="export-svg"
-        disabled={isEmpty}
+        disabled={isEmpty || frameOptions.frameType !== "none"}
         onClick={handleSvgDownload}
+        title={frameOptions.frameType !== "none" ? "SVG export is frameless. Use PNG to include the frame." : undefined}
         className={buttonClass}
       >
         Download SVG
