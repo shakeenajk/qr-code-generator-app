@@ -57,24 +57,28 @@ Declared values (must be multiples of 4):
 
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
-| Body | 16px (`text-base`) | 400 (regular) | 1.5 |
 | Label / Caption | 14px (`text-sm`) | 400 (regular) | 1.4 |
-| Heading (section) | 30px (`text-3xl`) | 700 (bold) | 1.2 |
-| Display (hero/page h1) | 36–48px (`text-4xl` / `text-5xl`) | 700 (bold) | 1.1 |
+| Body | 16px (`text-base`) | 400 (regular) | 1.5 |
+| Subheading | 20px (`text-xl`) | 700 (bold) | 1.3 |
+| Heading / Display | 30px+ (`text-3xl` / `text-4xl` / `text-5xl` responsive range treated as single token) | 700 (bold) | 1.1–1.2 |
 
 **Weights declared:** 400 (regular) and 700 (bold) only. Do not use `font-medium`, `font-semibold`, or `font-extrabold` in Phase 13 additions.
 
-**Source:** Inherited from Phase 12 UI-SPEC, confirmed from `Features.astro` (`text-lg font-semibold` for feature titles — note: existing unchanged file, not a Phase 13 addition), `FAQ.astro` (`text-3xl font-bold`), `pricing.astro` (`text-xl font-bold`).
+**Source:** Inherited from Phase 12 UI-SPEC, confirmed from `Features.astro`, `FAQ.astro` (`text-3xl font-bold`), `pricing.astro`.
 
 **Phase 13 specific typography:**
 
-- **Use case article page H1:** `text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white` — matches section heading scale; applies to each `/use-cases/[slug]` article title.
-- **Use case article body copy:** `text-base font-normal text-gray-600 dark:text-slate-400 leading-relaxed` — same pattern as FAQ answer text.
-- **Breadcrumb text:** `text-sm font-normal text-gray-500 dark:text-slate-400` with `text-[#2563EB]` on the active/current crumb link.
-- **How-to step number:** `text-lg font-bold text-white` inside a filled `bg-[#2563EB]` circle — emphasizes step sequence.
-- **How-to step caption:** `text-sm font-normal text-gray-600 dark:text-slate-400` below each screenshot, `text-center`.
-- **Pricing promo badge:** `text-xs font-bold uppercase tracking-wide text-[#2563EB]` for the "Pro" or "Starter" tier label — matches existing pricing page toggle weight pattern.
-- **Use cases teaser card title:** `text-base font-bold text-gray-900 dark:text-white` — one size down from section headings to fit in grid cards.
+- **Use case article page H1:** `text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white` — heading/display token (responsive range); applies to each `/use-cases/[slug]` article title.
+- **Use case article body copy:** `text-base font-normal text-gray-600 dark:text-slate-400 leading-relaxed` — body token, same pattern as FAQ answer text.
+- **Breadcrumb text:** `text-sm font-normal text-gray-500 dark:text-slate-400` with `text-[#2563EB]` on the active/current crumb link — label token.
+- **How-to step number:** `text-xl font-bold text-white` inside a filled `bg-[#2563EB]` circle — subheading token (20px fits cleanly inside the 44px circle).
+- **How-to step caption:** `text-sm font-normal text-gray-600 dark:text-slate-400` below each screenshot, `text-center` — label token.
+- **Pricing promo badge:** `text-sm font-bold uppercase tracking-wide text-[#2563EB]` for the "Pro" or "Starter" tier label — label token (was `text-xs`, raised to `text-sm` to stay within the 4-size scale).
+- **Use cases teaser card title:** `text-base font-bold text-gray-900 dark:text-white` — body token; one size down from subheadings to fit in grid cards.
+- **Use cases hub card title:** `text-base font-bold text-gray-900 dark:text-white mb-2` — body token.
+- **Article H2 subheadings:** `text-xl font-bold text-gray-900 dark:text-white mb-3` — subheading token.
+- **Article H3 subheadings:** `text-base font-bold text-gray-900 dark:text-white mb-2` — body token.
+- **Article bottom CTA heading:** `text-xl font-bold text-gray-900 dark:text-white mb-2` — subheading token.
 
 ---
 
@@ -145,6 +149,8 @@ Three new `.astro` section components added to `src/components/`. Each follows t
 - "Get started free" → `/signup` — filled accent `bg-[#2563EB] text-white rounded-lg px-6 py-3 text-sm font-bold`.
 - "Explore Pro" or "See pricing" → `/pricing` — outlined accent `border border-[#2563EB] text-[#2563EB] rounded-lg px-6 py-3 text-sm font-bold`.
 
+**Tier label badge:** `text-sm font-bold uppercase tracking-wide text-[#2563EB]` — label token (14px).
+
 **Feature bullets:** Each bullet uses the green checkmark SVG from `pricing.astro` (`w-4 h-4 text-green-500`) + `text-sm text-gray-700 dark:text-slate-300`.
 
 ---
@@ -166,7 +172,7 @@ Three new `.astro` section components added to `src/components/`. Each follows t
       <!-- Step card (repeat x3) -->
       <li flex flex-col items-center text-center>
         <div w-11 h-11 rounded-full bg-[#2563EB] flex items-center justify-center mb-4>
-          <span text-lg font-bold text-white>{step number}</span>
+          <span text-xl font-bold text-white>{step number}</span>
         </div>
         <img
           src="/screenshots/step-{n}.png"
@@ -238,6 +244,8 @@ Three new `.astro` section components added to `src/components/`. Each follows t
 </section>
 ```
 
+**Note on teaser card icon size:** The `text-2xl` class on the emoji/icon span is a presentational size for the decorative icon glyph only — it is `aria-hidden="true"` and does not count as a typographic role in the scale. All readable text within cards uses the 4-size scale above.
+
 **6 teaser use cases (Homepage subset — full list on `/use-cases/`):**
 1. Restaurant Menus — Link customers to your digital menu.
 2. Business Cards — Share contact details with a single scan.
@@ -269,7 +277,7 @@ Three new `.astro` section components added to `src/components/`. Each follows t
       <li>
         <a href="/use-cases/{slug}/"
            class="block bg-gray-50 rounded-xl border border-gray-200 dark:border-slate-700 dark:bg-slate-800 p-6 hover:border-[#2563EB] transition-colors">
-          <h2 text-lg font-bold text-gray-900 dark:text-white mb-2>
+          <h2 text-base font-bold text-gray-900 dark:text-white mb-2>
             {use case title}
           </h2>
           <p text-sm text-gray-600 dark:text-slate-400 leading-relaxed>
@@ -460,7 +468,7 @@ These are mandatory for all Phase 13 additions:
 - **HowTo step list:** `<ol>` element with `role="list"` (removes list semantics in Safari VoiceOver per established pattern from `Features.astro`).
 - **Use cases teaser grid:** `<ul role="list">`.
 - **Screenshot `alt` text:** Descriptive, not generic. Example: `alt="Step 1: QR code generator showing the URL input tab selected"`, not `alt="screenshot"`.
-- **CTA buttons:** All have visible focus rings (`focus:ring-2 focus:ring-blue-500`) and contrast ratio ≥ 4.5:1 (white text on `#2563EB` = 4.53:1 — passes AA).
+- **CTA buttons:** All have visible focus rings (`focus:ring-2 focus:ring-blue-500`) and contrast ratio >= 4.5:1 (white text on `#2563EB` = 4.53:1 — passes AA).
 - **Sitemap link rel:** `<link rel="sitemap" href="/sitemap-index.xml" />` — machine-readable only, no user-visible element needed.
 
 ---
