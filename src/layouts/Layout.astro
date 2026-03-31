@@ -20,7 +20,7 @@ const ogImageUrl = new URL(ogImage, Astro.site);
 
 const webAppSchema = {
   '@context': 'https://schema.org',
-  '@type': 'WebApplication',
+  '@type': 'SoftwareApplication',
   name: 'QRCraft',
   url: Astro.site?.toString(),
   description:
@@ -74,13 +74,14 @@ const faqSchema = {
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImageUrl} />
 
-    <!-- JSON-LD: WebApplication schema (SEO-03) -->
+    <!-- JSON-LD: SoftwareApplication schema (SEO-03) -->
     <!-- MUST use set:html — Astro escapes JSON without it, producing invalid JSON-LD -->
     <script type="application/ld+json" set:html={JSON.stringify(webAppSchema)} />
 
     <!-- JSON-LD: FAQPage schema (SEO-04) — derived from same FAQ_ITEMS as visible FAQ section -->
     <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
 
+    <link rel="sitemap" href="/sitemap-index.xml" />
     <slot name="head" />
   </head>
   <body class="bg-white text-gray-900 antialiased dark:bg-[#0f172a] dark:text-slate-100">
