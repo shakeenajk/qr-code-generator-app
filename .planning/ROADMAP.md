@@ -92,8 +92,8 @@ Plans:
   3. User can select a preset template (combined frame + color + shape) from a picker and the generator applies all settings in one click
 **Plans**: 3 plans
 Plans:
-- [ ] 14-01-PLAN.md — Type contracts, frame data, template data, frameComposer Canvas 2D utility
-- [ ] 14-02-PLAN.md — FrameSection and TemplateSection UI components
+- [x] 14-01-PLAN.md — Type contracts, frame data, template data, frameComposer Canvas 2D utility
+- [x] 14-02-PLAN.md — FrameSection and TemplateSection UI components
 - [ ] 14-03-PLAN.md — Wire into QRGeneratorIsland + ExportButtons (PNG compose + SVG disabled)
 **UI hint**: yes
 
@@ -134,6 +134,6 @@ Plans:
 | 11. Scan Analytics Dashboard | v1.1 | 3/3 | Complete | 2026-03-31 |
 | 12. Foundation Improvements | v1.2 | 3/3 | Complete    | 2026-03-31 |
 | 13. SEO and Homepage Content | v1.2 | 4/4 | Complete    | 2026-03-31 |
-| 14. QR Frames and Templates | v1.2 | 0/3 | Planned    |  |
+| 14. QR Frames and Templates | v1.2 | 2/3 | In Progress|  |
 | 15. Hosted Landing Pages | v1.2 | 0/TBD | Not started | - |
 | 16. Google AdSense | v1.2 | 0/TBD | Not started | - |
