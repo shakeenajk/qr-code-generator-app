@@ -7,16 +7,16 @@
 
 ### Copy & Navigation
 
-- [ ] **COPY-01**: Homepage hero, FAQs, and feature sections reflect freemium model accurately (no "no limits" claims)
-- [ ] **COPY-02**: Header shows a visible Register/Sign Up button next to Sign In
-- [ ] **COPY-03**: Header has a clear navigation link to the /pricing page
+- [x] **COPY-01**: Homepage hero, FAQs, and feature sections reflect freemium model accurately (no "no limits" claims)
+- [x] **COPY-02**: Header shows a visible Register/Sign Up button next to Sign In
+- [x] **COPY-03**: Header has a clear navigation link to the /pricing page
 
 ### Pricing & Tiers
 
-- [ ] **TIER-01**: Pricing page shows accurate dynamic QR limits per tier (Free: 3, Starter: 10, Pro: 100)
-- [ ] **TIER-02**: Pricing page shows accurate total QR code limits per tier (Free: 5, Starter: 100, Pro: 250)
+- [x] **TIER-01**: Pricing page shows accurate dynamic QR limits per tier (Free: 3, Starter: 10, Pro: 100)
+- [x] **TIER-02**: Pricing page shows accurate total QR code limits per tier (Free: 5, Starter: 100, Pro: 250)
 - [ ] **TIER-03**: Tier limits are enforced server-side (centralized in one module, not hardcoded)
-- [ ] **TIER-04**: "No ads" benefit removed from Starter/Pro until ads are live on free tier
+- [x] **TIER-04**: "No ads" benefit removed from Starter/Pro until ads are live on free tier
 
 ### SEO
 
@@ -89,13 +89,13 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| COPY-01 | Phase 12 | Pending |
-| COPY-02 | Phase 12 | Pending |
-| COPY-03 | Phase 12 | Pending |
-| TIER-01 | Phase 12 | Pending |
-| TIER-02 | Phase 12 | Pending |
+| COPY-01 | Phase 12 | Complete |
+| COPY-02 | Phase 12 | Complete |
+| COPY-03 | Phase 12 | Complete |
+| TIER-01 | Phase 12 | Complete |
+| TIER-02 | Phase 12 | Complete |
 | TIER-03 | Phase 12 | Pending |
-| TIER-04 | Phase 12 | Pending |
+| TIER-04 | Phase 12 | Complete |
 | VCARD-01 | Phase 12 | Pending |
 | VCARD-02 | Phase 12 | Pending |
 | SEO-01 | Phase 13 | Pending |
