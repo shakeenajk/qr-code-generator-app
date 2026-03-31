@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Growth & Content
-status: Ready to execute
-stopped_at: Completed 12-02-PLAN.md — copy accuracy fixes
-last_updated: "2026-03-31T05:55:12.785Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 12-03-PLAN.md
+last_updated: "2026-03-31T05:58:35.834Z"
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 3
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-31)
 ## Current Position
 
 Phase: 12 (Foundation Improvements) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 
 ## Accumulated Context
 
@@ -40,6 +40,8 @@ Recent decisions affecting current work:
 - Phase 16 (AdSense) depends on Phase 13 SEO pages being live and indexed — apply for AdSense after Phase 13 ships
 - [Phase 12-foundation-improvements]: Pricing nav link uses text style not accent color — navigation item not CTA (12-02)
 - [Phase 12-foundation-improvements]: Starter No ads replaced by 10 dynamic QR codes to satisfy both TIER-04 and TIER-01 simultaneously (12-02)
+- [Phase 12-foundation-improvements]: TIER_LIMITS as single source of truth for all QR count enforcement — all limit checks import from src/lib/tierLimits.ts
+- [Phase 12-foundation-improvements]: escapeVCard escapes backslash first to avoid double-escaping; company maps to ORG;TYPE=work to distinguish from legacy org field
 
 ### Pending Todos
 
@@ -54,6 +56,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-31T05:55:12.782Z
-Stopped at: Completed 12-02-PLAN.md — copy accuracy fixes
+Last session: 2026-03-31T05:58:35.830Z
+Stopped at: Completed 12-03-PLAN.md
 Resume file: None

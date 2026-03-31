@@ -39,7 +39,7 @@ Full details: `.planning/milestones/v1.1-ROADMAP.md`
 
 **Milestone Goal:** Improve SEO and discoverability, expand content types with hosted landing pages, add homepage marketing sections, introduce QR frames and preset templates, enhance vCard, fix pricing accuracy, and add ads to the free tier.
 
-- [ ] **Phase 12: Foundation Improvements** - Fix copy accuracy, header navigation, tier limits centralization, and vCard field enhancements
+- [x] **Phase 12: Foundation Improvements** - Fix copy accuracy, header navigation, tier limits centralization, and vCard field enhancements (completed 2026-03-31)
 - [ ] **Phase 13: SEO and Homepage Content** - Search Console setup, per-page meta/OG/JSON-LD, use cases landing page, and three new homepage sections
 - [ ] **Phase 14: QR Frames and Templates** - Decorative frame compositor, PNG export pipeline, and preset style templates
 - [ ] **Phase 15: Hosted Landing Pages** - PDF and App Store content types with DB-backed landing pages and Vercel Blob uploads
@@ -59,9 +59,9 @@ Full details: `.planning/milestones/v1.1-ROADMAP.md`
   5. vCard tab exposes Title, Company, Work Phone, Address, Website, and LinkedIn fields and encodes all values without corruption
 **Plans**: 3 plans
 Plans:
-- [ ] 12-01-PLAN.md — Tier limits centralization (tierLimits.ts + save.ts update)
+- [x] 12-01-PLAN.md — Tier limits centralization (tierLimits.ts + save.ts update)
 - [x] 12-02-PLAN.md — Copy and pricing fixes (header, hero, FAQ, pricing page)
-- [ ] 12-03-PLAN.md — vCard encoding safety and 6 new fields
+- [x] 12-03-PLAN.md — vCard encoding safety and 6 new fields
 **UI hint**: yes
 
 ### Phase 13: SEO and Homepage Content
@@ -123,7 +123,7 @@ Plans:
 | 9. Saved QR Library + Pro Gates | v1.1 | 5/5 | Complete | 2026-03-17 |
 | 10. Dynamic QR Redirect Service | v1.1 | 5/5 | Complete | 2026-03-30 |
 | 11. Scan Analytics Dashboard | v1.1 | 3/3 | Complete | 2026-03-31 |
-| 12. Foundation Improvements | v1.2 | 1/3 | In Progress|  |
+| 12. Foundation Improvements | v1.2 | 3/3 | Complete   | 2026-03-31 |
 | 13. SEO and Homepage Content | v1.2 | 0/TBD | Not started | - |
 | 14. QR Frames and Templates | v1.2 | 0/TBD | Not started | - |
 | 15. Hosted Landing Pages | v1.2 | 0/TBD | Not started | - |
