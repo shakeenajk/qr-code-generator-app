@@ -1,0 +1,51 @@
+---
+// src/components/UseCasesTeaser.astro
+const teasers = [
+  { icon: '🍽️', title: 'Restaurant Menus', description: 'Link customers to your digital menu.', href: '/use-cases/restaurant-menu/' },
+  { icon: '💼', title: 'Business Cards', description: 'Share contact details with a single scan.', href: '/use-cases/business-cards/' },
+  { icon: '📦', title: 'Product Packaging', description: 'Connect buyers to instructions or warranty info.', href: '/use-cases/product-packaging/' },
+  { icon: '🎉', title: 'Event Invitations', description: 'Link attendees to event details or RSVP pages.', href: '/use-cases/event-invitations/' },
+  { icon: '📶', title: 'WiFi Sharing', description: 'Let guests connect without typing a password.', href: '/use-cases/wifi-sharing/' },
+  { icon: '📱', title: 'Social Media Profiles', description: 'Point followers to your link-in-bio page.', href: '/use-cases/social-media/' },
+];
+---
+
+<section class="bg-gray-50 dark:bg-[#0f172a] py-16 sm:py-20">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <h2 class="text-3xl font-bold text-center mb-4 text-gray-900 dark:text-white">
+      QR Codes for Every Use Case
+    </h2>
+    <p class="text-base text-gray-600 dark:text-slate-400 text-center mb-12">
+      From restaurant menus to business cards — see how QR codes work for you.
+    </p>
+    <ul class="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6" role="list">
+      {teasers.map((teaser) => (
+        <li>
+          <a
+            href={teaser.href}
+            class="block bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-4 sm:p-6 hover:border-[#2563EB] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+          >
+            <span class="text-2xl mb-2 block" aria-hidden="true">{teaser.icon}</span>
+            <h3 class="text-base font-bold text-gray-900 dark:text-white mb-1">
+              {teaser.title}
+            </h3>
+            <p class="text-sm text-gray-600 dark:text-slate-400 leading-relaxed">
+              {teaser.description}
+            </p>
+          </a>
+        </li>
+      ))}
+    </ul>
+    <div class="text-center mt-8">
+      <a
+        href="/use-cases/"
+        class="inline-flex items-center gap-2 text-[#2563EB] text-sm font-bold hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
+      >
+        View all use cases
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      </a>
+    </div>
+  </div>
+</section>
