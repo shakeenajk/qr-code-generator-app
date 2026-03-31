@@ -41,7 +41,7 @@ Full details: `.planning/milestones/v1.1-ROADMAP.md`
 
 - [x] **Phase 12: Foundation Improvements** - Fix copy accuracy, header navigation, tier limits centralization, and vCard field enhancements (completed 2026-03-31)
 - [x] **Phase 13: SEO and Homepage Content** - Search Console setup, per-page meta/OG/JSON-LD, use cases landing page, and three new homepage sections (completed 2026-03-31)
-- [ ] **Phase 14: QR Frames and Templates** - Decorative frame compositor, PNG export pipeline, and preset style templates
+- [x] **Phase 14: QR Frames and Templates** - Decorative frame compositor, PNG export pipeline, and preset style templates (completed 2026-03-31)
 - [ ] **Phase 15: Hosted Landing Pages** - PDF and App Store content types with DB-backed landing pages and Vercel Blob uploads
 - [ ] **Phase 16: Google AdSense** - Free-tier ad placement using a client-side React island with tier check
 
@@ -134,6 +134,6 @@ Plans:
 | 11. Scan Analytics Dashboard | v1.1 | 3/3 | Complete | 2026-03-31 |
 | 12. Foundation Improvements | v1.2 | 3/3 | Complete    | 2026-03-31 |
 | 13. SEO and Homepage Content | v1.2 | 4/4 | Complete    | 2026-03-31 |
-| 14. QR Frames and Templates | v1.2 | 2/3 | In Progress|  |
+| 14. QR Frames and Templates | v1.2 | 2/3 | Complete    | 2026-03-31 |
 | 15. Hosted Landing Pages | v1.2 | 0/TBD | Not started | - |
 | 16. Google AdSense | v1.2 | 0/TBD | Not started | - |
