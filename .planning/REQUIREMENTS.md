@@ -23,13 +23,13 @@
 - [x] **SEO-01**: Site submitted to Google Search Console with verified ownership
 - [x] **SEO-02**: All pages have proper meta titles, descriptions, and Open Graph tags via astro-seo
 - [x] **SEO-03**: JSON-LD structured data (SoftwareApplication, HowTo, BreadcrumbList) on relevant pages
-- [ ] **SEO-04**: QR code use cases landing page with rich content targeting long-tail keywords
+- [x] **SEO-04**: QR code use cases landing page with rich content targeting long-tail keywords
 
 ### Homepage Sections
 
-- [ ] **HOME-01**: Pricing promotion section explaining when users need the paid plan
-- [ ] **HOME-02**: How-to section with step 1-2-3 guide using programmatic screenshots from the live site
-- [ ] **HOME-03**: QR code use cases section with ideas grid; clicking "more" routes to the full landing page (SEO-04)
+- [x] **HOME-01**: Pricing promotion section explaining when users need the paid plan
+- [x] **HOME-02**: How-to section with step 1-2-3 guide using programmatic screenshots from the live site
+- [x] **HOME-03**: QR code use cases section with ideas grid; clicking "more" routes to the full landing page (SEO-04)
 
 ### Content Types
 
@@ -101,10 +101,10 @@
 | SEO-01 | Phase 13 | Complete |
 | SEO-02 | Phase 13 | Complete |
 | SEO-03 | Phase 13 | Complete |
-| SEO-04 | Phase 13 | Pending |
-| HOME-01 | Phase 13 | Pending |
-| HOME-02 | Phase 13 | Pending |
-| HOME-03 | Phase 13 | Pending |
+| SEO-04 | Phase 13 | Complete |
+| HOME-01 | Phase 13 | Complete |
+| HOME-02 | Phase 13 | Complete |
+| HOME-03 | Phase 13 | Complete |
 | FRAME-01 | Phase 14 | Pending |
 | FRAME-02 | Phase 14 | Pending |
 | FRAME-03 | Phase 14 | Pending |
