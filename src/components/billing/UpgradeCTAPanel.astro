@@ -81,6 +81,11 @@ const { tier } = Astro.props;
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ priceId: PRICES[cadence] }),
           });
+          if (res.status === 409) {
+            upgradeBtn.disabled = false;
+            upgradeBtn.textContent = 'Already subscribed';
+            return;
+          }
           const body = await res.json();
           if (!res.ok) throw new Error('checkout failed');
           window.location.href = body.url;

@@ -134,7 +134,7 @@ export function LogoSection({ value, onChange, userTier }: LogoSectionProps) {
           className="mt-2 text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded px-3 py-2"
           role="note"
         >
-          Error correction set to H for logo scannability
+          Your QR code will still scan fine with a logo
         </div>
       )}
     </section>

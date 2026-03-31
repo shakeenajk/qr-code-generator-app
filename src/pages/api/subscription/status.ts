@@ -15,8 +15,8 @@ export const GET: APIRoute = async ({ locals }) => {
     where: eq(subscriptions.userId, userId),
   });
 
-  const tier = sub?.tier ?? 'free';
   const status = sub?.status ?? 'inactive';
+  const tier = status === 'active' || status === 'past_due' ? (sub?.tier ?? 'free') : 'free';
   const paymentFailed = status === 'past_due';
 
   return new Response(JSON.stringify({ tier, status, paymentFailed }), {

@@ -5,6 +5,9 @@ import DashboardLayout from '../../../components/dashboard/DashboardLayout.astro
 import ScanChart from '../../../components/analytics/ScanChart';
 import ProgressBarList from '../../../components/analytics/ProgressBarList';
 import { Toaster } from 'sonner';
+import { db } from '../../../db/index';
+import { subscriptions } from '../../../db/schema';
+import { eq } from 'drizzle-orm';
 
 const { userId } = Astro.locals.auth();
 if (!userId) {
@@ -16,11 +19,12 @@ if (!slug) {
   return Astro.redirect('/dashboard');
 }
 
-// Fetch subscription status server-side (same pattern as dashboard/index.astro)
-const subRes = await fetch(`${import.meta.env.PUBLIC_BASE_URL}/api/subscription/status`, {
-  headers: { cookie: Astro.request.headers.get('cookie') ?? '' },
+// Query subscription status directly (avoids self-fetch which can fail in SSR)
+const sub = await db.query.subscriptions.findFirst({
+  where: eq(subscriptions.userId, userId),
 });
-const { tier } = subRes.ok ? await subRes.json() : { tier: 'free' };
+const subStatus = sub?.status ?? 'inactive';
+const tier = subStatus === 'active' || subStatus === 'past_due' ? (sub?.tier ?? 'free') : 'free';
 
 // Pro gate: redirect non-Pro users to /pricing (per D-14, UI-SPEC error state)
 if (tier !== 'pro') {

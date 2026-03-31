@@ -5,6 +5,9 @@ import PaymentFailureBanner from '../../components/billing/PaymentFailureBanner.
 import SubscriptionPolling from '../../components/billing/SubscriptionPolling';
 import QRLibrary from '../../components/dashboard/QRLibrary';
 import { Toaster } from 'sonner';
+import { db } from '../../db/index';
+import { subscriptions } from '../../db/schema';
+import { eq } from 'drizzle-orm';
 
 // Middleware (src/middleware.ts) already redirects unauthenticated users to /login.
 // This is a belt-and-suspenders check in case middleware is misconfigured.
@@ -13,13 +16,13 @@ if (!userId) {
   return Astro.redirect('/login');
 }
 
-// Fetch subscription status server-side to pass tier to components
-const subRes = await fetch(`${import.meta.env.PUBLIC_BASE_URL}/api/subscription/status`, {
-  headers: { cookie: Astro.request.headers.get('cookie') ?? '' }
+// Query subscription status directly (avoids self-fetch which can fail in SSR)
+const sub = await db.query.subscriptions.findFirst({
+  where: eq(subscriptions.userId, userId),
 });
-const { tier, paymentFailed } = subRes.ok
-  ? await subRes.json()
-  : { tier: 'free', paymentFailed: false };
+const status = sub?.status ?? 'inactive';
+const tier = status === 'active' || status === 'past_due' ? (sub?.tier ?? 'free') : 'free';
+const paymentFailed = status === 'past_due';
 ---
 
 <DashboardLayout activeSection="my-qr-codes" title="My QR Codes — QRCraft" tier={tier}>

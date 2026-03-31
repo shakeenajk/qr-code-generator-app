@@ -33,10 +33,17 @@ export const POST: APIRoute = async (context: APIContext) => {
   }
 
   try {
-    // Check DB for existing stripeCustomerId — never create duplicate customers
+    // Check DB for existing subscription — block duplicate checkouts
     const existingSubscription = await db.query.subscriptions.findFirst({
       where: eq(subscriptions.userId, userId),
     });
+
+    if (existingSubscription?.status === 'active' || existingSubscription?.status === 'past_due') {
+      return new Response(JSON.stringify({ error: 'already_subscribed' }), {
+        status: 409,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
 
     let customerId = existingSubscription?.stripeCustomerId;
 

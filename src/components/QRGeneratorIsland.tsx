@@ -448,7 +448,7 @@ export default function QRGeneratorIsland() {
         cornersSquareOptions: { type: cornerSquareType },
         cornersDotOptions: { type: cornerDotType },
         ...(logoSrc ? { image: logoSrc } : {}),
-        imageOptions: { imageSize: 0.25, hideBackgroundDots: true, margin: 4 },
+        imageOptions: { imageSize: 0.3, hideBackgroundDots: true, margin: 4 },
         qrOptions: { errorCorrectionLevel: logoSrc ? "H" : "Q" },
       });
     } catch {

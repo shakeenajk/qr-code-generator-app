@@ -398,22 +398,24 @@ export default function QRLibrary() {
 
       {/* Grid view */}
       {viewMode === 'grid' && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           {qrCodes.map(qr => (
             <div
               key={qr.id}
               className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col"
             >
               {/* Thumbnail */}
-              {qr.thumbnailData ? (
-                <img
-                  src={qr.thumbnailData}
-                  alt={qr.name}
-                  className="w-full aspect-square object-contain rounded-t-lg bg-white p-4"
-                />
-              ) : (
-                <ThumbnailPlaceholder className="w-full aspect-square rounded-t-lg" />
-              )}
+              <div className="bg-white rounded-t-lg flex items-center justify-center p-4">
+                {qr.thumbnailData ? (
+                  <img
+                    src={qr.thumbnailData}
+                    alt={qr.name}
+                    className="w-3/4 aspect-square object-contain"
+                  />
+                ) : (
+                  <ThumbnailPlaceholder className="w-3/4 aspect-square" />
+                )}
+              </div>
 
               {/* Card body */}
               <div className="p-4 flex flex-col gap-1 flex-1">

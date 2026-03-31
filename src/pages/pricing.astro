@@ -254,6 +254,13 @@ import Layout from '../layouts/Layout.astro';
             window.location.href = '/login?redirect=/pricing';
             return;
           }
+          if (res.status === 409) {
+            // Already has an active subscription
+            alert('You already have an active subscription. Manage it from your dashboard.');
+            btn.disabled = false;
+            btn.textContent = originalText;
+            return;
+          }
           if (!res.ok) throw new Error('checkout failed');
           const { url } = await res.json();
           window.location.href = url;
