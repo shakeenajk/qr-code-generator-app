@@ -41,10 +41,9 @@ Declared values (must be multiples of 4):
 | 2xl | 48px | Major section breaks |
 | 3xl | 64px | Page-level spacing |
 
-Exceptions:
-- Ad container placeholder height: 90px — fixed reserved height to prevent CLS when AdSense slot is unfilled or still loading. This value is intentionally non-standard (not a multiple of 8) because it matches the standard leaderboard ad unit height (90px) specified by Google AdSense.
+Exceptions: none
 
-Source: RESEARCH.md Pattern 1 (D-05, `minHeight: 90`) and Pattern 3 (CLS prevention).
+Source: RESEARCH.md Pattern 1 (D-05) and Pattern 3 (CLS prevention).
 
 ---
 
@@ -57,9 +56,9 @@ Source: RESEARCH.md Pattern 1 (D-05, `minHeight: 90`) and Pattern 3 (CLS prevent
 | Heading | 20px | 700 (bold) | 1.2 |
 | Display | 28px | 700 (bold) | 1.2 |
 
-Two weights only: 400 (normal) and 700 (bold). The ad disclosure label ("Advertisement") uses 12px / 400 / 1.4 — this is the only exception, inherited from existing `text-xs text-gray-400` pattern used throughout the codebase for helper text.
+Two weights only: 400 (normal) and 700 (bold). Three unique sizes: 14, 20, 28.
 
-Source: Phase 15 contract (carried forward). Ad disclosure label size matched from ExportButtons.tsx helper text pattern.
+Source: Phase 15 contract (carried forward). No new typography decisions in Phase 16.
 
 ---
 
@@ -93,8 +92,8 @@ The only new UI surface in Phase 16. A tier-gated React component that renders e
 - `userTier === "free"` and `isSignedIn`: render the ad container (described below)
 
 **Ad container visual contract:**
-- Outer wrapper: `w-full mt-4` with `style={{ minHeight: 90 }}` — always 90px tall once rendered to prevent CLS
-- Disclosure label above ad: `text-xs text-gray-400 dark:text-slate-500 mb-1` — text: "Advertisement"
+- Outer wrapper: `w-full mt-4` with `style={{ minHeight: 90 }}` — Ad container `minHeight: 90` matches Google AdSense standard leaderboard height; not a spacing token. Always reserves this height once rendered to prevent CLS.
+- Disclosure label above ad: `text-xs text-gray-400 dark:text-slate-500 mb-1` — text: "Advertisement". `text-xs` (12px) is an existing codebase pattern for helper text (e.g. ExportButtons.tsx); not a typography contract entry.
 - `<ins className="adsbygoogle" style={{ display: "block" }}>` — Google AdSense slot
 - Ad format: `data-ad-format="horizontal"` with `data-full-width-responsive="true"` (responsive leaderboard)
 - No border, no background, no shadow on the wrapper — the ad itself provides its own visual treatment
