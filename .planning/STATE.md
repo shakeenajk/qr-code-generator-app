@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Growth & Content
-status: Ready to execute
-stopped_at: Completed 15-03-PLAN.md
-last_updated: "2026-04-01T01:22:42.442Z"
+status: Phase complete — ready for verification
+stopped_at: "Completed 15-04-PLAN.md (checkpoint:human-verify Task 3 pending)"
+last_updated: "2026-04-01T01:38:30.661Z"
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 14
-  completed_plans: 13
+  completed_plans: 14
 ---
 
 # Project State
@@ -57,6 +57,7 @@ Recent decisions affecting current work:
 - [Phase 15-hosted-landing-pages]: handleLandingPageSave injects active styling at save time; QR preview stays empty until landing page is created and dynamicSlug assigned
 - [Phase 15]: Standalone SSR page without Layout.astro for branded landing pages
 - [Phase 15]: Both store buttons always rendered (D-05): disabled via opacity/pointer-events if URL missing
+- [Phase 15-04]: Edit button in PdfCardBody/AppStoreCardBody uses anchor tag for middle-click support; delete for landing pages routes to DELETE /api/landing/[id] for correct cascade
 
 ### Pending Todos
 
@@ -71,6 +72,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-01T01:22:42.437Z
-Stopped at: Completed 15-03-PLAN.md
+Last session: 2026-04-01T01:38:30.657Z
+Stopped at: Completed 15-04-PLAN.md (checkpoint:human-verify Task 3 pending)
 Resume file: None

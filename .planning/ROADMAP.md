@@ -42,7 +42,7 @@ Full details: `.planning/milestones/v1.1-ROADMAP.md`
 - [x] **Phase 12: Foundation Improvements** - Fix copy accuracy, header navigation, tier limits centralization, and vCard field enhancements (completed 2026-03-31)
 - [x] **Phase 13: SEO and Homepage Content** - Search Console setup, per-page meta/OG/JSON-LD, use cases landing page, and three new homepage sections (completed 2026-03-31)
 - [x] **Phase 14: QR Frames and Templates** - Decorative frame compositor, PNG export pipeline, and preset style templates (completed 2026-03-31)
-- [ ] **Phase 15: Hosted Landing Pages** - PDF and App Store content types with DB-backed landing pages and Vercel Blob uploads
+- [x] **Phase 15: Hosted Landing Pages** - PDF and App Store content types with DB-backed landing pages and Vercel Blob uploads (completed 2026-04-01)
 - [ ] **Phase 16: Google AdSense** - Free-tier ad placement using a client-side React island with tier check
 
 ## Phase Details
@@ -110,7 +110,7 @@ Plans:
 - [x] 15-01-PLAN.md — DB schema + migration + Vercel Blob upload API + landing page CRUD APIs
 - [x] 15-02-PLAN.md — FileUploadZone + PdfTab + AppStoreTab + QRGeneratorIsland wiring
 - [x] 15-03-PLAN.md — /p/[slug] SSR landing page + list API update
-- [ ] 15-04-PLAN.md — QRLibrary dashboard extension + edit landing page route
+- [x] 15-04-PLAN.md — QRLibrary dashboard extension + edit landing page route
 **UI hint**: yes
 
 ### Phase 16: Google AdSense
@@ -141,5 +141,5 @@ Plans:
 | 12. Foundation Improvements | v1.2 | 3/3 | Complete    | 2026-03-31 |
 | 13. SEO and Homepage Content | v1.2 | 4/4 | Complete    | 2026-03-31 |
 | 14. QR Frames and Templates | v1.2 | 2/3 | Complete    | 2026-03-31 |
-| 15. Hosted Landing Pages | v1.2 | 3/4 | In Progress|  |
+| 15. Hosted Landing Pages | v1.2 | 4/4 | Complete   | 2026-04-01 |
 | 16. Google AdSense | v1.2 | 0/TBD | Not started | - |
