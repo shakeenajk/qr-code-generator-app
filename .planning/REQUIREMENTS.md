@@ -50,7 +50,7 @@
 
 ### Advertising
 
-- [ ] **ADS-01**: Free-tier users see Google AdSense ads on the generator page (not in QR redirect path)
+- [x] **ADS-01**: Free-tier users see Google AdSense ads on the generator page (not in QR redirect path)
 - [ ] **ADS-02**: Starter/Pro users and anonymous users loading the page do not see ads (ads only for signed-in free tier)
 
 ## Future Requirements
@@ -111,7 +111,7 @@
 | CONT-01 | Phase 15 | Complete |
 | CONT-02 | Phase 15 | Complete |
 | CONT-03 | Phase 15 | Complete |
-| ADS-01 | Phase 16 | Pending |
+| ADS-01 | Phase 16 | Complete |
 | ADS-02 | Phase 16 | Pending |
 
 **Coverage:**

@@ -123,7 +123,7 @@ Plans:
   3. Lighthouse mobile performance score is 90 or above with AdSense active (measured via Lighthouse CI)
 **Plans**: 2 plans
 Plans:
-- [ ] 16-01-PLAN.md — Lighthouse CI baseline, ads.txt, CLS prevention CSS, dependency installation
+- [x] 16-01-PLAN.md — Lighthouse CI baseline, ads.txt, CLS prevention CSS, dependency installation
 - [ ] 16-02-PLAN.md — AdUnit component with delayed injection + QRGeneratorIsland wiring + performance verification
 
 ## Progress
@@ -145,4 +145,4 @@ Plans:
 | 13. SEO and Homepage Content | v1.2 | 4/4 | Complete    | 2026-03-31 |
 | 14. QR Frames and Templates | v1.2 | 2/3 | Complete    | 2026-03-31 |
 | 15. Hosted Landing Pages | v1.2 | 4/4 | Complete    | 2026-04-01 |
-| 16. Google AdSense | v1.2 | 0/2 | Not started | - |
+| 16. Google AdSense | v1.2 | 1/2 | In Progress|  |

@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Growth & Content
-status: Ready to plan
-stopped_at: Phase 16 context gathered
-last_updated: "2026-04-01T14:20:09.808Z"
+status: Ready to execute
+stopped_at: Completed 16-01-PLAN.md
+last_updated: "2026-04-01T14:52:08.448Z"
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 14
-  completed_plans: 14
+  total_plans: 16
+  completed_plans: 15
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-31)
 
 **Core value:** Anyone can generate a visually stunning, fully customized QR code and download it immediately — no signup, no friction.
-**Current focus:** Phase 15 — hosted-landing-pages
+**Current focus:** Phase 16 — google-adsense
 
 ## Current Position
 
-Phase: 16
-Plan: Not started
+Phase: 16 (google-adsense) — EXECUTING
+Plan: 2 of 2
 
 ## Accumulated Context
 
@@ -58,6 +58,8 @@ Recent decisions affecting current work:
 - [Phase 15]: Standalone SSR page without Layout.astro for branded landing pages
 - [Phase 15]: Both store buttons always rendered (D-05): disabled via opacity/pointer-events if URL missing
 - [Phase 15-04]: Edit button in PdfCardBody/AppStoreCardBody uses anchor tag for middle-click support; delete for landing pages routes to DELETE /api/landing/[id] for correct cascade
+- [Phase 16]: Lighthouse baseline captured against dist/client static dir before any AdSense code — pre-AdSense score 100/100 mobile
+- [Phase 16]: ads.txt uses placeholder pub-XXXXXXXXXXXXXXXX at public/ads.txt — user must replace with real publisher ID after AdSense account approval
 
 ### Pending Todos
 
@@ -72,6 +74,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-01T14:20:09.804Z
-Stopped at: Phase 16 context gathered
-Resume file: .planning/phases/16-google-adsense/16-CONTEXT.md
+Last session: 2026-04-01T14:52:08.444Z
+Stopped at: Completed 16-01-PLAN.md
+Resume file: None
