@@ -35,8 +35,8 @@ Anyone can generate a visually stunning, fully customized QR code and download i
 
 - [ ] Fix marketing copy (hero, FAQs) for freemium accuracy — v1.2
 - [ ] SEO improvements (Search Console, meta, structured data, content pages) — v1.2
-- [ ] PDF content type with hosted landing page — v1.2
-- [ ] App Store content type with hosted landing page — v1.2
+- ✓ PDF content type with hosted landing page — v1.2 (Phase 15)
+- ✓ App Store content type with hosted landing page — v1.2 (Phase 15)
 - [ ] Pricing promotion section on homepage — v1.2
 - [ ] How-to section with programmatic screenshots — v1.2
 - [ ] QR code use cases section + dedicated landing page — v1.2
@@ -110,4 +110,4 @@ Domain: qr-code-generator-app.com (Porkbun → Vercel).
 - **Deployment**: Vercel with serverless functions (not edge) — Clerk incompatible with Edge runtime
 
 ---
-*Last updated: 2026-03-31 after v1.2 milestone start*
+*Last updated: 2026-04-01 after Phase 15 (Hosted Landing Pages) complete*
