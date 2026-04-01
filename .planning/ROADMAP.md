@@ -43,7 +43,7 @@ Full details: `.planning/milestones/v1.1-ROADMAP.md`
 - [x] **Phase 13: SEO and Homepage Content** - Search Console setup, per-page meta/OG/JSON-LD, use cases landing page, and three new homepage sections (completed 2026-03-31)
 - [x] **Phase 14: QR Frames and Templates** - Decorative frame compositor, PNG export pipeline, and preset style templates (completed 2026-03-31)
 - [x] **Phase 15: Hosted Landing Pages** - PDF and App Store content types with DB-backed landing pages and Vercel Blob uploads (completed 2026-04-01)
-- [ ] **Phase 16: Google AdSense** - Free-tier ad placement using a client-side React island with tier check
+- [x] **Phase 16: Google AdSense** - Free-tier ad placement using a client-side React island with tier check (completed 2026-04-01)
 
 ## Phase Details
 
@@ -124,7 +124,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 16-01-PLAN.md — Lighthouse CI baseline, ads.txt, CLS prevention CSS, dependency installation
-- [ ] 16-02-PLAN.md — AdUnit component with delayed injection + QRGeneratorIsland wiring + performance verification
+- [x] 16-02-PLAN.md — AdUnit component with delayed injection + QRGeneratorIsland wiring + performance verification
 
 ## Progress
 
@@ -145,4 +145,4 @@ Plans:
 | 13. SEO and Homepage Content | v1.2 | 4/4 | Complete    | 2026-03-31 |
 | 14. QR Frames and Templates | v1.2 | 2/3 | Complete    | 2026-03-31 |
 | 15. Hosted Landing Pages | v1.2 | 4/4 | Complete    | 2026-04-01 |
-| 16. Google AdSense | v1.2 | 1/2 | In Progress|  |
+| 16. Google AdSense | v1.2 | 2/2 | Complete   | 2026-04-01 |

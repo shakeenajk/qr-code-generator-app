@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Growth & Content
-status: Ready to execute
-stopped_at: Completed 16-01-PLAN.md
-last_updated: "2026-04-01T14:52:08.448Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 16-02-PLAN.md
+last_updated: "2026-04-01T14:59:05.452Z"
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 16
-  completed_plans: 15
+  completed_plans: 16
 ---
 
 # Project State
@@ -60,6 +60,8 @@ Recent decisions affecting current work:
 - [Phase 15-04]: Edit button in PdfCardBody/AppStoreCardBody uses anchor tag for middle-click support; delete for landing pages routes to DELETE /api/landing/[id] for correct cascade
 - [Phase 16]: Lighthouse baseline captured against dist/client static dir before any AdSense code — pre-AdSense score 100/100 mobile
 - [Phase 16]: ads.txt uses placeholder pub-XXXXXXXXXXXXXXXX at public/ads.txt — user must replace with real publisher ID after AdSense account approval
+- [Phase 16]: Tier guard uses exact equality isSignedIn && userTier === 'free' — excludes null, starter, pro
+- [Phase 16]: AdUnit script injection lives inside useEffect — adsbygoogle.js never loads for anonymous or paid users
 
 ### Pending Todos
 
@@ -74,6 +76,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-01T14:52:08.444Z
-Stopped at: Completed 16-01-PLAN.md
+Last session: 2026-04-01T14:59:05.448Z
+Stopped at: Completed 16-02-PLAN.md
 Resume file: None
