@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Growth & Content
 status: Ready to execute
-stopped_at: Completed 15-hosted-landing-pages/15-01-PLAN.md
-last_updated: "2026-04-01T01:06:36.528Z"
+stopped_at: Completed 15-02-PLAN.md
+last_updated: "2026-04-01T01:12:45.680Z"
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 14
-  completed_plans: 11
+  completed_plans: 12
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-31)
 ## Current Position
 
 Phase: 15 (hosted-landing-pages) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 
 ## Accumulated Context
 
@@ -54,6 +54,7 @@ Recent decisions affecting current work:
 - [Phase 15-hosted-landing-pages]: Partial-update contract for file URL fields in PUT: absent fields skipped, present changed fields trigger del()
 - [Phase 15-hosted-landing-pages]: totalQr-only limit for landing page create (not dynamicQr) — landing pages are a QR code subtype
 - [Phase 15-hosted-landing-pages]: Three-row linked insert pattern: savedQrCodes -> dynamicQrCodes -> landingPages with destinationUrl=/p/[landingSlug]
+- [Phase 15-hosted-landing-pages]: handleLandingPageSave injects active styling at save time; QR preview stays empty until landing page is created and dynamicSlug assigned
 
 ### Pending Todos
 
@@ -68,6 +69,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-01T01:06:36.524Z
-Stopped at: Completed 15-hosted-landing-pages/15-01-PLAN.md
+Last session: 2026-04-01T01:12:45.676Z
+Stopped at: Completed 15-02-PLAN.md
 Resume file: None
