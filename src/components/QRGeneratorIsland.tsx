@@ -16,6 +16,7 @@ import {
 } from "../lib/qrEncoding";
 import QRPreview from "./QRPreview";
 import { ExportButtons } from "./ExportButtons";
+import { AdUnit } from "./AdUnit";
 import UrlTab from "./tabs/UrlTab";
 import TextTab from "./tabs/TextTab";
 import WifiTab from "./tabs/WifiTab";
@@ -804,6 +805,13 @@ export default function QRGeneratorIsland() {
             >
               {saveButtonLabel}
             </button>
+          )}
+
+          {isSignedIn && userTier === "free" && (
+            <AdUnit
+              adClient={import.meta.env.PUBLIC_ADSENSE_CLIENT}
+              adSlot={import.meta.env.PUBLIC_ADSENSE_SLOT}
+            />
           )}
         </div>
 
