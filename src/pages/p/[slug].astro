@@ -1,0 +1,289 @@
+---
+export const prerender = false;
+import { db } from '../../db/index';
+import { landingPages } from '../../db/schema';
+import { eq } from 'drizzle-orm';
+
+const { slug } = Astro.params;
+if (!slug) return Astro.redirect('/404');
+
+const [page] = await db
+  .select()
+  .from(landingPages)
+  .where(eq(landingPages.slug, slug))
+  .limit(1);
+
+if (!page) return Astro.redirect('/404');
+
+// Parse social links from JSON string
+const socialLinks: string[] = page.socialLinks ? JSON.parse(page.socialLinks) : [];
+
+// Build the canonical page URL for social sharing
+const pageUrl = `https://qr-code-generator-app.com/p/${page.slug}`;
+
+// Set cache headers — landing page content rarely changes mid-campaign
+Astro.response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=60');
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{page.title} | QRCraft</title>
+  <!-- OG meta tags — MUST be in server-rendered head for social crawlers -->
+  <meta property="og:title" content={page.title} />
+  <meta property="og:description" content={page.description ?? ''} />
+  <meta property="og:image" content={page.coverImageUrl ?? page.appIconUrl ?? '/og-image.png'} />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content={pageUrl} />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #111827;
+      background: #ffffff;
+    }
+    @media (prefers-color-scheme: dark) {
+      body { color: #f1f5f9; background: #020617; }
+    }
+    a { color: inherit; text-decoration: none; }
+    img, iframe, video { display: block; }
+  </style>
+</head>
+<body class="bg-white dark:bg-slate-950 text-gray-900 dark:text-slate-100">
+  <div class="max-w-2xl mx-auto px-4 py-12">
+
+    {page.type === 'pdf' && (
+      <div>
+        <!-- Cover photo hero -->
+        {page.coverImageUrl ? (
+          <img
+            src={page.coverImageUrl}
+            alt={`${page.title} cover`}
+            style="width:100%;max-height:240px;object-fit:cover;border-radius:0.5rem;"
+          />
+        ) : (
+          <div style="width:100%;height:180px;border-radius:0.5rem;background:#f3f4f6;display:flex;align-items:center;justify-content:center;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10 9 9 9 8 9"/>
+            </svg>
+          </div>
+        )}
+
+        <!-- Two-column layout on md+ -->
+        <div style="margin-top:2rem;display:grid;gap:2rem;grid-template-columns:1fr;">
+          <div class="pdf-grid" style="display:contents;">
+            <!-- Left column: PDF viewer + download -->
+            <div>
+              {page.pdfUrl ? (
+                <div>
+                  <iframe
+                    src={page.pdfUrl}
+                    style="width:100%;height:600px;border-radius:0.5rem;border:1px solid #e5e7eb;"
+                    title={`${page.title} PDF viewer`}
+                  />
+                  <div style="margin-top:1rem;">
+                    <a
+                      href={page.pdfUrl}
+                      download
+                      style="display:inline-flex;align-items:center;gap:0.5rem;border:1px solid #d1d5db;padding:0.5rem 1rem;border-radius:0.375rem;font-size:0.875rem;font-weight:700;transition:background-color 0.15s;text-decoration:none;"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                      </svg>
+                      Download PDF
+                    </a>
+                  </div>
+                </div>
+              ) : (
+                <div style="width:100%;height:200px;border-radius:0.5rem;border:1px dashed #e5e7eb;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:0.875rem;">
+                  No PDF uploaded
+                </div>
+              )}
+            </div>
+
+            <!-- Right column: metadata sidebar -->
+            <div>
+              <h1 style="font-size:28px;font-weight:700;line-height:1.2;margin:0;">{page.title}</h1>
+              {page.companyName && (
+                <p style="font-size:0.875rem;color:#4b5563;margin:0.25rem 0 0;">{page.companyName}</p>
+              )}
+              {page.description ? (
+                <p style="font-size:0.875rem;line-height:1.5;margin:1rem 0 0;">{page.description}</p>
+              ) : (
+                <p style="font-size:0.875rem;color:#9ca3af;font-style:italic;margin:1rem 0 0;">No description provided.</p>
+              )}
+              {page.websiteUrl && (
+                <a
+                  href={page.websiteUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style="display:block;font-size:0.875rem;color:#2563eb;margin-top:0.75rem;word-break:break-all;"
+                >
+                  {page.websiteUrl}
+                </a>
+              )}
+
+              <!-- Social sharing -->
+              {socialLinks.length > 0 && (
+                <div style="display:flex;gap:0.75rem;margin-top:1.5rem;flex-wrap:wrap;">
+                  {socialLinks.includes('facebook') && (
+                    <a
+                      href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style="display:inline-flex;align-items:center;gap:0.375rem;font-size:0.75rem;padding:0.375rem 0.75rem;border:1px solid #e5e7eb;border-radius:9999px;text-decoration:none;"
+                      aria-label="Share on Facebook"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+                      </svg>
+                      Facebook
+                    </a>
+                  )}
+                  {socialLinks.includes('twitter') && (
+                    <a
+                      href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(page.title)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style="display:inline-flex;align-items:center;gap:0.375rem;font-size:0.75rem;padding:0.375rem 0.75rem;border:1px solid #e5e7eb;border-radius:9999px;text-decoration:none;"
+                      aria-label="Share on Twitter"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/>
+                      </svg>
+                      Twitter
+                    </a>
+                  )}
+                  {socialLinks.includes('linkedin') && (
+                    <a
+                      href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(pageUrl)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style="display:inline-flex;align-items:center;gap:0.375rem;font-size:0.75rem;padding:0.375rem 0.75rem;border:1px solid #e5e7eb;border-radius:9999px;text-decoration:none;"
+                      aria-label="Share on LinkedIn"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
+                        <rect x="2" y="9" width="4" height="12"/>
+                        <circle cx="4" cy="4" r="2"/>
+                      </svg>
+                      LinkedIn
+                    </a>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {page.type === 'appstore' && (
+      <div style="text-align:center;">
+        <!-- App icon -->
+        {page.appIconUrl ? (
+          <img
+            src={page.appIconUrl}
+            alt={`${page.title} app icon`}
+            style="width:80px;height:80px;border-radius:1rem;margin:0 auto;"
+          />
+        ) : (
+          <div style="width:80px;height:80px;border-radius:1rem;background:#f3f4f6;margin:0 auto;"></div>
+        )}
+
+        <!-- App name -->
+        <h1 style="font-size:28px;font-weight:700;line-height:1.2;text-align:center;margin:1rem 0 0;">{page.title}</h1>
+
+        <!-- Company name -->
+        {page.companyName && (
+          <p style="font-size:0.875rem;color:#4b5563;text-align:center;margin:0.25rem 0 0;">{page.companyName}</p>
+        )}
+
+        <!-- Description -->
+        {page.description ? (
+          <p style="font-size:0.875rem;line-height:1.5;text-align:center;max-width:480px;margin:1rem auto 0;">{page.description}</p>
+        ) : (
+          <p style="font-size:0.875rem;color:#9ca3af;font-style:italic;text-align:center;max-width:480px;margin:1rem auto 0;">No description provided.</p>
+        )}
+
+        <!-- Store buttons — always both rendered per D-05 -->
+        <div style="display:flex;justify-content:center;gap:1rem;margin-top:2rem;flex-wrap:wrap;">
+          <!-- App Store button -->
+          <a
+            href={page.appStoreUrl ?? '#'}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={`display:inline-flex;align-items:center;gap:0.5rem;background:#000000;color:#ffffff;padding:0.75rem 1.25rem;border-radius:0.5rem;min-width:160px;min-height:44px;font-size:0.875rem;font-weight:700;text-decoration:none;transition:background-color 0.15s;${!page.appStoreUrl ? 'opacity:0.5;pointer-events:none;' : ''}`}
+            aria-label="Download on the App Store"
+          >
+            <!-- Apple logo SVG -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+            </svg>
+            App Store
+          </a>
+
+          <!-- Google Play button -->
+          <a
+            href={page.googlePlayUrl ?? '#'}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={`display:inline-flex;align-items:center;gap:0.5rem;background:#000000;color:#ffffff;padding:0.75rem 1.25rem;border-radius:0.5rem;min-width:160px;min-height:44px;font-size:0.875rem;font-weight:700;text-decoration:none;transition:background-color 0.15s;${!page.googlePlayUrl ? 'opacity:0.5;pointer-events:none;' : ''}`}
+            aria-label="Get it on Google Play"
+          >
+            <!-- Google Play logo SVG -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M3 20.5v-17c0-.83 1-.91 1.3-.26l13 8.5a.5.5 0 0 1 0 .52l-13 8.5c-.3.65-1.3.57-1.3-.26z"/>
+            </svg>
+            Google Play
+          </a>
+        </div>
+
+        <!-- Screenshot or trailer -->
+        {page.screenshotUrl && (
+          <div style="margin-top:2rem;">
+            {(page.screenshotUrl.endsWith('.mp4') || page.screenshotUrl.endsWith('.webm')) ? (
+              <video
+                src={page.screenshotUrl}
+                controls
+                style="width:100%;max-width:480px;margin:0 auto;border-radius:0.5rem;"
+              />
+            ) : (
+              <img
+                src={page.screenshotUrl}
+                alt={`${page.title} screenshot`}
+                style="width:100%;max-width:480px;margin:0 auto;border-radius:0.5rem;"
+              />
+            )}
+          </div>
+        )}
+      </div>
+    )}
+
+  </div>
+
+  <!-- Subtle powered-by footer -->
+  <p style="text-align:center;font-size:0.75rem;color:#9ca3af;margin:3rem 0 2rem;">Powered by QRCraft</p>
+</body>
+</html>
+
+<style is:global>
+  @media (min-width: 768px) {
+    .pdf-grid {
+      display: grid !important;
+      grid-template-columns: 1fr 280px;
+      gap: 2rem;
+    }
+  }
+</style>
