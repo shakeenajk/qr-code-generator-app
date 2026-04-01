@@ -121,7 +121,10 @@ Plans:
   1. A signed-in free-tier user sees a Google AdSense ad unit below the fold on the generator page
   2. Signed-in Starter and Pro users see no ad unit; anonymous visitors see no ad unit; the QR redirect path (/r/[slug]) has no ad code
   3. Lighthouse mobile performance score is 90 or above with AdSense active (measured via Lighthouse CI)
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 16-01-PLAN.md — Lighthouse CI baseline, ads.txt, CLS prevention CSS, dependency installation
+- [ ] 16-02-PLAN.md — AdUnit component with delayed injection + QRGeneratorIsland wiring + performance verification
 
 ## Progress
 
@@ -142,4 +145,4 @@ Plans:
 | 13. SEO and Homepage Content | v1.2 | 4/4 | Complete    | 2026-03-31 |
 | 14. QR Frames and Templates | v1.2 | 2/3 | Complete    | 2026-03-31 |
 | 15. Hosted Landing Pages | v1.2 | 4/4 | Complete    | 2026-04-01 |
-| 16. Google AdSense | v1.2 | 0/TBD | Not started | - |
+| 16. Google AdSense | v1.2 | 0/2 | Not started | - |
