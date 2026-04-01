@@ -16,6 +16,11 @@ interface SavedQR {
   destinationUrl?: string | null;
   isPaused?: boolean | null;
   isDynamic?: boolean;
+  landingPageId?: string | null;
+  landingPageSlug?: string | null;
+  landingPageTitle?: string | null;
+  landingPageType?: string | null;
+  isLandingPage?: boolean;
 }
 
 type ViewMode = 'grid' | 'list';
@@ -38,6 +43,92 @@ function DynamicBadge() {
     >
       Dynamic
     </span>
+  );
+}
+
+function PdfBadge() {
+  return (
+    <span
+      className="text-xs font-semibold px-2 py-1 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-400 leading-none"
+      aria-label="PDF Landing Page"
+    >
+      PDF
+    </span>
+  );
+}
+
+function AppStoreBadge() {
+  return (
+    <span
+      className="text-xs font-semibold px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 leading-none"
+      aria-label="App Store Landing Page"
+    >
+      App Store
+    </span>
+  );
+}
+
+function PdfCardBody({ qr }: { qr: SavedQR }) {
+  return (
+    <div className="mt-1 space-y-1">
+      <div className="flex items-center gap-2 flex-wrap">
+        <PdfBadge />
+      </div>
+      {qr.landingPageTitle && (
+        <p className="text-sm text-gray-700 dark:text-slate-300 truncate">{qr.landingPageTitle}</p>
+      )}
+      <div className="flex items-center gap-2 mt-1">
+        <a
+          href={'/p/' + qr.landingPageSlug}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+          onClick={(e) => e.stopPropagation()}
+        >
+          View Page
+        </a>
+        <a
+          href={'/dashboard/edit-landing/' + qr.landingPageId}
+          aria-label="Edit landing page"
+          className="p-1 text-gray-400 hover:text-gray-600 dark:text-slate-500 dark:hover:text-slate-300"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Pencil className="w-4 h-4" />
+        </a>
+      </div>
+    </div>
+  );
+}
+
+function AppStoreCardBody({ qr }: { qr: SavedQR }) {
+  return (
+    <div className="mt-1 space-y-1">
+      <div className="flex items-center gap-2 flex-wrap">
+        <AppStoreBadge />
+      </div>
+      {qr.landingPageTitle && (
+        <p className="text-sm text-gray-700 dark:text-slate-300 truncate">{qr.landingPageTitle}</p>
+      )}
+      <div className="flex items-center gap-2 mt-1">
+        <a
+          href={'/p/' + qr.landingPageSlug}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+          onClick={(e) => e.stopPropagation()}
+        >
+          View Page
+        </a>
+        <a
+          href={'/dashboard/edit-landing/' + qr.landingPageId}
+          aria-label="Edit landing page"
+          className="p-1 text-gray-400 hover:text-gray-600 dark:text-slate-500 dark:hover:text-slate-300"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Pencil className="w-4 h-4" />
+        </a>
+      </div>
+    </div>
   );
 }
 
@@ -77,7 +168,7 @@ function EmptyState() {
 interface CardActionsProps {
   qr: SavedQR;
   deletingId: string | null;
-  onEdit: (id: string) => void;
+  onEdit: (qr: SavedQR) => void;
   onDeleteRequest: (id: string) => void;
   onDeleteConfirm: (id: string) => void;
   onDeleteCancel: () => void;
@@ -87,7 +178,11 @@ function CardActions({ qr, deletingId, onEdit, onDeleteRequest, onDeleteConfirm,
   if (deletingId === qr.id) {
     return (
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-xs text-gray-600 dark:text-slate-400 mr-1">Are you sure?</span>
+        <span className="text-xs text-gray-600 dark:text-slate-400 mr-1">
+          {qr.isLandingPage
+            ? 'Are you sure? This will delete the QR code and its hosted page permanently.'
+            : 'Are you sure?'}
+        </span>
         <button
           onClick={() => onDeleteConfirm(qr.id)}
           className="text-xs px-2 py-1 rounded bg-red-600 text-white hover:bg-red-700 transition-colors font-medium"
@@ -98,7 +193,7 @@ function CardActions({ qr, deletingId, onEdit, onDeleteRequest, onDeleteConfirm,
           onClick={onDeleteCancel}
           className="text-xs px-2 py-1 rounded border border-gray-300 dark:border-slate-600 text-gray-600 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
         >
-          Cancel
+          {qr.isLandingPage ? 'Keep it' : 'Cancel'}
         </button>
       </div>
     );
@@ -106,7 +201,7 @@ function CardActions({ qr, deletingId, onEdit, onDeleteRequest, onDeleteConfirm,
 
   return (
     <div className="flex items-center gap-2">
-      {qr.isDynamic && qr.slug && (
+      {qr.isDynamic && qr.slug && !qr.isLandingPage && (
         <a
           href={`/dashboard/analytics/${qr.slug}`}
           aria-label={`View analytics for ${qr.name}`}
@@ -116,19 +211,21 @@ function CardActions({ qr, deletingId, onEdit, onDeleteRequest, onDeleteConfirm,
           Analytics
         </a>
       )}
-      <button
-        onClick={() => onEdit(qr.id)}
-        className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
-      >
-        <Pencil className="w-3.5 h-3.5" />
-        Edit
-      </button>
+      {!qr.isLandingPage && (
+        <button
+          onClick={() => onEdit(qr)}
+          className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md border border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+        >
+          <Pencil className="w-3.5 h-3.5" />
+          Edit
+        </button>
+      )}
       <button
         onClick={() => onDeleteRequest(qr.id)}
         className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-md border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
       >
         <Trash2 className="w-3.5 h-3.5" />
-        Delete
+        {qr.isLandingPage ? 'Delete Page' : 'Delete'}
       </button>
     </div>
   );
@@ -274,8 +371,12 @@ export default function QRLibrary() {
     localStorage.setItem(VIEW_MODE_KEY, mode);
   }
 
-  function handleEdit(id: string) {
-    window.location.href = `/?edit=${id}`;
+  function handleEdit(qr: SavedQR) {
+    if (qr.isLandingPage && qr.landingPageId) {
+      window.location.href = `/dashboard/edit-landing/${qr.landingPageId}`;
+    } else {
+      window.location.href = `/?edit=${qr.id}`;
+    }
   }
 
   function handleDeleteRequest(id: string) {
@@ -287,8 +388,13 @@ export default function QRLibrary() {
   }
 
   async function handleDeleteConfirm(id: string) {
+    const qr = qrCodes.find(q => q.id === id);
     try {
-      const res = await fetch(`/api/qr/${id}`, { method: 'DELETE' });
+      // For landing pages, use DELETE /api/landing/[landingPageId]; for others use /api/qr/[id]
+      const deleteUrl = qr?.isLandingPage && qr.landingPageId
+        ? `/api/landing/${qr.landingPageId}`
+        : `/api/qr/${id}`;
+      const res = await fetch(deleteUrl, { method: 'DELETE' });
       if (res.ok) {
         setQrCodes(prev => prev.filter(q => q.id !== id));
         toast('QR code deleted');
@@ -352,6 +458,32 @@ export default function QRLibrary() {
       setTogglingPauseId(null);
     }
   };
+
+  function renderCardBody(qr: SavedQR) {
+    if (qr.isLandingPage && qr.landingPageType === 'pdf') {
+      return <PdfCardBody qr={qr} />;
+    }
+    if (qr.isLandingPage && qr.landingPageType === 'appstore') {
+      return <AppStoreCardBody qr={qr} />;
+    }
+    if (qr.isDynamic) {
+      return (
+        <DynamicCardBody
+          qr={qr}
+          editingDestId={editingDestId}
+          editingDestValue={editingDestValue}
+          savingDestId={savingDestId}
+          togglingPauseId={togglingPauseId}
+          onEditingDestValueChange={setEditingDestValue}
+          onStartEditingDest={startEditingDest}
+          onSaveDestination={saveDestination}
+          onDiscardDest={discardDest}
+          onTogglePause={togglePause}
+        />
+      );
+    }
+    return null;
+  }
 
   if (loading) {
     return (
@@ -419,33 +551,20 @@ export default function QRLibrary() {
 
               {/* Card body */}
               <div className="p-4 flex flex-col gap-1 flex-1">
-                {/* Name row with optional Dynamic badge */}
+                {/* Name row with optional badge */}
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="font-semibold text-gray-900 dark:text-white truncate">{qr.name}</p>
-                  {qr.isDynamic && <DynamicBadge />}
+                  {qr.isDynamic && !qr.isLandingPage && <DynamicBadge />}
                 </div>
                 <p className="text-sm text-gray-500 dark:text-slate-400">
                   {new Date(qr.createdAt * 1000).toLocaleDateString()}
                 </p>
-                {!qr.isDynamic && (
+                {!qr.isDynamic && !qr.isLandingPage && (
                   <p className="text-xs text-gray-400 dark:text-slate-500 truncate">{qr.contentData}</p>
                 )}
 
-                {/* Dynamic QR metadata */}
-                {qr.isDynamic && (
-                  <DynamicCardBody
-                    qr={qr}
-                    editingDestId={editingDestId}
-                    editingDestValue={editingDestValue}
-                    savingDestId={savingDestId}
-                    togglingPauseId={togglingPauseId}
-                    onEditingDestValueChange={setEditingDestValue}
-                    onStartEditingDest={startEditingDest}
-                    onSaveDestination={saveDestination}
-                    onDiscardDest={discardDest}
-                    onTogglePause={togglePause}
-                  />
-                )}
+                {/* Card body variant */}
+                {renderCardBody(qr)}
               </div>
 
               {/* Actions */}
@@ -485,33 +604,20 @@ export default function QRLibrary() {
 
               {/* Info */}
               <div className="flex-1 min-w-0">
-                {/* Name row with optional Dynamic badge */}
+                {/* Name row with optional badge */}
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="font-semibold text-gray-900 dark:text-white truncate">{qr.name}</p>
-                  {qr.isDynamic && <DynamicBadge />}
+                  {qr.isDynamic && !qr.isLandingPage && <DynamicBadge />}
                 </div>
                 <p className="text-sm text-gray-500 dark:text-slate-400">
                   {new Date(qr.createdAt * 1000).toLocaleDateString()}
                 </p>
-                {!qr.isDynamic && (
+                {!qr.isDynamic && !qr.isLandingPage && (
                   <p className="text-xs text-gray-400 dark:text-slate-500 truncate">{qr.contentData}</p>
                 )}
 
-                {/* Dynamic QR metadata */}
-                {qr.isDynamic && (
-                  <DynamicCardBody
-                    qr={qr}
-                    editingDestId={editingDestId}
-                    editingDestValue={editingDestValue}
-                    savingDestId={savingDestId}
-                    togglingPauseId={togglingPauseId}
-                    onEditingDestValueChange={setEditingDestValue}
-                    onStartEditingDest={startEditingDest}
-                    onSaveDestination={saveDestination}
-                    onDiscardDest={discardDest}
-                    onTogglePause={togglePause}
-                  />
-                )}
+                {/* Card body variant */}
+                {renderCardBody(qr)}
               </div>
 
               {/* Actions */}
