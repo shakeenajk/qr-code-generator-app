@@ -20,6 +20,8 @@ import UrlTab from "./tabs/UrlTab";
 import TextTab from "./tabs/TextTab";
 import WifiTab from "./tabs/WifiTab";
 import VCardTab from "./tabs/VCardTab";
+import PdfTab, { type PdfLandingPageData } from "./tabs/PdfTab";
+import AppStoreTab, { type AppStoreLandingPageData } from "./tabs/AppStoreTab";
 import { ColorSection, type ColorSectionState } from "./customize/ColorSection";
 import { ShapeSection, type ShapeSectionState } from "./customize/ShapeSection";
 import { LogoSection, type LogoSectionState } from "./customize/LogoSection";
@@ -28,7 +30,7 @@ import { TemplateSection } from "./customize/TemplateSection";
 import type { TemplatePreset, FrameSectionState } from "../types/frames";
 import { SaveQRModal } from "./SaveQRModal";
 
-type TabId = "url" | "text" | "wifi" | "vcard";
+type TabId = "url" | "text" | "wifi" | "vcard" | "pdf" | "appstore";
 type UserTier = "free" | "starter" | "pro" | null;
 
 const TABS: { id: TabId; label: string }[] = [
@@ -36,6 +38,8 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "text", label: "Text" },
   { id: "wifi", label: "WiFi" },
   { id: "vcard", label: "vCard" },
+  { id: "pdf", label: "PDF" },
+  { id: "appstore", label: "App Store" },
 ];
 
 // QRCodeStyling instance is created once and reused — official React pattern
@@ -62,6 +66,8 @@ export default function QRGeneratorIsland() {
   const [userTier, setUserTier] = useState<UserTier>(null);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [landingSaving, setLandingSaving] = useState(false);
+  const [landingDynamicSlug, setLandingDynamicSlug] = useState<string | null>(null);
 
   // Subscribe to Clerk nanostores to keep isLoaded / isSignedIn in sync
   useEffect(() => {
@@ -164,12 +170,16 @@ export default function QRGeneratorIsland() {
   // Derive the raw QR data string from active tab state
   const rawContent = useMemo(() => {
     switch (activeTab) {
-      case "url":   return urlValue;
-      case "text":  return textValue;
-      case "wifi":  return encodeWifi(wifiValue);
-      case "vcard": return encodeVCard(vcardValue);
+      case "url":      return urlValue;
+      case "text":     return textValue;
+      case "wifi":     return encodeWifi(wifiValue);
+      case "vcard":    return encodeVCard(vcardValue);
+      case "pdf":
+      case "appstore": return landingDynamicSlug
+        ? `${REDIRECT_BASE}${landingDynamicSlug}`
+        : `${REDIRECT_BASE}--------`;
     }
-  }, [activeTab, urlValue, textValue, wifiValue, vcardValue]);
+  }, [activeTab, urlValue, textValue, wifiValue, vcardValue, landingDynamicSlug]);
 
   // Debounce for 300ms — PREV-01
   const debouncedContent = useDebounce(rawContent, 300);
@@ -197,12 +207,14 @@ export default function QRGeneratorIsland() {
   // are blank, so debouncedContent cannot be used; raw check gives immediate placeholder on tab switch.
   const isEmpty = useMemo(() => {
     switch (activeTab) {
-      case "url":   return isContentEmpty(debouncedContent);
-      case "text":  return isContentEmpty(debouncedContent);
-      case "wifi":  return isWifiEmpty(wifiValue);
-      case "vcard": return isVCardEmpty(vcardValue);
+      case "url":      return isContentEmpty(debouncedContent);
+      case "text":     return isContentEmpty(debouncedContent);
+      case "wifi":     return isWifiEmpty(wifiValue);
+      case "vcard":    return isVCardEmpty(vcardValue);
+      case "pdf":
+      case "appstore": return landingDynamicSlug === null; // empty until landing page is created
     }
-  }, [activeTab, debouncedContent, wifiValue, vcardValue]);
+  }, [activeTab, debouncedContent, wifiValue, vcardValue, landingDynamicSlug]);
 
   // Edit-mode: detect ?edit= URL param (client-side only)
   const editId = useMemo(
@@ -238,7 +250,7 @@ export default function QRGeneratorIsland() {
         setEditName(data.name ?? "Untitled");
 
         // Hydrate tab
-        if (data.contentType && ["url", "text", "wifi", "vcard"].includes(data.contentType)) {
+        if (data.contentType && ["url", "text", "wifi", "vcard", "pdf", "appstore"].includes(data.contentType)) {
           setActiveTab(data.contentType as TabId);
         }
 
@@ -289,10 +301,12 @@ export default function QRGeneratorIsland() {
   // Derive default save name from current content
   const defaultSaveName = useMemo(() => {
     switch (activeTab) {
-      case "url":    return urlValue.replace(/^https?:\/\//, "").split("/")[0].slice(0, 60) || "My QR";
-      case "text":   return textValue.split("\n")[0].slice(0, 60) || "My QR";
-      case "wifi":   return wifiValue.ssid.slice(0, 60) || "WiFi QR";
-      case "vcard":  return vcardValue.name.slice(0, 60) || "Contact QR";
+      case "url":      return urlValue.replace(/^https?:\/\//, "").split("/")[0].slice(0, 60) || "My QR";
+      case "text":     return textValue.split("\n")[0].slice(0, 60) || "My QR";
+      case "wifi":     return wifiValue.ssid.slice(0, 60) || "WiFi QR";
+      case "vcard":    return vcardValue.name.slice(0, 60) || "Contact QR";
+      case "pdf":      return "PDF QR";
+      case "appstore": return "App Store QR";
     }
   }, [activeTab, urlValue, textValue, wifiValue, vcardValue]);
 
@@ -323,10 +337,12 @@ export default function QRGeneratorIsland() {
       // so edit-mode can restore it). On first save, slug is not yet known — it will be set after response.
       let contentData: Record<string, unknown>;
       switch (activeTab) {
-        case "url":   contentData = { url: urlValue }; break;
-        case "text":  contentData = { text: textValue }; break;
-        case "wifi":  contentData = { ...wifiValue }; break;
-        case "vcard": contentData = { ...vcardValue }; break;
+        case "url":      contentData = { url: urlValue }; break;
+        case "text":     contentData = { text: textValue }; break;
+        case "wifi":     contentData = { ...wifiValue }; break;
+        case "vcard":    contentData = { ...vcardValue }; break;
+        case "pdf":
+        case "appstore": contentData = {}; break; // landing pages managed via /api/landing/create
       }
 
       const body: Record<string, unknown> = {
@@ -390,10 +406,12 @@ export default function QRGeneratorIsland() {
 
       let contentData: Record<string, unknown>;
       switch (activeTab) {
-        case "url":   contentData = { url: urlValue }; break;
-        case "text":  contentData = { text: textValue }; break;
-        case "wifi":  contentData = { ...wifiValue }; break;
-        case "vcard": contentData = { ...vcardValue }; break;
+        case "url":      contentData = { url: urlValue }; break;
+        case "text":     contentData = { text: textValue }; break;
+        case "wifi":     contentData = { ...wifiValue }; break;
+        case "vcard":    contentData = { ...vcardValue }; break;
+        case "pdf":
+        case "appstore": contentData = {}; break; // landing pages managed via /api/landing routes
       }
 
       const res = await fetch(`/api/qr/${editId}`, {
@@ -419,6 +437,53 @@ export default function QRGeneratorIsland() {
       setIsSaving(false);
     }
   }, [editId, editName, activeTab, urlValue, textValue, wifiValue, vcardValue, colorOptions, shapeOptions, logoOptions]);
+
+  // Landing page save handler — POST /api/landing/create
+  const handleLandingPageSave = useCallback(async (tabData: PdfLandingPageData | AppStoreLandingPageData) => {
+    setLandingSaving(true);
+    try {
+      const thumbnailData = await generateThumbnail();
+
+      const body = {
+        ...tabData,
+        styleData: JSON.stringify({ ...colorOptions, ...shapeOptions }),
+        logoData: logoOptions.logoSrc ?? null,
+        thumbnailData,
+      };
+
+      const res = await fetch("/api/landing/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (res.status === 403) {
+        toast.error("You've reached your QR code limit. Upgrade your plan to create more.", {
+          action: { label: "Upgrade", onClick: () => { window.location.href = "/pricing"; } },
+        });
+        return;
+      }
+
+      if (!res.ok) {
+        toast.error("Could not save your landing page. Please try again.");
+        return;
+      }
+
+      const responseData = await res.json();
+      const dynamicSlug: string = responseData.dynamicSlug;
+
+      // Set landing slug so QR encodes the /r/ redirect URL
+      setLandingDynamicSlug(dynamicSlug);
+
+      toast("Landing page created", {
+        action: { label: "Go to Library", onClick: () => { window.location.href = "/dashboard"; } },
+      });
+    } catch {
+      toast.error("Could not save your landing page. Please try again.");
+    } finally {
+      setLandingSaving(false);
+    }
+  }, [colorOptions, shapeOptions, logoOptions]);
 
   // Mount effect — create QR instance client-side only and append to preview div
   // useEffect never runs during SSR, so qr-code-styling's window access is safe
@@ -633,6 +698,36 @@ export default function QRGeneratorIsland() {
             className={activeTab === "vcard" ? "" : "hidden"}
           >
             <VCardTab value={vcardValue} onChange={setVcardValue} />
+          </div>
+
+          <div
+            id="panel-pdf"
+            role="tabpanel"
+            data-tab-panel="pdf"
+            aria-labelledby="tab-pdf"
+            className={activeTab === "pdf" ? "" : "hidden"}
+          >
+            <PdfTab
+              onSave={handleLandingPageSave}
+              isSaving={landingSaving}
+              userTier={userTier}
+              isSignedIn={isSignedIn}
+            />
+          </div>
+
+          <div
+            id="panel-appstore"
+            role="tabpanel"
+            data-tab-panel="appstore"
+            aria-labelledby="tab-appstore"
+            className={activeTab === "appstore" ? "" : "hidden"}
+          >
+            <AppStoreTab
+              onSave={handleLandingPageSave}
+              isSaving={landingSaving}
+              userTier={userTier}
+              isSignedIn={isSignedIn}
+            />
           </div>
 
           {/* Customization section — CUST-01 through CUST-07, LOGO-01 through LOGO-04 */}
