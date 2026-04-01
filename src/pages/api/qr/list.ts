@@ -2,7 +2,7 @@ export const prerender = false;
 
 import type { APIRoute } from 'astro';
 import { db } from '../../../db/index';
-import { savedQrCodes, dynamicQrCodes } from '../../../db/schema';
+import { savedQrCodes, dynamicQrCodes, landingPages } from '../../../db/schema';
 import { eq, desc } from 'drizzle-orm';
 
 export const GET: APIRoute = async ({ locals }) => {
@@ -28,9 +28,15 @@ export const GET: APIRoute = async ({ locals }) => {
       slug: dynamicQrCodes.slug,
       destinationUrl: dynamicQrCodes.destinationUrl,
       isPaused: dynamicQrCodes.isPaused,
+      // Landing page fields (null for QRs without landing pages)
+      landingPageId: landingPages.id,
+      landingPageSlug: landingPages.slug,
+      landingPageTitle: landingPages.title,
+      landingPageType: landingPages.type,
     })
     .from(savedQrCodes)
     .leftJoin(dynamicQrCodes, eq(savedQrCodes.id, dynamicQrCodes.savedQrCodeId))
+    .leftJoin(landingPages, eq(savedQrCodes.id, landingPages.savedQrCodeId))
     .where(eq(savedQrCodes.userId, userId))
     .orderBy(desc(savedQrCodes.createdAt))
     .limit(50);
@@ -38,6 +44,7 @@ export const GET: APIRoute = async ({ locals }) => {
   const response = rows.map((row) => ({
     ...row,
     isDynamic: row.slug !== null,
+    isLandingPage: row.landingPageId !== null,
   }));
 
   return new Response(JSON.stringify(response), {
