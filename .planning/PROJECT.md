@@ -45,7 +45,7 @@ Anyone can generate a visually stunning, fully customized QR code and download i
 - [ ] vCard enhancements (Title, Company, Work Phone, Address, Website, LinkedIn) — v1.2
 - [ ] Register button + pricing navigation link in header — v1.2
 - [ ] Fix pricing page (dynamic QR limits, tier accuracy) — v1.2
-- [ ] Google AdSense ads on free tier — v1.2
+- ✓ Google AdSense ads on free tier — v1.2 (Phase 16)
 - [ ] Updated tier limits (Free: 5/3, Starter: 100/10, Pro: 250/100) — v1.2
 
 ### Out of Scope
@@ -110,4 +110,4 @@ Domain: qr-code-generator-app.com (Porkbun → Vercel).
 - **Deployment**: Vercel with serverless functions (not edge) — Clerk incompatible with Edge runtime
 
 ---
-*Last updated: 2026-04-01 after Phase 15 (Hosted Landing Pages) complete*
+*Last updated: 2026-04-01 after Phase 16 (Google AdSense) complete — last phase in v1.2*
