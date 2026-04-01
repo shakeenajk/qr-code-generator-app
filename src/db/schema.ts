@@ -45,6 +45,35 @@ export const dynamicQrCodes = sqliteTable('dynamic_qr_codes', {
   index('dynamic_qr_codes_user_id_idx').on(table.userId),
 ]);
 
+export const landingPages = sqliteTable('landing_pages', {
+  id:             text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId:         text('user_id').notNull(),
+  savedQrCodeId:  text('saved_qr_code_id').references(() => savedQrCodes.id, { onDelete: 'cascade' }),
+  slug:           text('slug').notNull().unique(),
+  type:           text('type').notNull(),                 // 'pdf' | 'appstore'
+  title:          text('title').notNull(),
+  description:    text('description'),
+  companyName:    text('company_name'),
+  websiteUrl:     text('website_url'),
+  ctaButtonText:  text('cta_button_text'),
+  coverImageUrl:  text('cover_image_url'),
+  // PDF-specific
+  pdfUrl:         text('pdf_url'),
+  // App Store-specific
+  appStoreUrl:    text('app_store_url'),
+  googlePlayUrl:  text('google_play_url'),
+  appIconUrl:     text('app_icon_url'),
+  screenshotUrl:  text('screenshot_url'),
+  // Social links stored as JSON array e.g. '["facebook","twitter"]'
+  socialLinks:    text('social_links'),
+  isPaused:       integer('is_paused', { mode: 'boolean' }).notNull().default(false),
+  createdAt:      integer('created_at').notNull().$defaultFn(() => Math.floor(Date.now() / 1000)),
+  updatedAt:      integer('updated_at').notNull().$defaultFn(() => Math.floor(Date.now() / 1000)),
+}, (table) => [
+  index('landing_pages_user_id_idx').on(table.userId),
+  index('landing_pages_saved_qr_id_idx').on(table.savedQrCodeId),
+]);
+
 export const scanEvents = sqliteTable('scan_events', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   dynamicQrCodeId: text('dynamic_qr_code_id')

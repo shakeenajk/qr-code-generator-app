@@ -20,6 +20,7 @@
     "@tailwindcss/vite": "^4.2.1",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@vercel/blob": "^2.3.2",
     "astro": "^5.17.1",
     "astro-seo": "^1.1.0",
     "drizzle-orm": "^0.45.1",

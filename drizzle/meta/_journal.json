@@ -8,6 +8,13 @@
       "when": 1774924868060,
       "tag": "0000_low_jack_murdock",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1775005333046,
+      "tag": "0001_lively_stranger",
+      "breakpoints": true
     }
   ]
 }
