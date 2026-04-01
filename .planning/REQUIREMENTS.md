@@ -33,9 +33,9 @@
 
 ### Content Types
 
-- [ ] **CONT-01**: User can generate a QR code for a PDF with hosted landing page (cover photo, title, description, social buttons, website URL)
-- [ ] **CONT-02**: User can generate a QR code for an App Store listing with hosted landing page (all store links, app name, description, branding)
-- [ ] **CONT-03**: PDF/App Store landing pages follow same QR code limits per tier (Free: 5, Starter: 100, Pro: 250)
+- [x] **CONT-01**: User can generate a QR code for a PDF with hosted landing page (cover photo, title, description, social buttons, website URL)
+- [x] **CONT-02**: User can generate a QR code for an App Store listing with hosted landing page (all store links, app name, description, branding)
+- [x] **CONT-03**: PDF/App Store landing pages follow same QR code limits per tier (Free: 5, Starter: 100, Pro: 250)
 
 ### vCard Enhancements
 
@@ -108,9 +108,9 @@
 | FRAME-01 | Phase 14 | Complete |
 | FRAME-02 | Phase 14 | Complete |
 | FRAME-03 | Phase 14 | Complete |
-| CONT-01 | Phase 15 | Pending |
-| CONT-02 | Phase 15 | Pending |
-| CONT-03 | Phase 15 | Pending |
+| CONT-01 | Phase 15 | Complete |
+| CONT-02 | Phase 15 | Complete |
+| CONT-03 | Phase 15 | Complete |
 | ADS-01 | Phase 16 | Pending |
 | ADS-02 | Phase 16 | Pending |
 

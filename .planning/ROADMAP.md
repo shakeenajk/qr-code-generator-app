@@ -107,7 +107,7 @@ Plans:
   3. PDF and App Store landing pages respect the same tier limits as other QR codes (Free: 5, Starter: 100, Pro: 250); the hosted page renders og:title, og:description, og:image for social sharing
 **Plans**: 4 plans
 Plans:
-- [ ] 15-01-PLAN.md — DB schema + migration + Vercel Blob upload API + landing page CRUD APIs
+- [x] 15-01-PLAN.md — DB schema + migration + Vercel Blob upload API + landing page CRUD APIs
 - [ ] 15-02-PLAN.md — FileUploadZone + PdfTab + AppStoreTab + QRGeneratorIsland wiring
 - [ ] 15-03-PLAN.md — /p/[slug] SSR landing page + list API update
 - [ ] 15-04-PLAN.md — QRLibrary dashboard extension + edit landing page route
@@ -141,5 +141,5 @@ Plans:
 | 12. Foundation Improvements | v1.2 | 3/3 | Complete    | 2026-03-31 |
 | 13. SEO and Homepage Content | v1.2 | 4/4 | Complete    | 2026-03-31 |
 | 14. QR Frames and Templates | v1.2 | 2/3 | Complete    | 2026-03-31 |
-| 15. Hosted Landing Pages | v1.2 | 0/4 | Not started | - |
+| 15. Hosted Landing Pages | v1.2 | 1/4 | In Progress|  |
 | 16. Google AdSense | v1.2 | 0/TBD | Not started | - |

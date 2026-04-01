@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Growth & Content
-status: Ready to plan
-stopped_at: Completed 14-02-PLAN.md
-last_updated: "2026-03-31T21:26:35.062Z"
+status: Ready to execute
+stopped_at: Completed 15-hosted-landing-pages/15-01-PLAN.md
+last_updated: "2026-04-01T01:06:36.528Z"
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 10
-  completed_plans: 10
+  total_plans: 14
+  completed_plans: 11
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-31)
 
 **Core value:** Anyone can generate a visually stunning, fully customized QR code and download it immediately — no signup, no friction.
-**Current focus:** Phase 14 — QR Frames and Templates
+**Current focus:** Phase 15 — hosted-landing-pages
 
 ## Current Position
 
-Phase: 15
-Plan: Not started
+Phase: 15 (hosted-landing-pages) — EXECUTING
+Plan: 2 of 4
 
 ## Accumulated Context
 
@@ -51,6 +51,9 @@ Recent decisions affecting current work:
 - [Phase 14]: Canvas composition uses createImageBitmap(blob) not img.src — eliminates canvas-taint SecurityError on export
 - [Phase 14]: Frame SVG silhouettes stored as inline path strings in FrameDefinition.svgPath — no file imports or build-time asset pipeline needed
 - [Phase 14]: QRThumbnailIcon renders inline SVG with preset dotColor/bgColor — genuine color preview with zero network fetches or canvas risk
+- [Phase 15-hosted-landing-pages]: Partial-update contract for file URL fields in PUT: absent fields skipped, present changed fields trigger del()
+- [Phase 15-hosted-landing-pages]: totalQr-only limit for landing page create (not dynamicQr) — landing pages are a QR code subtype
+- [Phase 15-hosted-landing-pages]: Three-row linked insert pattern: savedQrCodes -> dynamicQrCodes -> landingPages with destinationUrl=/p/[landingSlug]
 
 ### Pending Todos
 
@@ -65,6 +68,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-31T13:13:03.834Z
-Stopped at: Completed 14-02-PLAN.md
+Last session: 2026-04-01T01:06:36.524Z
+Stopped at: Completed 15-hosted-landing-pages/15-01-PLAN.md
 Resume file: None
