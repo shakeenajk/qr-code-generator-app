@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Growth & Content
 status: Ready to execute
-stopped_at: Completed 15-02-PLAN.md
-last_updated: "2026-04-01T01:12:45.680Z"
+stopped_at: Completed 15-03-PLAN.md
+last_updated: "2026-04-01T01:22:42.442Z"
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 14
-  completed_plans: 12
+  completed_plans: 13
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-31)
 ## Current Position
 
 Phase: 15 (hosted-landing-pages) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 
 ## Accumulated Context
 
@@ -55,6 +55,8 @@ Recent decisions affecting current work:
 - [Phase 15-hosted-landing-pages]: totalQr-only limit for landing page create (not dynamicQr) — landing pages are a QR code subtype
 - [Phase 15-hosted-landing-pages]: Three-row linked insert pattern: savedQrCodes -> dynamicQrCodes -> landingPages with destinationUrl=/p/[landingSlug]
 - [Phase 15-hosted-landing-pages]: handleLandingPageSave injects active styling at save time; QR preview stays empty until landing page is created and dynamicSlug assigned
+- [Phase 15]: Standalone SSR page without Layout.astro for branded landing pages
+- [Phase 15]: Both store buttons always rendered (D-05): disabled via opacity/pointer-events if URL missing
 
 ### Pending Todos
 
@@ -69,6 +71,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-01T01:12:45.676Z
-Stopped at: Completed 15-02-PLAN.md
+Last session: 2026-04-01T01:22:42.437Z
+Stopped at: Completed 15-03-PLAN.md
 Resume file: None

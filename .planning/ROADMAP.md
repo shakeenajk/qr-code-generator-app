@@ -109,7 +109,7 @@ Plans:
 Plans:
 - [x] 15-01-PLAN.md — DB schema + migration + Vercel Blob upload API + landing page CRUD APIs
 - [x] 15-02-PLAN.md — FileUploadZone + PdfTab + AppStoreTab + QRGeneratorIsland wiring
-- [ ] 15-03-PLAN.md — /p/[slug] SSR landing page + list API update
+- [x] 15-03-PLAN.md — /p/[slug] SSR landing page + list API update
 - [ ] 15-04-PLAN.md — QRLibrary dashboard extension + edit landing page route
 **UI hint**: yes
 
@@ -141,5 +141,5 @@ Plans:
 | 12. Foundation Improvements | v1.2 | 3/3 | Complete    | 2026-03-31 |
 | 13. SEO and Homepage Content | v1.2 | 4/4 | Complete    | 2026-03-31 |
 | 14. QR Frames and Templates | v1.2 | 2/3 | Complete    | 2026-03-31 |
-| 15. Hosted Landing Pages | v1.2 | 2/4 | In Progress|  |
+| 15. Hosted Landing Pages | v1.2 | 3/4 | In Progress|  |
 | 16. Google AdSense | v1.2 | 0/TBD | Not started | - |
