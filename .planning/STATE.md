@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Scale & Integrate
-status: Defining requirements
-stopped_at: Milestone v1.3 started
+status: Ready to plan
+stopped_at: Roadmap created — Phase 17 ready to plan
 last_updated: "2026-04-02T00:00:00.000Z"
 progress:
-  total_phases: 0
+  total_phases: 7
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -19,58 +19,55 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-02)
 
 **Core value:** Anyone can generate a visually stunning, fully customized QR code and download it immediately — no signup, no friction.
-**Current focus:** Defining v1.3 requirements
+**Current focus:** Phase 17 — Observability Foundation
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-04-02 — Milestone v1.3 started
+Phase: 17 of 23 (Observability Foundation)
+Plan: — (not yet planned)
+Status: Ready to plan
+Last activity: 2026-04-02 — v1.3 roadmap created, Phase 17 ready to plan
+
+Progress: [░░░░░░░░░░] 0%
+
+## Performance Metrics
+
+**Velocity:**
+- Total plans completed: 0 (v1.3)
+- Average duration: —
+- Total execution time: —
+
+**By Phase:**
+
+| Phase | Plans | Total | Avg/Plan |
+|-------|-------|-------|----------|
+| - | - | - | - |
+
+**Recent Trend:**
+- Last 5 plans: —
+- Trend: —
+
+*Updated after each plan completion*
 
 ## Accumulated Context
 
 ### Decisions
 
-All v1.0 + v1.1 decisions archived in PROJECT.md Key Decisions table.
+All v1.0–v1.2 decisions archived in PROJECT.md Key Decisions table.
 
 Recent decisions affecting current work:
 
-- Phase 12 must create `src/lib/tierLimits.ts` as the very first task — all other phases import from it
-- vCard encoding: add `escapeVCard()` and `foldLine()` before adding new fields (RFC 6350 compliance)
-- Phase 15 depends on Phase 12 (tier limits centralized) but not Phase 13 or 14 — can overlap
-- Phase 16 (AdSense) depends on Phase 13 SEO pages being live and indexed — apply for AdSense after Phase 13 ships
-- [Phase 12-foundation-improvements]: Pricing nav link uses text style not accent color — navigation item not CTA (12-02)
-- [Phase 12-foundation-improvements]: Starter No ads replaced by 10 dynamic QR codes to satisfy both TIER-04 and TIER-01 simultaneously (12-02)
-- [Phase 12-foundation-improvements]: TIER_LIMITS as single source of truth for all QR count enforcement — all limit checks import from src/lib/tierLimits.ts
-- [Phase 12-foundation-improvements]: escapeVCard escapes backslash first to avoid double-escaping; company maps to ORG;TYPE=work to distinguish from legacy org field
-- [Phase 13-seo-and-homepage-content]: Keep Layout.astro manual OG block; use astro-seo only on new Phase 13 pages via slot
-- [Phase 13-seo-and-homepage-content]: SoftwareApplication is the correct schema.org type for QRCraft (not WebApplication)
-- [Phase 13-seo-and-homepage-content]: HowTo JSON-LD placed in index.astro via slot=head (not in HowTo.astro) for correct head placement
-- [Phase 13-seo-and-homepage-content]: UseCasesTeaser uses inline static teaser data rather than importing USE_CASES — teaser descriptions differ from article excerpts
-- [Phase 13-seo-and-homepage-content]: Cherry-picked Plan 01 commits into worktree to enable Plan 02 dependency on useCases.ts and astro-seo
-- [Phase 13-seo-and-homepage-content]: Committed screenshots as static assets (not generated at build time) — Playwright not available in Vercel build environment
-- [Phase 14]: Canvas composition uses createImageBitmap(blob) not img.src — eliminates canvas-taint SecurityError on export
-- [Phase 14]: Frame SVG silhouettes stored as inline path strings in FrameDefinition.svgPath — no file imports or build-time asset pipeline needed
-- [Phase 14]: QRThumbnailIcon renders inline SVG with preset dotColor/bgColor — genuine color preview with zero network fetches or canvas risk
-- [Phase 15-hosted-landing-pages]: Partial-update contract for file URL fields in PUT: absent fields skipped, present changed fields trigger del()
-- [Phase 15-hosted-landing-pages]: totalQr-only limit for landing page create (not dynamicQr) — landing pages are a QR code subtype
-- [Phase 15-hosted-landing-pages]: Three-row linked insert pattern: savedQrCodes -> dynamicQrCodes -> landingPages with destinationUrl=/p/[landingSlug]
-- [Phase 15-hosted-landing-pages]: handleLandingPageSave injects active styling at save time; QR preview stays empty until landing page is created and dynamicSlug assigned
-- [Phase 15]: Standalone SSR page without Layout.astro for branded landing pages
-- [Phase 15]: Both store buttons always rendered (D-05): disabled via opacity/pointer-events if URL missing
-- [Phase 15-04]: Edit button in PdfCardBody/AppStoreCardBody uses anchor tag for middle-click support; delete for landing pages routes to DELETE /api/landing/[id] for correct cascade
-- [Phase 16]: Lighthouse baseline captured against dist/client static dir before any AdSense code — pre-AdSense score 100/100 mobile
-- [Phase 16]: ads.txt uses placeholder pub-XXXXXXXXXXXXXXXX at public/ads.txt — user must replace with real publisher ID after AdSense account approval
-- [Phase 16]: Tier guard uses exact equality isSignedIn && userTier === 'free' — excludes null, starter, pro
 - [Phase 16]: AdUnit script injection lives inside useEffect — adsbygoogle.js never loads for anonymous or paid users
+- [v1.3 roadmap]: Rate limiting must be live (Phase 17) before REST API ships (Phase 19) — hard dependency
+- [v1.3 roadmap]: Bulk ZIP assembled client-side via jszip — never stream ZIP through Vercel function response (4.5 MB limit)
+- [v1.3 roadmap]: API keys stored as SHA-256 hash only; raw key shown to user once and never persisted
+- [v1.3 roadmap]: Phase 22 depends on Phase 14 (template system), not Phase 17 — can proceed independently if needed
 
 ### Pending Todos
 
 - Upgrade from Google AdSense to self-promo banner ads later
-- Phase 15 product decision: confirm whether PDF/App Store landing pages are Pro-only or available to free/Starter (gate inherits from dynamicQrCodes Pro check — verify intent before task planning)
-- Phase 15 product decision: per-user Vercel Blob file size limits (suggested: 10MB free, 25MB Pro)
-- Phase 16: capture Lighthouse CI baseline before writing any AdSense code; set <90 block gate
+- Phase 19 prerequisite: Clerk middleware must exempt /api/v1/* routes before any API key auth code is written
+- Phase 23 prerequisite: validate Paraglide 2.x Vite plugin setup with Astro 5 hybrid output mode in a spike before writing translation strings
 
 ### Blockers/Concerns
 
@@ -78,6 +75,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-01T14:59:05.448Z
-Stopped at: Completed 16-02-PLAN.md
+Last session: 2026-04-02T00:00:00.000Z
+Stopped at: Roadmap created — ready to run /gsd:plan-phase 17
 Resume file: None

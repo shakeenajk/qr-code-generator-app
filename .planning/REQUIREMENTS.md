@@ -86,35 +86,35 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | TBD | Pending |
-| INFRA-02 | TBD | Pending |
-| INFRA-03 | TBD | Pending |
-| BULK-01 | TBD | Pending |
-| BULK-02 | TBD | Pending |
-| BULK-03 | TBD | Pending |
-| BULK-04 | TBD | Pending |
-| API-01 | TBD | Pending |
-| API-02 | TBD | Pending |
-| API-03 | TBD | Pending |
-| API-04 | TBD | Pending |
-| ANALYTICS-01 | TBD | Pending |
-| ANALYTICS-02 | TBD | Pending |
-| ANALYTICS-03 | TBD | Pending |
-| ANALYTICS-04 | TBD | Pending |
-| CAMPAIGN-01 | TBD | Pending |
-| CAMPAIGN-02 | TBD | Pending |
-| CAMPAIGN-03 | TBD | Pending |
-| I18N-01 | TBD | Pending |
-| I18N-02 | TBD | Pending |
-| I18N-03 | TBD | Pending |
-| TEMPLATE-01 | TBD | Pending |
-| TEMPLATE-02 | TBD | Pending |
+| INFRA-01 | Phase 17 | Pending |
+| INFRA-02 | Phase 17 | Pending |
+| INFRA-03 | Phase 17 | Pending |
+| BULK-01 | Phase 18 | Pending |
+| BULK-02 | Phase 18 | Pending |
+| BULK-03 | Phase 18 | Pending |
+| BULK-04 | Phase 18 | Pending |
+| API-01 | Phase 19 | Pending |
+| API-02 | Phase 19 | Pending |
+| API-03 | Phase 19 | Pending |
+| API-04 | Phase 19 | Pending |
+| ANALYTICS-01 | Phase 20 | Pending |
+| ANALYTICS-02 | Phase 20 | Pending |
+| ANALYTICS-03 | Phase 20 | Pending |
+| ANALYTICS-04 | Phase 20 | Pending |
+| CAMPAIGN-01 | Phase 21 | Pending |
+| CAMPAIGN-02 | Phase 21 | Pending |
+| CAMPAIGN-03 | Phase 21 | Pending |
+| TEMPLATE-01 | Phase 22 | Pending |
+| TEMPLATE-02 | Phase 22 | Pending |
+| I18N-01 | Phase 23 | Pending |
+| I18N-02 | Phase 23 | Pending |
+| I18N-03 | Phase 23 | Pending |
 
 **Coverage:**
 - v1.3 requirements: 23 total
-- Mapped to phases: 0
-- Unmapped: 23 (pending roadmap creation)
+- Mapped to phases: 23
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-02*
-*Last updated: 2026-04-02 after initial definition*
+*Last updated: 2026-04-02 — traceability complete after roadmap creation*
