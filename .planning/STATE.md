@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Scale & Integrate
-status: Ready to execute
-stopped_at: Completed 17-01-PLAN.md
-last_updated: "2026-04-02T23:02:25.482Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 17-02-PLAN.md
+last_updated: "2026-04-02T23:03:24.051Z"
 progress:
   total_phases: 7
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -47,6 +47,7 @@ Plan: 2 of 2
 
 *Updated after each plan completion*
 | Phase 17 P01 | 5m | 2 tasks | 6 files |
+| Phase 17 P02 | 5m | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -63,6 +64,7 @@ Recent decisions affecting current work:
 - [v1.3 roadmap]: Phase 22 depends on Phase 14 (template system), not Phase 17 — can proceed independently if needed
 - [Phase 17]: @sentry/astro integration added to astro.config.mjs with sourceMapsUploadOptions tied to VERCEL_GIT_COMMIT_SHA for deploy-mapped source maps
 - [Phase 17]: Sentry SDK silently no-ops when PUBLIC_SENTRY_DSN is undefined — build and local dev unaffected until DSN is configured
+- [Phase 17]: Sliding window rate limit (60 req/60s) via Upstash Redis — module-level singleton with null fallback for dev; /r/ redirect path exempt via shouldRateLimit(); sequence() chains rate limit before Clerk auth
 
 ### Pending Todos
 
@@ -76,6 +78,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-02T23:02:25.477Z
-Stopped at: Completed 17-01-PLAN.md
+Last session: 2026-04-02T23:03:24.046Z
+Stopped at: Completed 17-02-PLAN.md
 Resume file: None
