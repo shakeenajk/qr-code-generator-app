@@ -1,17 +1,17 @@
 # Project Research Summary
 
-**Project:** QRCraft v1.2 Growth & Content
-**Domain:** Freemium SaaS QR code generator — adding hosted landing pages, decorative frames, AdSense monetization, SEO content, vCard enhancements, and tier limit restructuring to an existing Astro 5 + Vercel + Turso + Clerk + Stripe stack
-**Researched:** 2026-03-30
-**Confidence:** HIGH
+**Project:** QRCraft
+**Domain:** QR Code Generator SaaS — v1.3 Scale & Integrate
+**Researched:** 2026-03-31
+**Confidence:** HIGH (stack, pitfalls) / MEDIUM (features, custom domain architecture)
 
 ## Executive Summary
 
-QRCraft v1.2 is a feature-expansion milestone on top of a production-proven v1.0 + v1.1 stack. All core infrastructure (auth, billing, database, dynamic QR redirect, scan analytics) is already in place. The new work falls into five distinct categories: new content types (PDF and App Store hosted landing pages), a client-side QR frame compositor, Google AdSense for free-tier monetization, SEO content pages, and quality-of-life improvements (vCard enhancements, header navigation, tier limit restructuring). Each category is architecturally independent and can be sequenced without blocking the others.
+QRCraft v1.3 extends a fully-shipped freemium SaaS (v1.0–v1.2) with the features that move it from a self-serve tool to a developer and agency platform: bulk QR generation, a REST API with API key auth, advanced analytics, i18n for three languages, campaign scheduling, and the groundwork for team workspaces. The research confirms this is an additive build — the existing Astro 5 + Vercel + Turso + Clerk + Stripe stack handles all new requirements without a new database, new runtime, or new deployment model. Net-new npm dependencies are exactly five: `@sentry/astro`, `@upstash/ratelimit`, `@upstash/redis`, `papaparse`, and `jszip`.
 
-The recommended approach follows the architecture file's build order: start with no-dependency items (vCard, header, tier limits), advance to static content work (SEO pages, homepage sections, screenshots), tackle client-side rendering features (QR frames), then move to the largest new infrastructure (hosted landing pages and Vercel Blob), and finish with AdSense last because it requires external Google account approval that can take 1–2 weeks. This ordering keeps every phase independently deployable and avoids delaying simple wins while waiting on infrastructure.
+The recommended implementation sequence is: Sentry first (zero-risk, improves debuggability for everything after), then rate limiting (required before any public API ships), then bulk QR generation (highest-requested agency feature, tractable without new infra), then the REST API (unlocks developer integrations), then advanced analytics (completes the partially-built analytics system), then UTM and campaign scheduling (moderate complexity, validate solo-user demand), then i18n (significant translation effort, known path), and finally seasonal templates (no infra, pure content). Team workspaces and custom short domains are deferred to v2 — both are VERY HIGH complexity, require new billing tiers, and carry significant data isolation and infrastructure risk that is not justified until solo-user growth validates the platform.
 
-The two highest-risk areas are AdSense and the QR frame export pipeline. AdSense must be implemented as a client-side React island — not a server-side Astro template conditional — to preserve the static homepage architecture and avoid Lighthouse regression. The frame compositor must inline SVG frame assets as build-time data URIs to prevent canvas-tainting `SecurityError` on export. Both are non-obvious traps that will cause silent production failures if not addressed from the start of each respective phase.
+The three highest-risk areas are: (1) multi-tenant data isolation — Turso has no row-level security, so every query on org-scoped tables must enforce tenant scoping in application code; (2) bulk ZIP generation — the 4.5 MB Vercel response body limit will break any server-side ZIP approach above ~20 QR codes, requiring client-side ZIP assembly via jszip in the browser; and (3) i18n SEO — adding translated pages without hreflang tags causes a duplicate content penalty that is harder to recover from than prevent.
 
 ---
 
@@ -19,130 +19,244 @@ The two highest-risk areas are AdSense and the QR frame export pipeline. AdSense
 
 ### Recommended Stack
 
-The v1.1 stack requires only four additions for v1.2. `@vercel/blob` handles file storage for PDF and App Store cover image uploads — it is the right choice because the project is already on Vercel, requires only one environment variable (`BLOB_READ_WRITE_TOKEN`), and its client-upload pattern keeps large files off the serverless function path (critical given Vercel's hard 4.5MB request body limit). `astro-seo` and `astro-seo-schema` standardize Open Graph meta tags and JSON-LD structured data across 10+ new static pages. `schema-dts` provides compile-time TypeScript safety for JSON-LD at zero runtime cost. Everything else (QR frames, screenshots, vCard, sitemap) is handled by existing packages or the browser Canvas API.
+The existing stack is unchanged and carries all v1.3 features. The five new dependencies are purpose-specific additions with no architectural overlap. `@sentry/astro` provides full-stack error tracking (server + client); `@upstash/ratelimit` + `@upstash/redis` provide stateful rate limiting that survives serverless cold starts (in-memory rate limits are useless on Vercel); `papaparse` handles browser-side CSV parsing for bulk generation; `jszip` handles client-side ZIP assembly. All other v1.3 features — team schema, UTM columns, date-range analytics, campaign scheduling, seasonal templates, API key generation — are handled by the existing Turso + Drizzle + Node built-ins.
 
-**Core new technologies:**
-- `@vercel/blob` ^0.27.x: File storage for PDF/app icon uploads — no new infra account, client-upload bypasses the 4.5MB serverless body limit, public CDN URLs returned after upload
-- `astro-seo` ^1.1.0: Per-page OG meta tags and canonical URLs — standardizes boilerplate across new dynamic and static pages
-- `astro-seo-schema` ^7.x: JSON-LD structured data via TypeScript-safe `<Schema>` component — `SoftwareApplication`, `HowTo`, `BreadcrumbList` schemas for rich results
-- `schema-dts` ^1.x: Compile-time Schema.org type definitions — no runtime overhead, peer dependency of astro-seo-schema
-- Browser Canvas API (no new library): QR frame composition — all available frame libraries require replacing qr-code-styling entirely; canvas 2D achieves the same in ~80 lines
-- Playwright (already installed): Build-time screenshots for the how-to section — standalone `scripts/generate-screenshots.ts`, no new package needed
+**Core v1.3 technology additions:**
 
-**Installation:**
-```bash
-npm install @vercel/blob astro-seo astro-seo-schema schema-dts
-```
+- `@sentry/astro` ^9.x — error tracking — official SDK, works on Vercel Node runtime (not edge), auto-instruments SSR and API routes
+- `@upstash/ratelimit` ^2.0.8 — sliding window rate limiting — only serverless-compatible rate limiter (HTTP-based, no TCP connections)
+- `@upstash/redis` ^1.37.0 — required peer for ratelimit — also usable for cron scheduling locks
+- `papaparse` ^5.5.3 — CSV parsing — browser + Node API, 5M weekly downloads, zero dependencies
+- `jszip` ^3.10.1 — client-side ZIP assembly — avoids Vercel 4.5 MB response body limit entirely
+- `@inlang/paraglide-js` ^2.15.1 — type-safe i18n — the only verified Astro 5 compatible i18n library (i18next is incompatible; astro-i18next is archived)
+
+**Critical version notes:**
+- Paraglide 2.x does NOT need the `@inlang/paraglide-astro` adapter — use `@inlang/paraglide-js` directly with the Vite plugin
+- `@sentry/astro` works on Vercel Node runtime ONLY — this project already uses Node (Clerk is edge-incompatible), so it is already satisfied
+- Vercel Cron sub-hourly schedules require Vercel Pro — the project is already on Pro
+
+---
 
 ### Expected Features
 
-**Must have (table stakes for v1.2):**
-- vCard field enhancements (title, work phone, address, website, LinkedIn) — users with existing vCard QRs expect richer contact data; adding fields is low complexity
-- Header navigation improvements (Register + Pricing links) — current header omits key conversion entry points
-- Tier limit centralization (Free: 5 saved / 3 dynamic; Starter: 100 / 10; Pro: 250 / 100) — current hardcoded limits scattered across API routes need a single `tierLimits.ts` constants file before any limit values change
-- Homepage marketing sections (PricingPromo, HowTo, UseCasesTeaser) — homepage conversion improvement is the primary v1.2 growth lever
-- SEO use case pages (`/use-cases/` hub + individual pages) — informational-intent organic traffic to feed the acquisition funnel
+**Must have (P1 — required for v1.3 to ship):**
+- Error tracking (Sentry) — zero cost, immediate operational visibility, unblocks everything else
+- API rate limiting (Upstash) — required before any public API ships; in-memory alternatives are useless in serverless
+- Bulk QR generation (CSV upload, static PNG export, cap at 250 rows on Pro) — highest-requested agency feature
+- REST API with API key auth — unlocks developer integrations; opaque keys preferred over JWTs for simplicity and instant revocation
+- Advanced analytics (custom date range + CSV export) — completes the partially-built analytics system
 
-**Should have (competitive differentiators):**
-- PDF and App Store hosted landing pages — upgrades QRCraft from a generator to a platform; the core new content type expansion
-- Decorative QR frames with export (simple, rounded, badge styles) — visual differentiation for print and marketing use cases
-- Preset style templates — surfaces the full customization system to non-technical users
-- Google AdSense on free tier — monetizes the large anonymous user base; placed below-the-fold only, never in the redirect path
+**Should have (P2 — add within v1.3 after P1 lands):**
+- UTM parameter builder — appends utm_source/medium/campaign to destination URLs, routes to GA4; low-complexity add-on
+- Campaign scheduling — `scheduledEnableAt` column + Vercel Cron every 15 min; validates before team features
+- Seasonal / holiday template packs — static data additions, no new infra, drives re-engagement
+- i18n (ES, FR, DE) — Astro built-in routing + TypeScript literal dictionaries; scope to marketing pages only (~80 strings)
 
-**Defer (v2+):**
-- Custom short domains for redirects — requires DNS handling infrastructure
-- Team and multi-seat accounts — requires org data model redesign
-- Cloudinary image transformation — upgrade from Vercel Blob only when resize/WebP conversion is needed
-- EEA/GDPR consent management (CookieYes or equivalent) — add only if EEA traffic exceeds ~5% of sessions; not required for US-only targeting
+**Defer to v2+ (P3):**
+- Team workspaces — new billing tier, new DB tables, Clerk org context, multi-tenant data scoping — not justified until solo-user growth is proven
+- Custom short domains — CNAME verification state machine, Vercel Domains API, async DNS propagation — VERY HIGH complexity, enterprise-only pricing justification
+- OAuth2 authorization code flow — API keys are sufficient for M2M; OAuth2 adds 1–2 weeks for zero additional benefit at this stage
+- SSO / SAML — Clerk supports it when needed; defer until enterprise sales motion begins
 
-**Anti-features (confirmed by competitor research):**
-- Ads in redirect path — the most-complained-about competitor anti-pattern; destroys user trust
-- Watermarks on QR code output — makes output unusable in professional contexts, kills the acquisition funnel
-- Requiring account for static QR generation — breaks the core anonymous acquisition model
+---
 
 ### Architecture Approach
 
-v1.2 extends the existing hybrid static/SSR Astro architecture without altering the core routing contract. Static pages stay static; SSR routes carry `export const prerender = false`. New routes follow established patterns: `/p/[slug].astro` for hosted landing pages (SSR, prerender=false), `/use-cases/[slug].astro` for SEO content (static, getStaticPaths). The QR frame compositor is a pure client-side utility (`src/lib/frameComposer.ts`) that slots into the existing export pipeline in `ExportButtons.tsx`. AdSense is a React island (`AdBanner.tsx`, `client:idle`) that performs tier detection after Clerk hydrates — this keeps the homepage fully static and avoids converting it to SSR. The largest structural addition is a new `landingPages` Turso table and three new API routes (`/api/landing/create`, `/api/landing/[id]`, `/api/landing/upload`).
+All v1.3 features live in the existing Astro application — no new services, no new deployment targets, no microservices. The architecture is additive: new API routes under `/api/v1/`, new Drizzle schema tables and column additions, a new `BulkGenerateIsland.tsx` React island, and Astro's built-in i18n routing layer. The existing `output: 'static'` + `adapter: vercel()` configuration is unchanged; every new API route gets `export const prerender = false` to opt into SSR. Clerk middleware in `middleware.ts` exempts `/api/v1/*` routes, which handle their own API key or JWT authentication.
 
-**Major new components:**
-1. `PdfTab.tsx` / `AppStoreTab.tsx` — new QRGeneratorIsland tabs; handle two-step save (upload to Vercel Blob, then POST to `/api/landing/create`)
-2. `FrameSection.tsx` + `frameComposer.ts` — frame UI controls and canvas 2D composition utility; SVG frames inlined as build-time data URIs to prevent canvas tainting
-3. `AdBanner.tsx` — client:idle React island; fetches tier from existing `/api/subscription/status`; renders nothing for Pro/Starter users; never loads AdSense JS on protected pages
-4. `/p/[slug].astro` — SSR landing page renderer; reads `landingPages` from Turso; sets per-page `og:title`, `og:description`, `og:image` (absolute Blob URL) in server-rendered `<head>`
-5. `use-cases/[slug].astro` — static SEO article pages via `getStaticPaths` from `src/data/useCases.ts`; JSON-LD via `astro-seo-schema`
-6. `scripts/generate-screenshots.ts` — Playwright build-time script; outputs committed PNGs to `public/screenshots/`
+**Major components for v1.3:**
+1. `BulkGenerateIsland.tsx` — client-only React island; CSV upload, papaparse, qr-code-styling loop, jszip assembly, download trigger
+2. `/api/qr/bulk.ts` — serverless route; CSV validation, Vercel Blob upload of individual PNGs, returns JSON manifest (never streams the ZIP itself)
+3. `/api/v1/*` routes — versioned REST API; API key bearer auth via `verifyApiKey()` helper; Drizzle queries scoped to the key's owning user
+4. `src/lib/apiAuth.ts` — shared helper; SHA-256 key validation for REST API routes
+5. Upstash rate limiter in `middleware.ts` — IP-based for public routes, API-key-hash-based for `/api/v1/*`
+6. Vercel Cron at `*/15 * * * *` — hits `/api/cron/campaigns`; idempotent `UPDATE` to activate scheduled campaigns
+7. `src/i18n/{en,es,fr,de}.ts` — TypeScript literal dictionaries; `useTranslations(locale)` helper in `.astro` files and React islands
+8. Sentry — integrated via `npx astro add @sentry/astro`; source maps uploaded with `VERCEL_GIT_COMMIT_SHA` as release name
 
-**Data flow additions:**
-- PDF/App Store save: file upload → Vercel Blob token exchange → browser-to-Blob direct upload → URL returned → `POST /api/landing/create` → `landingPages` row + linked `dynamicQrCodes` row → QR encodes `/r/[dynamicSlug]` → scans 307 to `/p/[landingSlug]`
-- Frames: `FrameSection` state lifts to `QRGeneratorIsland` → passed as prop to `ExportButtons` → `composeQRWithFrame()` called on download/copy when `frameEnabled === true`
+---
 
 ### Critical Pitfalls
 
-1. **AdSense Auto Ads destroy Lighthouse 100** — Auto Ads injects DOM nodes mid-render, strips `min-height` from parent elements, and adds ~120KB of JS to every page. Prevention: use manual ad units only in statically-sized containers; load AdSense script lazily via the React island (not in `<head>` globally); set `min-height` on the ad container using an ID selector (AdSense JS strips class-targeted min-height but not ID-targeted). Run Lighthouse CI with a <90 block gate on every deploy.
+1. **Bulk ZIP via server response hits 4.5 MB Vercel limit** — Do not stream the ZIP through the function response body. Generate QR PNGs server-side, upload to Vercel Blob, return a JSON manifest, then assemble the ZIP client-side with jszip. The browser has no size limit. This architecture decision must be locked before any bulk download code is written.
 
-2. **AdSense tier check breaks the static homepage** — `Astro.locals.auth()` is unavailable on prerendered pages. Converting the homepage to SSR to enable the tier check adds cold-start latency and destroys CDN caching. Prevention: all ad conditional logic must live inside `AdBanner.tsx` using `client:idle` hydration and the existing `/api/subscription/status` fetch. The homepage must stay `x-vercel-cache: HIT`.
+2. **`prerender = false` missing on API routes** — Static mode silently breaks API routes in production (dev server masks the issue). Every file under `src/pages/api/` must start with `export const prerender = false`. Add a CI check that fails the build if any API route file omits it.
 
-3. **Canvas taint `SecurityError` on frame export** — SVG frame images loaded via `new Image(); img.src = '/path'` without `crossOrigin="anonymous"` taint the canvas and cause `toBlob()` / `getRawData()` to throw silently. Prevention: load all frame SVGs at build time via `import.meta.glob('/src/assets/frames/*.svg', { as: 'raw' })` and convert to base64 data URIs. No network fetch, no CORS issue, available synchronously.
+3. **Storing API keys in plaintext** — Never store the full API key value in Turso. Store `sha256(key)` as `keyHash` and only the first 8 chars as `keyPrefix` for display. The key is shown to the user exactly once at creation time. A DB breach exposes no usable credentials.
 
-4. **`drizzle-kit push` against Turso production destroys data** — `drizzle-kit push` is designed for development schema sync only; on a table with existing rows it fails or requires table drops. Prevention: always use `drizzle-kit generate` to produce a SQL migration file, review the SQL, then apply against staging before production. All new columns must be nullable or carry a `.default()` to avoid NOT NULL violations on existing rows.
+4. **Multi-tenant data leakage via missing `workspaceId` scoping** — Turso has no row-level security. When team workspaces land, every Drizzle query on `savedQrCodes`, `dynamicQrCodes`, and `landingPages` must scope by `workspaceId`. Create a `withWorkspaceScope()` query helper and write a cross-tenant isolation integration test before any team feature merges.
 
-5. **vCard special character encoding corrupts QR data** — Semicolons, commas, and backslashes in user-provided vCard field values corrupt the delimited field structure. Long address fields violate the 75-byte line folding requirement. Prevention: add `escapeVCard(s: string)` (escaping `\`, `;`, `,`, newlines per RFC 6350) and `foldLine(line: string)` (CRLF + space wrap at 75 bytes) before adding any new fields. Apply escape to every property value in `encodeVCard()`.
+5. **i18n infinite redirect loop** — Combining `redirectToDefaultLocale: true` with `prefixDefaultLocale: false` in Astro 5 creates an infinite redirect. The correct config: both must be `false` when the English default URL has no prefix. Verify locally before any deploy.
 
-6. **Tier limit changes silently downgrade existing users** — Limit constants are currently hardcoded as magic numbers in `api/qr/save.ts`. Changing values without centralizing them first causes missed updates and inconsistency between displayed limits and enforced limits. Prevention: create `src/lib/tierLimits.ts` as the very first task of Phase 1; update all API routes to import from it; enforce new caps on create operations only, never on read/list/edit.
+6. **i18n breaks sitemap SEO** — `@astrojs/sitemap` does not add hreflang tags automatically. Add the `i18n` option to the sitemap integration config AND manually add `<link rel="alternate" hreflang>` tags (including `x-default`) to `BaseLayout.astro`. Failure causes a duplicate content SEO penalty.
+
+7. **Campaign scheduling without idempotency** — Vercel Cron can fire twice for the same window and does not retry on failure. The cron handler must check `activatedAt IS NULL` before updating, set an `activatedAt` timestamp on activation, and validate the `CRON_SECRET` header to prevent unauthorized triggering.
+
+8. **In-memory rate limiting** — Module-level `Map` state for rate limits resets on every cold start in Vercel serverless. Use Upstash Redis with `@upstash/ratelimit` declared at module scope (outside the handler function).
+
+9. **Sentry source maps without release name** — Without `release.name` set in the Vite plugin config, source maps upload but are never associated with the deployed version. Use `process.env.VERCEL_GIT_COMMIT_SHA` (auto-populated by Vercel) as the release name.
+
+10. **Custom domain DNS propagation treated as synchronous** — Domain activation must go through a state machine: `pending_verification → verified → active → error`. Build a background poller to check verification status every 15 minutes via the Vercel Domains API. Show the exact CNAME record, not a generic spinner.
 
 ---
 
 ## Implications for Roadmap
 
-Based on research, suggested phase structure (5 phases):
+Based on the combined research, the following phase structure is recommended. Dependencies are strict in the first three phases; after that, phases can be reordered based on user demand signals.
 
-### Phase 1: Foundation Improvements
-**Rationale:** Zero new infrastructure risk. Pure modifications to existing files with immediate testability. Establishing tier limits as a centralized constants file before any other phase needs them prevents limit-related bugs in Phases 4 and 5.
-**Delivers:** `src/lib/tierLimits.ts` (Free: 5/3, Starter: 100/10, Pro: 250/100), vCard field enhancements (title, work phone, address, website, LinkedIn) with `escapeVCard()` and `foldLine()` refactor, header navigation additions (Register + Pricing links), marketing copy and pricing page accuracy fixes
-**Addresses:** vCard table stakes, navigation conversion entry points, tier limit hygiene
-**Avoids:** vCard encoding corruption pitfall (escape functions added before new fields); tier limit silent-downgrade pitfall (centralize before changing values)
+---
 
-### Phase 2: SEO and Homepage Content
-**Rationale:** All static Astro work — no new API routes, no new DB tables, no external dependencies. Can be deployed independently and starts accumulating Google index time immediately. The SEO content pages should be live before applying for AdSense (Google requires meaningful content). Programmatic screenshots depend on this phase's UI being stable.
-**Delivers:** Homepage sections (PricingPromo, HowTo stub, UseCasesTeaser), `/use-cases/` hub and individual use case static pages with per-page JSON-LD, `astro-seo` integration for canonical URLs and OG tags, `astro-seo-schema` for `HowTo` / `Article` / `BreadcrumbList` schemas, `scripts/generate-screenshots.ts` Playwright build script, committed screenshots in `public/screenshots/`
-**Uses:** `astro-seo` ^1.1.0, `astro-seo-schema` ^7.x, `schema-dts` ^1.x, existing Playwright
-**Avoids:** SEO keyword cannibalization (unique H1 and intent per page; how-to section owns "how" intent, homepage owns "generator" intent); JSON-LD `@id` duplication across pages; LCP regression from how-to screenshots (use `loading="lazy"` on all below-fold images)
+### Phase 1: Observability Foundation (Sentry + Rate Limiting)
 
-### Phase 3: QR Frame Rendering
-**Rationale:** Self-contained client-side feature — no new API routes, no new DB tables, no new infra accounts. De-risks the canvas composition approach early before the more complex Phase 4 work begins. Build the composition utility and test export before building the frame picker UI.
-**Delivers:** `FrameSection.tsx` UI controls (style, color, label, position), `frameComposer.ts` canvas 2D utility, modified `ExportButtons.tsx` branching on `frameEnabled`, `src/data/presets.ts` static preset templates, SVG-vs-PNG export decision communicated in UI when frame is active
-**Implements:** Canvas 2D composition pipeline; build-time SVG inlining via `import.meta.glob`
-**Avoids:** Canvas taint SecurityError (data URI approach established from day one); SVG export producing frame-less output (single `composeQRWithFrame` utility used by both live preview and all export paths)
+**Rationale:** Zero risk, maximum benefit. Sentry improves debuggability for every subsequent phase. Rate limiting is a prerequisite for any public API — it must be in place before the REST API phase begins. These two features are independent of each other and of all other v1.3 work.
 
-### Phase 4: Hosted Landing Pages
-**Rationale:** Largest scope in v1.2 — new Drizzle table, Vercel Blob storage, multiple new API routes, two new QRGeneratorIsland tabs. Sequenced after Phases 1–3 so the DB migration is the only major risk in an otherwise stable codebase. All prerequisites (redirect infra, Drizzle patterns, nanoid, Clerk auth) are validated from v1.1.
-**Delivers:** `landingPages` Drizzle table with additive SQL migration, Vercel Blob client-upload token exchange at `/api/landing/upload`, `PdfTab.tsx` and `AppStoreTab.tsx` new tabs, `/api/landing/create` + `/api/landing/[id]` CRUD routes, `/p/[slug].astro` SSR landing page with dynamic OG tags, QRGeneratorIsland save flow updated for the two-step upload+create pattern
-**Uses:** `@vercel/blob` ^0.27.x, `BLOB_READ_WRITE_TOKEN` env var, existing Turso/Drizzle, existing nanoid, existing `/r/[slug]` redirect infrastructure
-**Avoids:** Drizzle push on production (generate → review SQL → apply to staging → apply to production); Vercel 4.5MB body limit (client-upload, files never through serverless function); slug namespace collision (`/p/` prefix separate from `/r/`); missing OG image on landing pages (`og:image` = `coverPhotoUrl` set in SSR `<head>`, not in a React island)
+**Delivers:** Error tracking with readable stack traces in production; Upstash Redis infrastructure provisioned; IP-based rate limiting on all public endpoints; `CRON_SECRET` validation pattern established for secure cron endpoints.
 
-### Phase 5: Google AdSense
-**Rationale:** Build last because (a) Google AdSense account approval requires meaningful site content and typically takes 1–2 weeks — Phase 2 SEO pages should be indexed before applying; (b) no other v1.2 feature depends on AdSense; (c) Lighthouse regression risk is isolated to this phase and caught by Lighthouse CI before it reaches users.
-**Delivers:** `AdBanner.tsx` React island (`client:idle`) with tier check via `/api/subscription/status`, manual ad unit placement below-the-fold on the generator page with statically-sized container (ID-selector `min-height`), AdSense auto-script load gated to free tier only
-**Avoids:** Auto Ads Lighthouse regression (manual placement only); static homepage SSR conversion (client-side tier check in island, homepage stays prerendered); accidental click policy violation (150px+ separation from Download/Copy buttons; never inside the generator island or modal)
+**Addresses:** Error tracking (P1), API rate limiting (P1)
+
+**Avoids:** Pitfall 8 (in-memory rate limits reset on cold start), Pitfall 12 (Sentry source maps without release name)
+
+**Research flag:** Standard patterns — skip phase research. Sentry + Astro is documented; Upstash setup is a 30-minute task.
+
+---
+
+### Phase 2: Bulk QR Generation
+
+**Rationale:** Highest-requested feature from the agency user segment. Tractable without team workspaces or the REST API. The architecture decision (client-side ZIP via jszip, server-side blob storage for persistence) must be locked at the start of this phase to avoid the 4.5 MB response body trap.
+
+**Delivers:** CSV upload UI (`BulkGenerateIsland.tsx`), per-row QR generation in the browser, client-side ZIP assembly, download trigger, tier-based row caps (Free: 0, Starter: 50, Pro: 250), progress counter UI.
+
+**Addresses:** Bulk QR generation (P1)
+
+**Avoids:** Pitfall 1 (ZIP response body limit), Pitfall 2 (server-side generation timeout)
+
+**Research flag:** Needs light phase research on whether `qr-code-styling` runs correctly in a Web Worker context (OffscreenCanvas) for large batches. Standard ZIP assembly pattern is documented.
+
+---
+
+### Phase 3: REST API + API Key Management
+
+**Rationale:** Unlocks developer integrations. Rate limiting from Phase 1 must be live before this ships. API key schema design (hashed keys, not plaintext) is a one-way door — get it right before writing any key generation code. Middleware exclusion for `/api/v1/*` from Clerk must be added at the start of this phase.
+
+**Delivers:** API key management UI (create, revoke, list), `/api/v1/qr` CRUD endpoints, `/api/v1/qr/[id]/analytics` endpoint, per-API-key rate limiting, public API documentation page.
+
+**Addresses:** REST API with API key auth (P1)
+
+**Avoids:** Pitfall 3 (prerender=false missing on API routes), Pitfall 11 (plaintext key storage in Turso)
+
+**Research flag:** Standard patterns — API key hashing (SHA-256) and Astro serverless route patterns are well-established. No phase research needed.
+
+---
+
+### Phase 4: Advanced Analytics
+
+**Rationale:** Completes the analytics feature set partially built in v1.2. No new infra — additive Drizzle query changes and UTM column additions. CSV export is a 5-line serialization. Ships independently of the REST API.
+
+**Delivers:** Custom date range picker on analytics panel, date-filtered Drizzle queries using existing `(qrCodeId, scannedAt)` index, CSV export button (server-streamed `text/csv`), UTM columns on `scanEvents`, UTM capture in the redirect handler, UTM parameter builder UI on dynamic QR creation.
+
+**Addresses:** Advanced analytics (P1), UTM parameter builder (P2)
+
+**Avoids:** Analytics performance trap (indexed queries only; never SELECT all scan events and count in JS)
+
+**Research flag:** Standard patterns — Drizzle date range queries and CSV export are both straightforward extensions of the existing system.
+
+---
+
+### Phase 5: Campaign Scheduling
+
+**Rationale:** Moderate complexity; depends only on the existing `dynamicQrCodes` table and Vercel Cron (already on Pro plan). Validates that users want time-based automation before the much-larger team collaboration investment.
+
+**Delivers:** `scheduledEnableAt` and `scheduledPauseAt` columns on `dynamicQrCodes`, date/time picker UI on dynamic QR editor, cron handler at `/api/cron/campaigns` with idempotency guard and secret validation, `*/15 * * * *` vercel.json cron entry, "scheduled" status display in the dashboard.
+
+**Addresses:** Campaign scheduling (P2)
+
+**Avoids:** Pitfall 7 (non-idempotent cron, missing CRON_SECRET validation, Hobby-plan cron frequency assumption)
+
+**Research flag:** Standard patterns — Vercel Cron + Drizzle UPDATE is a known pattern. No phase research needed.
+
+---
+
+### Phase 6: Internationalization (ES, FR, DE)
+
+**Rationale:** Marketing pages only (~80 strings, ~5 pages). Astro 5 built-in i18n routing + TypeScript literal dictionaries avoids i18n library complexity. SEO work (hreflang tags, sitemap i18n config) must happen in the same phase — it cannot be deferred without accumulating a duplicate content penalty. English URLs are preserved (`prefixDefaultLocale: false`).
+
+**Delivers:** `/es/`, `/fr/`, `/de/` URL prefixes for marketing pages; TypeScript translation dictionaries under `src/i18n/`; `useTranslations(locale)` helper; hreflang link tags in `BaseLayout.astro`; sitemap i18n config updated; smoke tests confirming no redirect chain longer than one hop.
+
+**Addresses:** i18n ES/FR/DE (P2)
+
+**Avoids:** Pitfall 5 (infinite redirect from `redirectToDefaultLocale` misconfiguration), Pitfall 6 (hreflang omission causing duplicate content penalty)
+
+**Research flag:** Needs light phase research on Paraglide 2.x Vite plugin configuration with Astro 5 `hybrid` output mode. The compatibility is confirmed but the exact setup has one documented nuance (no adapter needed, Vite plugin only).
+
+---
+
+### Phase 7: Seasonal Template Packs
+
+**Rationale:** No new infra, no new libraries. Static data additions to the existing template system. Good for re-engagement and return visits. Lowest-risk phase in v1.3.
+
+**Delivers:** 5–8 seasonal template presets in `src/data/seasonalTemplates.ts`; template picker UI updates; no schema changes; no new routes.
+
+**Addresses:** Seasonal template packs (P2)
+
+**Avoids:** Over-engineering — these are static data objects, not a database-driven template system.
+
+**Research flag:** Skip — no research needed. Pure content addition to the existing template system.
+
+---
+
+### Phase 8: Team Workspaces (v2 candidate)
+
+**Rationale:** Largest architectural change in scope. New billing tier (Team), new DB tables (workspaces, workspace_members, workspace_invitations), Clerk Organization context, multi-tenant data isolation for every existing query. Defer until solo-user growth proves the market, or treat as the anchor feature of a dedicated v2 milestone.
+
+**Delivers:** Workspace creation, member invitations, Owner/Admin/Member/Viewer roles, shared QR library scoped to workspace, Stripe multi-seat billing integration.
+
+**Addresses:** Team workspaces (P3)
+
+**Avoids:** Pitfall 4 (data leakage via missing workspace scoping), Pitfall 10 (Clerk org_role checked without validating org_id)
+
+**Research flag:** Needs dedicated phase research. Multi-tenant schema design, Clerk Organizations integration, and Stripe multi-seat billing all require architectural review before any code is written.
+
+---
+
+### Phase 9: Custom Short Domains (v2 candidate)
+
+**Rationale:** Most infrastructure-heavy feature in the roadmap. Requires Vercel Domains API integration, a CNAME verification state machine, async DNS propagation handling, background polling, and workspace scoping (depends on Phase 8). Justified only at an enterprise/agency pricing tier.
+
+**Delivers:** Custom domain registration UI, Vercel Domains API integration, `customDomains` state machine table, background verification poller, CNAME instruction display, redirect handler host-based tenant routing.
+
+**Addresses:** Custom short domains (P3)
+
+**Avoids:** Pitfall 8 (treating domain verification as synchronous, no state machine)
+
+**Research flag:** Needs dedicated phase research on current Vercel Domains API capabilities and CNAME verification flow. This is the highest-uncertainty feature in the entire roadmap.
+
+---
 
 ### Phase Ordering Rationale
 
-- Phases 1 and 2 have zero new infrastructure risk and can be shipped and rolled back without database migrations or external service accounts
-- Phase 2 (SEO pages) must be live and indexed before applying for AdSense — Google requires meaningful content and audience activity
-- Phase 3 (frames) is sequenced before Phase 4 (landing pages) because it is fully self-contained, its canvas approach is validated early, and Phase 4 is the only high-stakes DB migration in v1.2
-- Phase 4 is the only phase requiring a production Drizzle migration — placing it fourth means the rest of the codebase is stable and the migration is the sole risk variable
-- Phase 5 (AdSense) is last because its external approval dependency is outside the team's control; development can proceed in parallel with the AdSense application but the feature should not go live until approval is confirmed
+- **Observability before everything** — Sentry and rate limiting are zero-risk additions that improve debuggability for all subsequent work. Any bug in bulk generation or the REST API is harder to diagnose without Sentry already in place.
+- **Bulk before API** — Bulk generation validates the agency use case without the complexity of API key management. If bulk QR demand is lower than expected, the API roadmap can be adjusted before investment.
+- **Rate limiting before API** — Phase 1 must be live before the public REST API ships (Phase 3). This dependency is hard.
+- **Campaign scheduling before team workspaces** — Validates time-based automation demand at the solo-user level before the much-larger team collaboration investment.
+- **i18n isolated** — i18n touches every marketing page. Isolate it to control scope creep and ensure SEO work is done correctly in one pass.
+- **Team + custom domains deferred** — Both require architectural commitments that should not be made until product-market fit at the solo/agency tier is confirmed.
+
+---
 
 ### Research Flags
 
-Phases likely needing deeper research or product decisions during planning:
-- **Phase 4 (Hosted Landing Pages):** Two product decisions must be resolved before building: (1) whether anonymous or free users can create PDF/App Store landing pages (the gate is inherited from `dynamicQrCodes` Pro check — confirm intent); (2) per-user Vercel Blob storage quota and acceptable file size limits (suggested: 10MB free, 25MB Pro — needs policy decision before the upload token endpoint is built).
-- **Phase 5 (AdSense):** CLS impact of manual ad units on the specific homepage layout is unknown until measured. Requires a Lighthouse CI baseline capture before any AdSense code is written, with a documented pass/fail gate at <90.
+**Needs phase research:**
+- **Phase 2 (Bulk QR)** — Verify `qr-code-styling` runs correctly in a Web Worker context (OffscreenCanvas, no `document` dependency) before committing to the Web Worker architecture.
+- **Phase 6 (i18n)** — Verify Paraglide 2.x Vite plugin setup with Astro 5 `hybrid` output mode in a spike before writing translation strings.
+- **Phase 8 (Team Workspaces)** — Dedicated architecture review needed: Clerk Organizations vs. custom workspace tables, Stripe multi-seat billing, complete query audit for workspace scoping.
+- **Phase 9 (Custom Domains)** — Dedicated research on current Vercel Domains API capabilities, CNAME vs. nameserver verification, SSL provisioning timeline.
 
-Phases with standard patterns (skip research-phase):
-- **Phase 1 (Foundation):** vCard is RFC-documented; tier limits are code-only; header is static HTML. No research needed.
-- **Phase 2 (SEO/Content):** Static Astro pages, well-understood sitemap + JSON-LD patterns. `astro-seo` and `astro-seo-schema` are well-documented.
-- **Phase 3 (Frames):** Canvas 2D composition is a standard browser API; no new dependencies; build-time glob import for SVGs is a documented Astro pattern.
+**Standard patterns (skip phase research):**
+- **Phase 1 (Sentry + rate limiting)** — Both are documented integrations with official Astro/Vercel guides.
+- **Phase 3 (REST API)** — API key hashing (SHA-256) and Astro serverless route patterns are well-established in the existing codebase.
+- **Phase 4 (Analytics)** — Drizzle date range queries and CSV export are simple extensions of the existing analytics system.
+- **Phase 5 (Campaign scheduling)** — Vercel Cron + Drizzle UPDATE is a known, documented pattern.
+- **Phase 7 (Seasonal templates)** — Pure content addition. No research needed.
 
 ---
 
@@ -150,52 +264,42 @@ Phases with standard patterns (skip research-phase):
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | All v1.2 additions verified against npm registry and official Vercel/Astro docs as of March 2026; `@vercel/blob` client upload pattern confirmed via official Vercel Blob documentation; `astro-seo-schema` is MEDIUM — verify current version on npm before install |
-| Features | MEDIUM-HIGH | Core patterns verified via live competitor research (QRTiger, Hovercode, Uniqode); tier limits are product decisions not technical constraints; anti-feature choices confirmed by negative competitor reviews |
-| Architecture | HIGH | All patterns extend existing validated v1.1 patterns; component boundaries reflect the actual codebase structure; build order validated by cross-referencing the feature dependency graph |
-| Pitfalls | HIGH (canvas tainting, Drizzle migration, vCard encoding, tier limits) / MEDIUM (AdSense policy enforcement thresholds, CLS impact at specific traffic scale) | Technical pitfalls verified against official docs and known bug reports; AdSense policy enforcement behavior is documented but precise threshold behavior requires empirical measurement |
+| Stack | HIGH | All primary choices verified against official docs and npm registry. Version numbers confirmed. i18next incompatibility with Astro 5 confirmed. Paraglide 2.x Vite plugin path verified. |
+| Features | MEDIUM | Competitor analysis (Uniqode, QR Tiger, Hovercode, QRCodeKit) used for table stakes and differentiator classification. Implementation complexity estimates are research-based but not battle-tested at this exact stack combination. |
+| Architecture | HIGH (Phases 1–7) / MEDIUM (Phases 8–9) | Vercel hard limits (4.5 MB, cron plans), Astro static/SSR split, Clerk edge incompatibility are all verified. Custom domain flow and Stripe multi-seat billing are documented but have no reference implementation on this exact stack. |
+| Pitfalls | HIGH (critical pitfalls) / MEDIUM (Turso concurrent writes) | Vercel constraints confirmed. Turso MVCC described as "experimental as of 2026-01" — exact write throughput under concurrent API load has low confidence. |
 
-**Overall confidence:** HIGH
+**Overall confidence:** HIGH for Phases 1–7. MEDIUM for Phases 8–9.
 
 ### Gaps to Address
 
-- **Landing page auth gate**: Product decision — are PDF/App Store landing pages a Pro-only feature? If yes, the gate is automatically inherited from the `dynamicQrCodes` Pro check. If free users can create them, a new explicit gate check is required. Resolve before Phase 4 task planning begins.
-- **Vercel Blob storage quotas**: Per-user limits and acceptable file size caps must be decided before the upload token endpoint is built. Current suggestion: 10MB per file for free users, 25MB for Pro. This is a product/cost decision, not a technical unknown.
-- **Frame + SVG export conflict**: When a frame is enabled, SVG export cannot include the frame (canvas composition produces raster, not vector). UX decision needed at the start of Phase 3: disable the SVG button when a frame is active, or export frameless SVG with an informational tooltip.
-- **AdSense approval timeline**: Apply after Phase 2 SEO pages are deployed and indexed. Build the Phase 5 implementation concurrently but do not go live until approval is confirmed. Budget 1–2 weeks for the approval process.
-- **`astro-seo-schema` version**: Listed as ^7.x with MEDIUM confidence. It is part of the `@codiume/orbit` monorepo — verify the current published version on npm before installing, as monorepo packages do not always follow standard semver.
+- **Turso concurrent write behavior under REST API load** — The REST API introduces concurrent writes from multiple API key holders. Turso MVCC is experimental; batch writes in single transactions and monitor for lock contention during Phase 3 load testing.
+- **`qr-code-styling` in Web Worker context** — The library uses canvas internally. Whether it runs in a Worker (which has `OffscreenCanvas`) vs. requiring the main thread needs a spike before Phase 2 commits to the Web Worker architecture.
+- **Paraglide 2.x + Astro 5 `hybrid` output mode** — Compatibility is confirmed but the interaction with `hybrid` (not pure `static`) should be validated in a spike before Phase 6 begins.
+- **Stripe multi-seat billing for team tier** — Not covered in current research. Phase 8 requires a dedicated research pass on Stripe's per-seat subscription model before schema and billing code are written.
 
 ---
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- [Vercel Blob documentation](https://vercel.com/docs/vercel-blob) — client upload pattern, token exchange, presigned URLs
-- [Vercel Blob client upload guide](https://vercel.com/docs/vercel-blob/client-upload) — `handleUpload` + `upload()` from `@vercel/blob/client`
-- [@vercel/blob npm](https://www.npmjs.com/package/@vercel/blob) — version 2.3.2, March 2026, 171 downstream packages confirmed
-- [astro-seo npm](https://www.npmjs.com/package/astro-seo) — version 1.1.0, Snyk health: Healthy, updated February 2026
-- [RFC 6350 — vCard 4.0](https://www.rfc-editor.org/rfc/rfc6350) — TITLE, ORG, ADR, URL field definitions; authoritative vCard field reference
-- [Google AdSense head placement](https://support.google.com/adsense/answer/9274516) — official guidance: place script in `<head>` statically
-- [Google Publisher Ads Lighthouse audit](https://developers.google.com/publisher-ads-audits/reference/audits/script-injected-tags) — static async script preferred over JS-injected tags
-- [Google AdSense TCF/CMP requirement](https://support.google.com/adsense/answer/13554116) — CMP required only for EEA/UK/Switzerland; US visitors do not require certified CMP
-- [Playwright Screenshots Docs](https://playwright.dev/docs/screenshots) — `page.locator().screenshot()` API for element-scoped captures
-- [MDN Canvas API — Drawing text](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Drawing_text) — canvas frame composition approach
-- Existing codebase: `src/db/schema.ts`, `src/pages/r/[slug].ts`, `src/components/QRGeneratorIsland.tsx`, `src/components/ExportButtons.tsx`, `src/lib/qrEncoding.ts`, `src/layouts/Layout.astro`
+- Sentry Astro SDK: https://docs.sentry.io/platforms/javascript/guides/astro/
+- Upstash ratelimit: https://upstash.com/blog/upstash-ratelimit and https://github.com/upstash/ratelimit-js
+- Astro i18n routing: https://docs.astro.build/en/guides/internationalization/
+- Vercel Domains API: https://vercel.com/platforms/docs/multi-tenant-platforms/configuring-domains
+- Paraglide JS 2.x: https://github.com/Alexandre-Fernandez/astro-i18n
 
 ### Secondary (MEDIUM confidence)
-- [astro-seo-schema (orbit monorepo)](https://github.com/codiume/orbit/tree/main/packages/astro-seo-schema) — `<Schema>` component backed by schema-dts
-- [astro-paper AdSense discussion #437](https://github.com/satnaing/astro-paper/discussions/437) — Astro + AdSense script injection community pattern
-- [Astro client-side scripts docs](https://docs.astro.build/en/guides/client-side-scripts/) — `<script>` tag placement in Astro layouts
-- [vCard 3.0 Format Specification](https://www.evenx.com/vcard-3-0-format-specification) — TITLE, TEL;TYPE=work, ADR, URL field formats (spec stable since 1998)
-- [Website Archive with Playwright in Astro](https://spacejelly.dev/posts/website-archive-with-automated-screenshots-in-astro-with-playwright-github-actions) — build-time screenshot generation pattern
-- Competitor analysis: QRTiger, Hovercode, QR Code Generator, Uniqode (live feature research, March 2026)
-- qr-code-styling README — `getRawData()` method signature (`Promise<Blob>`)
+- Competitor feature analysis: Uniqode (uniqode.com), QR Tiger (qr-code-generator.com), Hovercode (hovercode.com), QRCodeKit (qrcodekit.com) — product pages and help docs
+- API key vs OAuth2 patterns: https://boldsign.com/blogs/api-keys-vs-oauth-authentication/
+- Bulk generation patterns: https://qrcodekit.com/guides/bulk-qr-code-creation/
+- Team collaboration patterns: https://qr-verse.com/en/blog/qr-code-team-collaboration
 
-### Tertiary (LOW confidence)
-- WebSearch: "Using Playwright to Automatically Generate Screenshots for Documentation" (Medium, March 2026) — confirms build-time script pattern; single source
-- vCard X-SOCIALPROFILE;TYPE=linkedin cross-platform support — de facto standard as of 2026 per community sources; no official RFC ratification; iOS Contacts, Android Contacts, and most apps support it via the X- extension mechanism
-- vcardqrcodegenerator.com — practical X-SOCIALPROFILE examples in QR context (third-party, consistent with RFC 6350 extension mechanism)
+### Tertiary (LOW confidence / needs validation during implementation)
+- Turso MVCC concurrent write behavior under sustained API load — validate during Phase 3 load testing
+- `qr-code-styling` Web Worker compatibility — validate with a spike in Phase 2
+- Paraglide 2.x + Astro 5 `hybrid` output mode interaction — validate with a spike before Phase 6
 
 ---
-*Research completed: 2026-03-30*
+*Research completed: 2026-03-31*
 *Ready for roadmap: yes*

@@ -1,10 +1,10 @@
-# Domain Pitfalls — v1.2 Feature Additions
+# Pitfalls Research — v1.3 Scale & Integrate
 
-**Domain:** Adding AdSense, hosted landing pages, decorative QR frames, SEO improvements, vCard enhancements, homepage marketing sections, and tier limit updates to existing QRCraft (Astro 5 + React + Vercel + Turso + Clerk + Stripe).
-**Researched:** 2026-03-30
-**Confidence:** HIGH (AdSense CLS mechanics, Drizzle migration, canvas/frame composition, Astro sitemap bugs) / MEDIUM (AdSense policy for SaaS tools, vCard cross-platform behavior) / LOW (exact AdSense revenue impact at this traffic scale)
+**Domain:** Adding bulk generation, REST API, team collaboration, advanced analytics, i18n, campaign scheduling, custom short domains, seasonal templates, rate limiting, and error tracking to an existing Astro 5 + Vercel + Turso + Clerk + Stripe SaaS.
+**Researched:** 2026-03-31
+**Confidence:** HIGH (Vercel hard limits, Astro static/SSR split, Clerk Organizations, Turso write constraints) / MEDIUM (OAuth2 key rotation pattern, custom domain SSL provisioning) / LOW (exact Turso write throughput under concurrent API load)
 
-This document covers pitfalls **specific to v1.2 additions**. See the companion PITFALLS.md from v1.1 research for auth, Stripe, and Turso connection pool pitfalls that remain relevant.
+This document covers pitfalls **specific to v1.3 additions**. Prior PITFALLS.md files (v1.1 for auth/Stripe/Turso connection pooling, v1.2 for AdSense/frame composition/landing pages) remain relevant and are not repeated here.
 
 ---
 
@@ -12,547 +12,488 @@ This document covers pitfalls **specific to v1.2 additions**. See the companion 
 
 ---
 
-### Pitfall 1: Google AdSense Auto Ads Destroy the Lighthouse 100 Score
+### Pitfall 1: Bulk ZIP Generation Hits the 4.5 MB Response Body Limit
 
 **What goes wrong:**
-The site currently ships Lighthouse mobile performance: 100. Adding AdSense's standard `<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js">` tag as a global head include (the default setup instruction AdSense provides) loads the ad script on every page, including the dashboard and auth pages. This alone costs 10-20 Lighthouse performance points before a single ad renders, because the script is render-blocking on slow connections and adds ~120KB of JavaScript to every page.
+A user uploads a CSV of 50 QR codes. The serverless endpoint reads the CSV, generates 50 QR PNG buffers via `qr-code-styling`, compresses them into a ZIP, and tries to return the ZIP as a download response. At ~200 KB per 3× PNG, 50 codes = ~10 MB compressed ZIP. Vercel returns `413: FUNCTION_PAYLOAD_TOO_LARGE` mid-stream. The user gets a broken download with no meaningful error message.
 
-Auto Ads (the "paste one tag and forget it" mode) actively scans the DOM and inserts ads anywhere it sees whitespace. On the QR generator page, this breaks the carefully-tuned `client:visible` hydration by injecting DOM nodes mid-render. Auto Ads also strip `min-height` from any parent element it injects into, which guarantees a CLS of 0.3–0.6+ on the first ad load.
+The 4.5 MB limit applies to **both request body and response body** on Vercel serverless functions (all plans, not just Hobby). This is a hard AWS Lambda constraint, not a Vercel configuration option.
 
 **Why it happens:**
-The AdSense onboarding flow recommends the single global script tag and Auto Ads as the simplest setup. Teams follow the quickstart without knowing it conflicts with performance-first architectures.
+The natural implementation — generate everything in one function, stream back a ZIP — works in local development with `vite dev` (no 4.5 MB cap). It fails silently in production. CSV files are small (a few KB), so developers don't think about output size.
 
-**Consequences:**
-- Lighthouse score drops from 100 to ~75-85
-- CLS metric fails Core Web Vitals threshold (must be <0.1)
-- Google Search ranking signal degraded (CWV is a ranking factor)
-- The generator page's `client:visible` hydration timing is disrupted
-- QRGeneratorIsland.tsx may re-render unexpectedly when Auto Ads inject nodes into its parent
+**How to avoid:**
+Do not generate and stream the ZIP in a single serverless function. Use the same pattern already established for PDF uploads in v1.2: split into two operations.
 
-**Prevention:**
-1. Use **manual ad units only** — never enable Auto Ads on qrcraft. Place ads in explicit, statically-sized containers.
-2. Load the AdSense script **conditionally** — only when the current user is on the free tier (unauthenticated or `tier === 'free'`). The script must never load on Pro dashboard pages. Use a dedicated `<AdsenseScript />` Astro component with a `Astro.locals.auth()` tier check, only included on pages where ads will render.
-3. **Pre-reserve ad slot dimensions** with hard-coded CSS on the container div before the script loads:
-   ```css
-   .ad-slot { min-height: 90px; width: 100%; }
-   ```
-   Use an ID selector (not class) because AdSense JavaScript strips `min-height` from class-targeted elements but not ID-targeted ones.
-4. Load the AdSense script with `strategy="lazyOnload"` (fire after page load completes, not in `<head>`). In Astro, add it via a `<script>` tag at the bottom of the page body, not in `<BaseLayout.astro>`'s head.
-5. Run Lighthouse CI on every deployment. A regression from 100 to <90 should block the merge.
+1. **Generation function** — reads CSV, generates QR code buffers, uploads each PNG directly to Vercel Blob (via `@vercel/blob` `put()`), returns a JSON manifest of blob URLs. This function never streams binary data back through the response body.
+2. **Download function** — takes the manifest, fetches the blobs server-side (or streams them into a ZIP client-side using `JSZip` in the browser).
+
+Client-side ZIP assembly is the cleanest option: use `jszip` in the browser to fetch blob URLs and package them. The browser has no 4.5 MB constraint. This also means the server does less work and the user can see a progress indicator.
 
 **Warning signs:**
-- AdSense script added to `src/layouts/BaseLayout.astro` `<head>` section globally
-- Auto Ads enabled in AdSense account dashboard
-- No explicit `min-height` set on ad container divs
-- `x-vercel-cache: MISS` for pages that previously served from CDN (means SSR was accidentally added to accommodate the ad tier check)
+- Bulk endpoint returns binary data in the response body (not a Blob URL or manifest)
+- No integration test that generates >25 QR codes
+- Local tests pass but staging downloads are broken
 
-**Files at risk:** `src/layouts/BaseLayout.astro`, `src/pages/index.astro`, `src/components/QRGeneratorIsland.tsx`
-
-**Phase to address:** AdSense phase. Lighthouse baseline test must be run before the ad script is added, and after, with pass/fail gating.
+**Phase to address:** Bulk QR generation phase. Must be the first design decision, before any code is written for the download path.
 
 ---
 
-### Pitfall 2: AdSense Tier Check Exposes Auth State on a Static Page — Breaks the Current Architecture
+### Pitfall 2: Bulk Function Timeout on Large CSV Batches
 
 **What goes wrong:**
-Conditionally rendering ads only for free users requires knowing the user's tier when the page renders. The homepage (`/index.astro`) is currently a fully static, prerendered page — the server never sees request headers. There is no user context at build time. Developers who try to add `{userTier === 'free' && <AdSlot />}` to the Astro template discover that `Astro.locals.auth()` is unavailable on a static page and the build fails or returns null tier for everyone.
-
-The typical "fix" is to convert the homepage to SSR (`export const prerender = false`), which adds cold start latency to every homepage load, breaking the Lighthouse 100 score from the other direction.
+Even if the response size is solved, a 200-row CSV where each QR code requires a `qr-code-styling` render + canvas composition (for frames) takes 30–60 ms per code server-side = 6–12 seconds for 200 codes. On Hobby Vercel, the default max duration is 300s (with Fluid Compute enabled), but cold start + initialization easily pushes a per-code CPU cost over budget when the batch size grows. More importantly, the user is staring at a spinner with no feedback.
 
 **Why it happens:**
-The desire to avoid serving AdSense JS to Pro users (sensible) conflicts with the static-first architecture. Developers reach for the server-side solution without considering the client-side alternative.
+`qr-code-styling` uses a canvas/DOM environment in Node that is heavier than it looks. Frame composition adds a second canvas pass. Developers prototype with 10-row CSVs and assume the function will scale linearly.
 
-**Prevention:**
-Handle the ad tier gate **entirely client-side inside a React island**, not in the Astro template:
-```tsx
-// AdBanner.tsx — React island, client:idle
-export default function AdBanner() {
-  const user = $userStore.get();        // Clerk nanostore, available synchronously after hydration
-  const [tier, setTier] = useState<string | null>(null);
+**How to avoid:**
+- Move QR generation to the **client side** for bulk too — the same `qr-code-styling` library that powers the live preview can be called in a Web Worker. The user's browser generates all codes locally, exactly as the single-code flow works today. The server only handles: (a) CSV parsing/validation and (b) blob uploads if saving is needed.
+- Cap CSV row count at a tier-specific limit enforced before processing (Free: 0, Starter: 50, Pro: 250) to prevent abuse regardless of approach.
+- If server-side generation is required, use a queue (Upstash Workflow or QStash) with a background job and a polling endpoint rather than a single long-lived function.
 
-  useEffect(() => {
-    if (!user) { setTier('free'); return; }
-    fetch('/api/subscription/status')
-      .then(r => r.json())
-      .then(d => setTier(d.tier));
-  }, [user?.id]);
+**Warning signs:**
+- Bulk endpoint imports `qr-code-styling` as a server-side dependency
+- No row count limit enforced before processing begins
+- No progress feedback to the user during generation
 
-  if (tier !== 'free') return null;     // Pro/Starter users: render nothing
-  return <div id="ad-slot-1" className="ad-slot">...</div>;
+**Phase to address:** Bulk QR generation phase. Architecture decision (client-side vs server-side generation) must be locked before implementation.
+
+---
+
+### Pitfall 3: REST API Routes Require `output: 'server'` or Per-Route `prerender = false` — Breaks the Static Site
+
+**What goes wrong:**
+The current project uses `output: 'static'` in `astro.config.mjs`. Astro static endpoints (`.ts` files in `src/pages/api/`) are called at **build time**, not at request time. An API endpoint like `GET /api/v1/qr-codes` that queries Turso for the authenticated user's saved codes will always return an empty array at build time (no user context exists). POST/DELETE endpoints don't work at all in static mode — only GET is called at build time.
+
+The typical discovery path: developer adds `src/pages/api/v1/qr-codes.ts`, tests locally (Vite dev server behaves like SSR), deploys, gets empty responses or 404s in production.
+
+**Why it happens:**
+Astro's dev server simulates on-demand rendering for all routes regardless of `output` setting. The static/SSR split only manifests at build time and in Vercel deployment. The docs mention `export const prerender = false` but this is easy to miss.
+
+**How to avoid:**
+Every API route file must include:
+```typescript
+export const prerender = false;
+```
+This is non-negotiable for any endpoint that handles live requests. Alternatively, configure `output: 'hybrid'` at the project level (Astro 5 default is `static`, `hybrid` allows per-page opt-out of prerendering). Do not change `output: 'server'` globally — that would make every page SSR and destroy the Lighthouse 100 score.
+
+Add a build-time CI check: if any `src/pages/api/**/*.ts` file does not contain `prerender = false`, fail the build.
+
+**Warning signs:**
+- API routes return stale/empty data in production but work in `npm run dev`
+- No `export const prerender = false` at the top of API route files
+- `astro.config.mjs` still shows `output: 'static'` without `hybrid` mode enabled
+
+**Phase to address:** REST API phase. This is a prerequisite architecture decision. Check during the first API endpoint implementation.
+
+---
+
+### Pitfall 4: Multi-Tenant Data Leakage — Missing `organizationId` in Every Query
+
+**What goes wrong:**
+Team collaboration introduces an `organizations` table and an `organizationId` foreign key on `qrCodes`, `dynamicQrCodes`, and `landingPages`. A developer writes a query to list all QR codes for a dashboard:
+
+```typescript
+// Looks correct. Is a data leak.
+const codes = await db.select().from(qrCodes).where(eq(qrCodes.userId, userId));
+```
+
+This returns only the user's own codes — but if the user switches organization context, or if a team member queries through the API, the filter is wrong. The correct filter for team resources is `organizationId`, not `userId`. A single missed `WHERE organizationId = ?` anywhere in the codebase can expose one tenant's QR codes to another.
+
+Turso/libSQL does not have Row-Level Security (RLS). There is no database-level backstop. **Application code is the only enforcement layer.** Every missed filter is a live data breach.
+
+**Why it happens:**
+v1.1 and v1.2 were single-tenant (per-user). All queries filtered by `userId`. When organization context is added, most queries are updated but some are missed — especially in edge cases like admin views, analytics aggregation, and webhook handlers.
+
+**How to avoid:**
+1. Create a `withOrgScope()` Drizzle query helper that enforces `AND organizationId = ?` on every table that has an org FK. Never write raw `.where(eq(...userId...))` on org-scoped tables directly.
+2. After adding organization support, audit every Drizzle query in the codebase with a grep for `from(qrCodes)`, `from(dynamicQrCodes)`, `from(landingPages)` — verify each has org or user scoping appropriate to the context.
+3. Write an integration test that creates two organizations with overlapping user IDs, and asserts that querying as org A never returns org B's data.
+4. API routes must extract `organizationId` from the validated JWT/session before any DB query, not from the request body (which an attacker can forge).
+
+**Warning signs:**
+- Queries filter only by `userId` on tables that have `organizationId`
+- No `withOrgScope()` helper or equivalent abstraction in the data layer
+- No cross-tenant isolation test in the test suite
+- `organizationId` passed as a query parameter or request body field (not from server-validated session)
+
+**Phase to address:** Team collaboration phase. Zero tolerance — any merge that touches DB queries for org-scoped tables must pass the cross-tenant isolation test.
+
+---
+
+### Pitfall 5: Astro i18n Infinite Redirect Loop with `redirectToDefaultLocale` + `prefixDefaultLocale: false`
+
+**What goes wrong:**
+The most common Astro i18n misconfiguration causes an infinite redirect loop that crashes the deployment. In Astro v5, if `redirectToDefaultLocale: true` (the old default) is combined with `prefixDefaultLocale: false`, a request to `/` redirects to `/en/`, which then matches the default locale prefix and redirects back to `/` — loop.
+
+In Astro v6, `redirectToDefaultLocale` defaults to `false` and is **only valid** when `prefixDefaultLocale: true`. But the project is on Astro 5, and developers often copy v6 config examples that assume different defaults.
+
+**Why it happens:**
+i18n documentation examples vary by Astro version. The config field `redirectToDefaultLocale` has changed defaults between v5 and v6. Developers adding i18n for the first time copy examples without checking version compatibility.
+
+**How to avoid:**
+For this project (Astro 5, `output: 'hybrid'`), use:
+```javascript
+i18n: {
+  defaultLocale: 'en',
+  locales: ['en', 'es', 'fr', 'de'],
+  routing: {
+    prefixDefaultLocale: false,   // /about not /en/about for English
+    redirectToDefaultLocale: false // Must be false when prefixDefaultLocale is false in Astro 5
+  }
 }
 ```
-The homepage stays fully static. The AdSense script is loaded lazily by the island only when it renders. Pro users never trigger the script load. The `/api/subscription/status` call is a single fast Turso query already used elsewhere — no new infrastructure needed.
+Test the routing in local dev before deploying. Add a smoke test that hits `/`, `/es/`, `/fr/`, `/de/` and asserts no redirect chain longer than one hop.
 
 **Warning signs:**
-- `Astro.locals.auth()` called in `src/pages/index.astro` which does not have `export const prerender = false`
-- Build error: "locals.auth is not a function on prerendered page"
-- Homepage response headers flip from `x-vercel-cache: HIT` to `MISS` after AdSense work begins
+- `redirectToDefaultLocale: true` with `prefixDefaultLocale: false` in the same config
+- Copying i18n config from Astro v6 docs while running Astro v5
+- Browser shows "Too many redirects" on the homepage after adding i18n config
 
-**Files at risk:** `src/pages/index.astro`, `src/layouts/BaseLayout.astro`
-
-**Phase to address:** AdSense phase. Finalize the client-side tier-check-in-island pattern before writing any AdSense integration code.
+**Phase to address:** i18n phase — first commit, before any content translation.
 
 ---
 
-### Pitfall 3: Decorative Frame Export Breaks Because Canvas Composite Is Untrusted
+### Pitfall 6: i18n Breaks Existing `@astrojs/sitemap` Integration and SEO
 
 **What goes wrong:**
-The current PNG export in `ExportButtons.tsx` creates a temporary `QRCodeStyling` instance at 768×768 with `type: "canvas"` and calls `tempQr.download()`. This works because all image data (including the user-uploaded logo) is a data URI stored in the island state — no cross-origin resources. Adding decorative frames changes the pipeline: the frame graphic must be composited onto the QR canvas before export. If the frame is loaded as an `<img>` tag from a URL (e.g., `/frames/frame1.svg`) rather than inlined as a data URI, the browser treats the canvas as **tainted** and `getRawData()` / `toBlob()` / `toDataURL()` throw `SecurityError: The operation is insecure`.
+The project has a working sitemap at `/sitemap-index.xml` with full coverage. Adding i18n creates duplicate URL paths: `/about` and `/es/about` both exist. Without proper `hreflang` annotations and sitemap i18n configuration, Google sees these as duplicate thin content pages, which penalizes SEO — the opposite of the goal.
+
+Additionally, `@astrojs/sitemap` does not automatically generate `hreflang` link tags in page `<head>`. Developers assume the sitemap integration handles multilingual SEO automatically. It does not.
 
 **Why it happens:**
-SVG frames served from the same origin with a plain `<img>` tag do not automatically get CORS headers needed to mark them as safe for canvas use. The browser's canvas security model treats any image without explicit `crossOrigin="anonymous"` on the `<img>` element AND `Cross-Origin-Resource-Policy: same-origin` or `Access-Control-Allow-Origin` headers on the server as an untrusted source.
+The sitemap integration generates URLs but does not inject `<link rel="alternate" hreflang="...">` tags. These must be added manually to each page's `<head>` using Astro's `Astro.currentLocale` and `getRelativeLocaleUrl()`.
 
-**Consequences:**
-- PNG download silently fails (no error visible to user)
-- Clipboard copy fails
-- The export flow regresses silently — only noticed by users who try to export after applying a frame
+**How to avoid:**
+1. Configure the sitemap integration's `i18n` option to emit per-locale URLs with the correct `hreflang` values:
+   ```javascript
+   sitemap({ i18n: { defaultLocale: 'en', locales: { en: 'en-US', es: 'es-ES', fr: 'fr-FR', de: 'de-DE' } } })
+   ```
+2. Add `hreflang` link tags to `BaseLayout.astro` using `getRelativeLocaleUrl()` for each supported locale.
+3. Include an `x-default` hreflang pointing to the English URL.
+4. After deploying i18n, run a Screaming Frog (or equivalent) crawl and verify no duplicate content flags.
 
-**Prevention:**
-Two safe approaches:
+**Warning signs:**
+- Sitemap only contains English URLs after i18n is added
+- No `<link rel="alternate" hreflang>` tags in page source
+- Google Search Console reports duplicate content for `/about` and `/es/about`
 
-**Option A (recommended): Pre-inline frames as data URIs**
-Load all frame SVG files at build time (Astro glob import) and inline them as base64 data URIs. No network fetch, no CORS issue, and the frame is available synchronously for canvas composition.
+**Phase to address:** i18n phase — before enabling any translated pages in production.
+
+---
+
+### Pitfall 7: Campaign Scheduling Relies on Vercel Cron — Which Is Not Precise and Never Retries
+
+**What goes wrong:**
+Campaign scheduling requires: "At the configured publish date, flip `dynamicQrCode.isEnabled = true`." Developers implement a Vercel Cron job (`vercel.json` cron entry) that runs every minute and checks for pending campaigns.
+
+Problems:
+1. Hobby plan cron runs at most once per day. This feature requires Pro plan to run minutely.
+2. Vercel cannot guarantee exact timing — a cron configured for `0 9 * * *` may fire anywhere between 9:00 and 9:59 AM.
+3. **Vercel does not retry failed cron invocations.** If the cron function errors (DB timeout, cold start crash), the campaign never activates.
+4. Cron jobs do not follow redirects — if the cron endpoint returns a 3xx, the job silently completes.
+5. There is no built-in idempotency — if Vercel delivers the same cron event twice (documented as possible), the campaign may try to activate twice and cause duplicate scan events.
+
+**Why it happens:**
+Vercel Cron is the obvious first choice for scheduled work. Its limitations are not immediately visible in the docs overview. The retry/idempotency gaps only surface in production under load.
+
+**How to avoid:**
+- Use **QStash** (Upstash's message queue with scheduling) as the cron backend instead of Vercel Cron. QStash supports retry with exponential backoff, guaranteed at-least-once delivery, and precise scheduling (minute-granular).
+- Alternatively, use Vercel Cron for a polling sweep but make the activation logic **idempotent** (check `isEnabled` before updating, use a `activatedAt` timestamp to skip already-activated records) and add alerting when the sweep finds campaigns past their scheduled date that are still inactive.
+- Always record a `scheduledFor` timestamp and an `activatedAt` timestamp on the campaign. If `scheduledFor < now AND activatedAt IS NULL`, the campaign missed its window — surface this in the admin UI.
+
+**Warning signs:**
+- `vercel.json` cron expression is `* * * * *` (every minute) — will fail on Hobby plan
+- No idempotency check in the cron handler
+- Campaign activation uses `UPDATE ... WHERE scheduledFor <= now()` without a `AND activatedAt IS NULL` guard
+- No alerting or logging for missed activations
+
+**Phase to address:** Campaign scheduling phase. Decide on QStash vs Vercel Cron before writing any scheduler code.
+
+---
+
+### Pitfall 8: Custom Short Domains Require Wildcard SSL — Which Requires Vercel Nameserver Control
+
+**What goes wrong:**
+`go.brand.com` requires: (1) the user adds a CNAME record pointing `go` to Vercel, (2) Vercel issues an SSL certificate for `go.brand.com`, (3) the app routes requests from that hostname to the correct tenant's dynamic QR codes.
+
+The showstopper: Vercel issues individual per-subdomain certificates on demand. This works for `go.brand.com` but requires the domain to be added to the Vercel project via the Vercel API (`POST /v9/projects/{projectId}/domains`). This is a programmatic domain registration step most developers forget to build.
+
+The bigger problem: the user must complete a DNS verification step that can take 24–48 hours to propagate globally. If the app treats domain verification as synchronous ("add domain → use domain"), users get SSL errors for up to 48 hours.
+
+**Why it happens:**
+Developers build the database schema and UI for custom domains, then discover the async verification/provisioning loop late. The Vercel Domains API is straightforward but the state machine (pending → verifying → active → error) has to be built from scratch.
+
+**How to avoid:**
+1. Build a `customDomains` table with states: `pending_verification`, `verified`, `active`, `error`.
+2. After user submits `go.brand.com`, call the Vercel Domains API to register the domain on the project. Store the verification token.
+3. Show the user the exact CNAME record to add (not a wall of text — a copyable record).
+4. Use a background poller (Vercel Cron or QStash) to check domain verification status via `GET /v9/projects/{projectId}/domains/{domain}` every 15 minutes, updating the DB state.
+5. Only route traffic through a verified custom domain. Show a clear "pending DNS propagation" state in the UI.
+6. Wildcard subdomain setup (for `*.qr-code-generator-app.com`) requires Vercel nameserver control of the root domain. The project already points Porkbun to Vercel DNS — this is already satisfied.
+
+**Warning signs:**
+- No `customDomains` state machine table (just a `customDomain: string | null` column on the workspace)
+- Domain added to Vercel project synchronously in the same request as the user's form submit
+- No user-facing "DNS pending" state
+- No background verification poller
+
+**Phase to address:** Custom domains phase. This is the most infrastructure-heavy feature in v1.3. Needs its own phase with dedicated architecture work.
+
+---
+
+### Pitfall 9: Rate Limiting Built with In-Memory State Resets on Every Cold Start
+
+**What goes wrong:**
+Developer adds rate limiting to API routes using a local `Map<string, number>` to track request counts per API key. This works perfectly in local development. In Vercel production, every function invocation may run in a different container (or the same container after a cold start resets all in-memory state). The rate limit map is cleared on every cold start, making the rate limit effectively useless under normal traffic patterns.
+
+**Why it happens:**
+In-memory rate limiting is the fastest-to-implement option and works in long-lived server processes (Node.js Express, Fastify). Developers copy this pattern without accounting for the stateless/ephemeral nature of serverless functions.
+
+**How to avoid:**
+Use **Vercel KV** (Redis-compatible) or **Upstash Redis** as the rate limit store. The `@upstash/ratelimit` package integrates with both and supports sliding window and fixed window algorithms.
+
 ```typescript
-const frames = import.meta.glob('/src/assets/frames/*.svg', { as: 'raw' });
-// Convert to data URI: `data:image/svg+xml;base64,${btoa(svgString)}`
+import { Ratelimit } from "@upstash/ratelimit";
+import { kv } from "@vercel/kv";
+
+const ratelimit = new Ratelimit({
+  redis: kv,
+  limiter: Ratelimit.slidingWindow(100, "1 m"), // 100 req/min
+});
 ```
 
-**Option B: Composite frame on a second canvas after QR generation**
-Generate the QR code to a canvas blob, then draw it into a second `<canvas>` element that you fully control. Draw the frame (loaded with `crossOrigin="anonymous"`) before compositing. Since you own the canvas and control all draw operations, tainting does not occur if CORS headers are correct.
-
-Never use `new Image()` with a URL src and draw it to canvas without `crossOrigin="anonymous"` set before setting `.src`.
+Declare the `ratelimit` instance **outside** the handler function (module scope) so it survives function re-use within a warm container. This uses Upstash's built-in caching for the window state, reducing Redis round-trips.
 
 **Warning signs:**
-- Frame image loaded via `new Image(); img.src = '/frames/frame1.svg'` with no `crossOrigin` attribute
-- `SecurityError` in browser console on PNG download attempt after frame is selected
-- Export buttons produce no download but also show no error toast
+- Rate limit state stored in a module-level `Map` or `Set`
+- No external Redis/KV dependency in `package.json`
+- Rate limit passes load tests locally but fails to enforce limits under concurrent Vercel invocations
 
-**Files at risk:** `src/components/ExportButtons.tsx`, new frame composition utility
-
-**Phase to address:** Decorative frames phase. Resolve the canvas composition strategy (inlined data URIs vs. CORS-enabled server fetch) before implementing any frame rendering.
+**Phase to address:** API rate limiting phase — applies to both the REST API and the public redirect endpoint.
 
 ---
 
-### Pitfall 4: Drizzle Schema Migration Breaks Existing Rows on Turso Production
+### Pitfall 10: Clerk Organizations — Role Permissions Not Scoped to Active Organization
 
 **What goes wrong:**
-Adding new content types (PDF, App Store) requires new columns on `savedQrCodes` (e.g., `coverPhotoUrl`, `appStoreUrl`, `landingPageSlug`). When these columns are added to `schema.ts` and pushed with `drizzle-kit push` against a Turso production database that has existing rows, there is a known Drizzle bug: the push command fails with `"table has N columns but N+1 values were supplied"` on tables with existing data. This is a documented issue in the Drizzle ORM GitHub repo.
-
-Worse: if the developer works around this by dropping and recreating the table, all existing user QR codes are deleted. A production data loss event.
+Clerk Organizations allow users to be members of multiple organizations with different roles in each. A user who is an `admin` in Organization A and a `member` in Organization B logs in. The API endpoint reads `session.claims.org_role` without checking `session.claims.org_id`. When the user switches organization context in the UI but the frontend doesn't trigger a session refresh, the server-side role check still reads the role from the previous active organization — granting admin access in Org B.
 
 **Why it happens:**
-`drizzle-kit push` is designed for development schema sync. It is explicitly not recommended for production databases with existing data. Many developers use it anyway because it's simple and worked fine during v1.1 development.
+Clerk sets `org_role` and `org_id` together in the JWT claims. When the active organization changes, the JWT must be refreshed. If the frontend doesn't call `setActive({ organization: newOrgId })` before making the next API call, the stale JWT still carries the old org context.
 
-**Prevention:**
-1. **Never use `drizzle-kit push` against Turso production.** Generate a migration file instead:
-   ```bash
-   npx drizzle-kit generate
-   ```
-   Review the generated SQL carefully. For SQLite (Turso), adding a nullable column is safe. Adding a NOT NULL column without a default value is not — it will fail on existing rows.
-2. **All new columns added for v1.2 must be nullable or have a default value.** Existing `savedQrCodes` rows have no PDF data; `coverPhotoUrl TEXT` (nullable) is safe, `coverPhotoUrl TEXT NOT NULL` is not.
-3. Apply the migration against a Turso staging database (separate DB URL) before touching production.
-4. Test the migration by inserting a row with the v1.1 schema, running the migration, then querying all columns — verify no null constraint violations.
+**How to avoid:**
+1. Every API route that checks organization roles must validate **both** `orgId` and `orgRole` from the session — never `orgRole` alone.
+2. After `setActive()` in the frontend, wait for the session token to refresh before making org-scoped API calls. Clerk's `useOrganization()` hook returns a loading state during the switch — honor it.
+3. Server-side: verify the `orgId` from the session matches the `organizationId` of the resource being accessed. Don't trust the `organizationId` from the request body — always use the session-derived value.
+4. Write an integration test: create a user with admin role in Org A and member role in Org B, make an admin-gated request while the session carries Org A context, verify the request succeeds. Make the same request with Org B context in the JWT, verify it fails.
 
 **Warning signs:**
-- `drizzle-kit push` used on production Turso URL (check `drizzle.config.ts` `dbCredentials.url`)
-- New columns added as `NOT NULL` with no `.default()` in schema definition
-- No migration staging step in the deployment checklist
+- API routes check `session.orgRole` without also asserting `session.orgId === resource.organizationId`
+- Frontend calls org-scoped API endpoints immediately after `setActive()` without awaiting session refresh
+- No integration test for cross-org role boundary
 
-**Files at risk:** `src/db/schema.ts`, `drizzle.config.ts`
-
-**Phase to address:** First phase that adds new DB columns (PDF/App Store landing pages). Establish the generate-review-migrate workflow in the phase plan before any schema changes.
+**Phase to address:** Team collaboration phase.
 
 ---
 
-### Pitfall 5: Hosted Landing Page Slugs Conflict with Existing `/r/[slug]` Dynamic QR Routes
+### Pitfall 11: API OAuth2 — Storing API Keys as Plaintext in Turso
 
 **What goes wrong:**
-The existing dynamic QR redirect system uses `/r/[slug]` (nanoid 8 characters) for short URLs. Adding hosted PDF/App Store landing pages requires a shareable public URL. If landing pages also use `/r/[slug]` or a similar short path, there is a namespace collision risk: a landing page slug could be identical to an existing QR redirect slug (low probability but non-zero given an 8-character alphanumeric space), or users could manually guess short codes belonging to other users' landing pages.
-
-A separate but related issue: the landing pages need dynamic SSR (per-page OG meta tags, SSR content from Turso) but the site is mostly static. Adding `export const prerender = false` to a new `/p/[slug].astro` landing page route is correct, but if this is placed in a directory that also contains static pages, the build may incorrectly apply static generation to the dynamic route.
+Developer adds an `apiKeys` table with `keyValue TEXT` to store OAuth2 client secrets or bearer tokens. Turso is an external database accessible with a connection string. If the Turso DB is compromised (credential leak, misconfiguration), all API keys are immediately usable by an attacker. Every customer API integration is breached.
 
 **Why it happens:**
-Short slug namespaces are shared globally across all content. Landing page UX requires short, shareable URLs. These two requirements conflict.
+Keys are typically short strings. Developers treat them like config values and store them as-is. The practice of hashing API keys (like passwords) is less widely known than password hashing.
 
-**Prevention:**
-1. Use a **separate path prefix** for landing pages: `/p/[slug]` (for "page") rather than `/r/[slug]`. This eliminates namespace collision with redirect slugs.
-2. Store landing page slugs in a **separate table** (`landingPages`) with its own unique constraint, not in `dynamicQrCodes`. The QR code simply encodes the `/p/[slug]` URL as its data.
-3. Add `export const prerender = false` only to `src/pages/p/[slug].astro`, not to the entire pages directory.
-4. Generate landing page slugs with nanoid(10) or longer to reduce collision probability in the `/p/` namespace.
-5. OG meta tags (`og:title`, `og:description`, `og:image`) for landing pages must be set in the `<head>` of the SSR-rendered page — they cannot be set client-side because social crawlers do not execute JavaScript.
+**How to avoid:**
+Never store the full API key value. Use the same pattern as password hashing:
+1. Generate a key: `qrc_live_<32-byte-random-hex>` — this is shown to the user once only.
+2. Store in DB: `keyHash = sha256(fullKey)`, `keyPrefix = 'qrc_live_xxxx'` (first 8 chars for display), `createdAt`, `lastUsedAt`, `revokedAt`.
+3. On API request: hash the incoming bearer token, compare against stored `keyHash`.
+
+This means a DB breach exposes no usable keys. The `keyPrefix` allows users to identify which key is in use without storing the secret.
 
 **Warning signs:**
-- Landing page routes placed at `/r/[slug]` alongside dynamic QR redirects
-- `landingPageSlug` stored as a column on `savedQrCodes` rather than a separate table
-- OG tags set inside a React island (crawlers won't see them)
-- `export const prerender = false` missing from the landing page route file
+- `apiKeys` table has a `value TEXT NOT NULL` column that stores the full key
+- API key shown in the dashboard was retrieved from DB, not from a one-time creation response
+- No `keyHash` column in the schema
 
-**Files at risk:** `src/pages/p/[slug].astro` (new), `src/db/schema.ts`
-
-**Phase to address:** PDF/App Store landing pages phase. Define the URL structure and data model before any route is created.
+**Phase to address:** REST API phase — schema design decision made before any key generation code is written.
 
 ---
 
-### Pitfall 6: SEO Cannibalization Between Tool Page and New Content Landing Pages
+### Pitfall 12: Sentry Source Maps Not Uploading on Vercel — Errors Show Minified Stack Traces
 
 **What goes wrong:**
-Adding a "QR code use cases" section and dedicated landing page, a "how-to" section, and PDF/App Store QR generator pages creates multiple pages that target overlapping keywords ("QR code generator", "free QR code maker", etc.). The homepage already targets these head keywords. New pages that repeat the same H1 and meta description patterns split Google's link equity across multiple pages and can cause all of them to rank lower than the original single page.
+Sentry is integrated and errors appear in the dashboard. But stack traces show minified code: `at t (chunk-abc123.js:1:8392)` instead of real function names and file paths. Source maps were not uploaded to Sentry during the Vercel build.
 
-The `@astrojs/sitemap` integration has a known issue with Vercel deployments where sitemap.xml is generated after Vercel finalizes static assets, causing the sitemap to be excluded from the deployed output. New SSR landing pages (`/p/[slug]`) are not statically enumerable at build time and will not appear in a static sitemap at all.
+This is the most common Sentry/Vercel integration failure mode. The Sentry Vite plugin runs during build but emits a warning: `No release name provided. Will not inject release.` — which is easy to miss in Vercel build logs. Without a release name, source maps are uploaded but never associated with the deployed version, so Sentry can't apply them.
 
 **Why it happens:**
-Content strategy and SEO aren't considered during feature planning. Each new page is built to serve a feature need (show off PDF QR use case) without considering its relationship to existing pages targeting the same keywords.
+The Sentry Vite plugin requires `SENTRY_RELEASE` to be set as an environment variable in Vercel. Vercel does not set this automatically. Developers add the Sentry integration and assume the Vercel + Sentry integration handles it. The Vercel Sentry integration creates an auth token but does not set a release name.
 
-**Prevention:**
-1. **Keyword intent differentiation**: The homepage owns "QR code generator" (transactional intent). New pages must own distinct intents: "QR code for PDF" (informational), "QR code use cases" (navigational). Unique H1, unique meta description, unique focus keyword per page.
-2. **Canonical tags** on near-duplicate pages. If the how-to section is split into a standalone `/guide/` page that closely mirrors homepage FAQ content, add `<link rel="canonical" href="/">` on the new page or consolidate into the homepage with anchor links.
-3. **Sitemap fix**: Add `@astrojs/sitemap` config with explicit `customPages` array for known SSR routes. For dynamic landing pages (`/p/[slug]`), these cannot appear in a build-time sitemap — submit them via Google Search Console URL inspection individually, or build a dynamic sitemap endpoint at `/sitemap-dynamic.xml` that queries Turso for all active landing page slugs.
-4. Never use the same title tag and meta description on two different pages. Even minor keyword variation matters.
-
-**Warning signs:**
-- New pages have H1 "Free QR Code Generator" — identical to homepage H1
-- `sitemap.xml` deployed to production does not include new static pages added in v1.2
-- `sitemap.xml` file is empty or missing from Vercel deployment (known `@astrojs/sitemap` + Vercel adapter bug)
-
-**Files at risk:** `astro.config.mjs` (sitemap config), any new `.astro` page files with `<title>` and `<meta name="description">`
-
-**Phase to address:** SEO improvements phase. Do a keyword intent map before writing any new page copy.
-
----
-
-### Pitfall 7: vCard Special Character Encoding Corrupts the QR Data
-
-**What goes wrong:**
-The current `encodeVCard()` in `src/lib/qrEncoding.ts` supports `name`, `phone`, `email`, `org`. Adding `title`, `company`, `workPhone`, `address`, `website`, and `linkedin` to the vCard spec (v1.2 requirement) introduces new encoding hazards:
-
-- **N field structure**: vCard 3.0's `N` property has 5 semicolon-delimited components (`FamilyName;GivenName;AdditionalNames;Prefix;Suffix`). The current code writes `N:${name};;;` which works for simple names but breaks if `name` contains a semicolon (a malicious or accidental input). The entire vCard parse fails on devices that strictly validate the `N` field structure.
-- **Address field**: vCard `ADR` has 7 semicolon-delimited components (`POBox;Extended;Street;City;Region;Postal;Country`). Unescaped semicolons inside any component corrupt the structure. The current WiFi encoder has proper `escapeWifi()` — no equivalent escape function exists for vCard property values yet.
-- **Line folding**: vCard 3.0 requires lines longer than 75 characters to be folded with `\r\n ` (CRLF + single space). iOS Contacts handles this gracefully. Outlook Desktop fails to import vCards with unfolded long lines. An `ADR` with a full street address easily exceeds 75 characters.
-- **CHARSET for non-ASCII**: Outlook Express / older Outlook versions misparse UTF-8 vCard 3.0 without a `CHARSET=UTF-8` declaration. However, adding `CHARSET=UTF-8` to vCard 3.0 is technically spec-incorrect (it was deprecated in 3.0 but is needed for Outlook compat). This is a documented cross-client contradiction.
-
-**Why it happens:**
-vCard is a spec with known cross-client inconsistencies. Adding fields increases the surface area for encoding bugs. The current implementation was minimal enough to avoid most issues.
-
-**Prevention:**
-1. Add a `escapeVCard(s: string): string` function that escapes `\`, `;`, `,`, and newlines per RFC 6350:
-   ```typescript
-   function escapeVCard(s: string): string {
-     return s.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
-   }
-   ```
-2. Apply `escapeVCard()` to every property value before writing it to the vCard string. Audit the entire `encodeVCard()` function when adding new fields.
-3. Implement `foldLine(line: string): string` that wraps at 75 bytes (not characters — bytes matter for UTF-8) with `\r\n ` continuation.
-4. For the `ADR` property, use a structured input (separate fields for street, city, etc.) rather than a single free-text address field. This gives you control over the delimiter structure.
-5. Test with Apple Contacts (iOS 17+), Google Contacts, and Outlook 365 Desktop for every new field added. These three cover >95% of real-world vCard import scenarios.
-
-**Warning signs:**
-- `encodeVCard()` concatenates user-provided strings directly into semicolon-delimited fields without escaping
-- Long `ADR` or `NOTE` values not folded at 75 chars
-- No automated test that imports the generated vCard into a contact app (even a unit test that validates the output against the RFC 6350 spec)
-- New fields added by extending the function without adding escape calls
-
-**Files at risk:** `src/lib/qrEncoding.ts`, `src/components/tabs/VCardTab.tsx` (new fields)
-
-**Phase to address:** vCard enhancements phase. Refactor `escapeVCard()` and `foldLine()` as the first step, before adding any new fields.
-
----
-
-### Pitfall 8: QR Frame + Logo Composition Produces Incorrect SVG Export
-
-**What goes wrong:**
-The current SVG export uses `qrCodeRef.current?.download({ extension: 'svg' })` which exports the raw QR code SVG from `qr-code-styling`. When a decorative frame is added, the frame must be part of the exported SVG. If the frame is rendered as a DOM overlay (positioned absolutely on top of the QR preview) rather than composited into the QR's SVG, the SVG download produces a frame-less QR code — the frame only appears in the browser preview.
-
-Additionally, `qr-code-styling` does not support frame injection natively. The SVG output is a standalone document. Wrapping it in a larger SVG `<svg>` group with the frame requires:
-1. Parsing the raw SVG string
-2. Adjusting the `viewBox` to accommodate frame padding
-3. Injecting frame SVG elements around the QR group
-4. Re-serializing to a Blob for download
-
-If this composition happens incorrectly, the QR module boundaries shift relative to the quiet zone, and the resulting QR becomes unscannable (especially at small print sizes).
-
-**Why it happens:**
-Frames are initially implemented as CSS/DOM overlays for live preview (simplest approach) but export is not considered until later. The export path requires a different composition strategy.
-
-**Prevention:**
-1. **Single source of truth for composition**: Build a `composeQRWithFrame(qrSvgString, frameSvgString, frameConfig)` utility that produces the final composite SVG. Both the preview and the export use this function — the preview renders the result in a React-controlled `<div dangerouslySetInnerHTML>` and the export downloads it.
-2. Preserve the QR code's quiet zone (4-module white border). Frame padding must be added **outside** the quiet zone, not replacing it. The frame SVG should use a `viewBox` that positions the QR area in the center with frame elements around it.
-3. For PNG export: composite the frame in the temp canvas. Draw the frame first (larger canvas dimensions), then draw the QR code centered on top. Do not draw the QR first and then attempt to draw the frame on top of modules — frame text ("SCAN ME") must be underneath the QR in z-order visually, but frame borders must be around the QR.
-4. Test that the exported QR code (with frame) scans correctly with at least three apps (iOS Camera, Google Lens, a third-party scanner) at both 200px screen size and 300 DPI print simulation.
-
-**Warning signs:**
-- Frame implemented as `position: absolute` CSS overlay on the preview div
-- SVG download does not include frame elements (easily verifiable: open the downloaded SVG in a text editor, look for frame-related SVG groups)
-- No scanning test for the exported composite (only visual QA)
-- `viewBox` not adjusted after frame is composited (QR appears clipped or frame appears clipped)
-
-**Files at risk:** `src/components/ExportButtons.tsx`, `src/components/QRPreview.tsx`, new frame composition utility
-
-**Phase to address:** Decorative frames phase. Build the composition utility and test export before building the visual frame picker UI.
-
----
-
-### Pitfall 9: Updating Tier Limits Silently Downgrades Existing Users
-
-**What goes wrong:**
-v1.2 changes saved QR limits from (implied unlimited for Pro) to Free:5/3, Starter:100/10, Pro:250/100. The limits in `src/pages/api/qr/save.ts` currently read:
-```typescript
-if (tier !== 'pro') { /* limit to 3 dynamic QRs */ }
-// static QRs: Pro required at all
+**How to avoid:**
+In `astro.config.mjs` / `vite.config.ts`, set the release name explicitly:
+```javascript
+sentryVitePlugin({
+  release: { name: process.env.VERCEL_GIT_COMMIT_SHA ?? 'local' },
+  sourcemaps: { assets: './dist/**' },
+});
 ```
-The new limits affect every tier. If a Pro user has saved 251 QR codes (above the new 250 cap), and the limit check is changed to `savedCount >= TIER_LIMITS[tier].savedQrs`, that user is blocked from saving any more. Worse, if the limit check applies retroactively (e.g., on list or edit), existing users experience feature regression without any upgrade path.
+Set `VERCEL_GIT_COMMIT_SHA` is already populated by Vercel — no manual env var needed.
 
-Additionally, `save.ts` hardcodes `3` for the dynamic QR limit for non-Pro users. If this is changed to match the new tier structure (`Starter: 10`, `Free: 3`), existing Starter users who were already at limit 3 would suddenly have access to 10 — but Starter users who were blocked before need no migration. However, any logic change here could inadvertently grant free users the Starter limit if the tier mapping is wrong.
-
-**Why it happens:**
-Limit constants are scattered as hardcoded numbers across API routes rather than centralized in a constants file. Changes require updates in multiple places and it's easy to miss one.
-
-**Prevention:**
-1. **Centralize tier limits** in a single file before changing any limits:
-   ```typescript
-   // src/lib/tierLimits.ts
-   export const TIER_LIMITS = {
-     free:    { savedQrs: 5,   dynamicQrs: 3 },
-     starter: { savedQrs: 100, dynamicQrs: 10 },
-     pro:     { savedQrs: 250, dynamicQrs: 100 },
-   } as const;
-   ```
-2. Update all API routes (`save.ts`, `list.ts`, any future limit checks) to import from `tierLimits.ts`. One change propagates everywhere.
-3. For the limit increase case (Starter: 3→10 dynamic QRs): no migration needed. Users who were at 3 can now create more. Do not change existing data.
-4. For the limit decrease case (if Pro had unlimited saves and now has 250): do NOT enforce the new 250 cap on existing Pro users' saved QRs retroactively. Guard the cap with:
-   ```typescript
-   // Only enforce on NEW saves — never prevent viewing or editing existing saves
-   if (savedCount >= limit && isNewSave) { return 403; }
-   ```
-5. Update the pricing page display simultaneously with the code change — mismatched displayed limits and actual limits are a trust issue.
+Also: Sentry Astro SDK only works on **Node.js runtime**, not Edge runtime. The current project uses Node runtime for all API functions (Clerk is incompatible with Edge) — this is already satisfied.
 
 **Warning signs:**
-- `3` appears as a magic number in `save.ts` (not imported from a constants file)
-- Limit check runs on list/read operations (not just create)
-- No audit of all places limits are checked before changing the values
-- Pricing page shows different limits than what the API enforces
+- Sentry events show minified stack traces in production
+- Vercel build logs contain: `No release name provided. Will not inject release.`
+- `sentryVitePlugin` config does not set `release.name`
+- Sentry Vercel integration was deleted and recreated (breaks the internal auth token)
 
-**Files at risk:** `src/pages/api/qr/save.ts`, `src/pages/api/qr/list.ts`, `src/pages/pricing.astro`
-
-**Phase to address:** Tier limits update phase. Create `tierLimits.ts` as the first task before touching any limit-related logic.
+**Phase to address:** Error tracking phase (Sentry setup). Verify source maps are working on the first Sentry-enabled deployment before any other work continues.
 
 ---
 
-## Moderate Pitfalls
+## Technical Debt Patterns
+
+| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
+|----------|-------------------|----------------|-----------------|
+| Skip `organizationId` scoping on "admin-only" endpoints | Faster implementation | Any future role change creates a data leak surface | Never |
+| Store API keys as plaintext | No hashing complexity | Full credential exposure on DB breach | Never |
+| Use Vercel Cron for campaign scheduling without idempotency | Quick first implementation | Campaigns randomly miss their window in production | Never |
+| Rate limit with in-memory Map | Zero dependencies | Useless in serverless — all limits reset on cold start | Local dev only |
+| Single `output: 'static'` for all API routes | Simpler build config | API routes return empty data in production | Never |
+| Client-side organization ID from request body | Simpler frontend code | Allows tenant impersonation — always use session-derived org ID | Never |
+| Skip hreflang tags for now, add later | Faster i18n launch | Duplicate content penalty accumulates; harder to recover SEO than prevent | Only if launching in one locale at a time with a clear follow-up deadline |
+| Generate ZIP server-side without streaming | Simpler mental model | Hits 4.5 MB limit for any batch > ~20 QR codes | Never |
 
 ---
 
-### Pitfall 10: AdSense Policy — Ads Near the QR Generator Trigger Invalid Click Risk
+## Integration Gotchas
 
-**What goes wrong:**
-AdSense policy prohibits ads placed in a way that encourages accidental clicks ("invalid click activity"). A banner ad placed directly below the QR preview or immediately adjacent to the Download/Copy buttons creates accidental click risk: users who aim for "Download PNG" may click an ad instead. AdSense's automated policy enforcement can flag and suspend accounts for elevated accidental click rates — the account suspension is permanent and cannot be reversed.
-
-Additionally, AdSense prohibits ads in "interstitial" positions that obscure content on page load. If the ad is positioned to appear on top of the generator as it loads (because the island hydrates and CLS pushes content down), the ad briefly sits where the generator was, creating an interstitial-like effect.
-
-**Why it happens:**
-The generator page has limited whitespace. The natural ad placement is near the generator. The incentive to maximize ad viewability (paid per impression) conflicts with the policy requirement to minimize accidental clicks.
-
-**Prevention:**
-1. Place ads in the page **below the fold** — in the FAQ section or between homepage marketing sections, never inside or adjacent to the generator island.
-2. Maintain at minimum 150px vertical separation between any ad and any interactive button (Download, Copy, Save).
-3. Never place ads inside a modal, slide-in panel, or component that moves on load.
-4. The PROJECT.md "Out of Scope" explicitly states "Ads in redirect path — anti-pattern." Extend this principle: no ads in the generator UI area.
-
-**Warning signs:**
-- Ad slot div placed inside `QRGeneratorIsland.tsx` or adjacent to `ExportButtons.tsx`
-- Ad container placed directly above or below the QR preview without 150px+ of separation
-- AdSense account flagged for "invalid click activity" (check AdSense → Policy Center)
-
-**Phase to address:** AdSense phase, ad placement design step.
+| Integration | Common Mistake | Correct Approach |
+|-------------|----------------|------------------|
+| Vercel Functions | Assuming 10s timeout — current limit with Fluid Compute is 300s default, 800s max on Pro | Set explicit `maxDuration` in function config; don't assume the old 10s limit applies |
+| Vercel Cron | Using `* * * * *` (minutely) on any plan thinking it's supported | Hobby: daily max. Pro: minutely supported. Check plan before designing scheduling logic |
+| Vercel KV | Treating it as persistent storage — it is a Redis cache with eviction | Store rate limit windows in KV; store canonical data in Turso. Never put primary records in KV only |
+| Clerk `useOrganization()` | Reading `organization.id` before the hook finishes loading after `setActive()` | Check `isLoaded` before using org context; await session refresh after org switch |
+| Turso concurrent writes | Expecting MVCC (concurrent writes) to be production-stable | MVCC is still tagged experimental as of 2026-01. Assume single-writer semantics. Batch writes in a single transaction |
+| `@astrojs/sitemap` | Assuming it adds hreflang tags automatically with i18n config | Sitemap integration handles URL generation. Hreflang `<link>` tags must be added manually in BaseLayout.astro |
+| Sentry Vercel integration | Assuming the integration handles source map uploads end-to-end | Integration provides auth token only. Must configure `release.name` in Vite plugin manually |
+| Vercel Domains API | Adding custom domain synchronously in the request handler | Domain registration is async. Build a state machine: `pending → verifying → active → error` |
+| `qr-code-styling` (server) | Importing it in a serverless function expecting a headless canvas environment | The library works in Node but requires `canvas` peer dependency — adds ~40 MB to function bundle, approaching the 250 MB limit. Keep generation client-side |
 
 ---
 
-### Pitfall 11: PDF and App Store Landing Pages OG Image Is Missing or Generic
+## Performance Traps
 
-**What goes wrong:**
-When a user shares a landing page URL (`/p/[slug]`) on WhatsApp, LinkedIn, or iMessage, the platform fetches the `og:image` meta tag to generate a link preview. If no `og:image` is set, or if it points to the generic QRCraft logo, the preview is visually unrelated to the content (e.g., a PDF landing page for "Company Brochure" shows the QRCraft logo instead of the brochure cover). This tanks the click-through rate on shared links.
-
-**Why it happens:**
-OG meta tags are added as an afterthought. The cover photo uploaded for a PDF landing page exists as a Vercel Blob URL, but it must be referenced in the server-rendered `<head>` of the SSR landing page.
-
-**Prevention:**
-1. In the SSR landing page route (`/p/[slug].astro`), query Turso for the landing page record including `coverPhotoUrl`. Set `og:image` to that URL dynamically.
-2. OG image must be an absolute URL (not a relative path). Vercel Blob URLs are absolute by default.
-3. OG image recommended minimum size is 1200×630px. Validate uploaded cover photos at upload time and reject files below 600×315px with a clear error message.
-4. Set a fallback OG image (the QRCraft logo) only when `coverPhotoUrl` is null — never as the default for pages that have a cover photo.
-5. Add `og:title` set to the landing page name, and `og:description` set to a truncated version of the landing page description.
-
-**Warning signs:**
-- `/p/[slug].astro` does not query Turso for the cover photo URL
-- `og:image` set to a static asset path rather than the dynamic cover photo URL
-- OG tags set in a React island instead of in the Astro `<head>`
-
-**Phase to address:** PDF/App Store landing pages phase.
+| Trap | Symptoms | Prevention | When It Breaks |
+|------|----------|------------|----------------|
+| Bulk QR generation server-side (50+ codes) | 504 timeout on bulk endpoint | Generate in browser Web Worker; server only validates CSV and manages blob storage | >20 codes with frame composition |
+| No connection reuse for Turso in API routes | Each API request opens a new libSQL connection, adds 50-200ms | Declare `db` client at module scope (outside handler) so it survives warm re-use | Every API call in production |
+| Full QR library fetch for analytics date ranges | `SELECT *` for 90-day date range on `scanEvents` returns thousands of rows | Add index on `(qrCodeId, scannedAt)`. Use aggregation queries — never SELECT all events and count in JS | ~500 scans per QR code |
+| Translating URLs (localized slugs) without precomputed route map | Astro `getRelativeLocaleUrl()` called 50x per page build for nav links | Build a static route map at build time; don't compute translations per-render | Large pages with many internal links |
+| ZIP generation blocking event loop | ZIP compression in the main thread stalls other concurrent requests in the same warm container (Fluid Compute) | Use streaming ZIP (`archiver` with pipe) or move to client-side | 100+ file ZIP generation |
 
 ---
 
-### Pitfall 12: Vercel Blob Server Upload Hits the 4.5MB Serverless Body Limit
+## Security Mistakes
 
-**What goes wrong:**
-PDF files uploaded for landing pages go through an API route if implemented as a server upload. Vercel serverless functions have a hard 4.5MB request body limit. A typical multi-page company brochure PDF is 2–15MB. Files above 4.5MB silently fail with a 413 or connection reset error — no user-friendly error message.
-
-**Why it happens:**
-Server upload is the default pattern for file uploads (frontend → API route → storage). The Vercel body limit is not obvious from the Vercel Blob documentation.
-
-**Prevention:**
-Use **Vercel Blob Client Uploads** (direct browser-to-Blob upload with server-side token exchange):
-1. User selects file in browser.
-2. Browser calls your API route to get an upload token (`/api/upload/token`).
-3. Browser uploads directly to Vercel Blob using the token — file never passes through your serverless function.
-4. After upload completes, browser receives the Blob URL and stores it in the landing page record.
-
-Set a file size limit of 10MB in the upload token endpoint (reject token issuance for files above this size). Display a clear error for files above the limit. Enforce a per-user storage quota by summing existing blob sizes for the user in Turso before issuing the token.
-
-**Warning signs:**
-- PDF upload implemented as `request.formData()` in a standard API route
-- No `Content-Length` check before processing the upload
-- Users report upload failing silently for larger PDFs
-
-**Phase to address:** PDF/App Store landing pages phase.
+| Mistake | Risk | Prevention |
+|---------|------|------------|
+| `organizationId` from request body instead of validated session | Tenant impersonation — attacker reads/modifies another org's QR codes | Always derive `organizationId` from `auth().sessionClaims.org_id` on the server, never from request |
+| Plaintext API key storage in Turso | Full credential exposure on DB breach | Hash API keys with SHA-256; store only hash + prefix |
+| Unscoped bulk CSV processing | User uploads CSV with other users' QR code IDs and regenerates them | Validate every QR code ID in the CSV belongs to the authenticated user's org before processing |
+| No per-API-key rate limiting | One compromised key can exhaust free tier quota or trigger Turso row write limits | Rate limit by API key ID in Vercel KV, not just by IP |
+| Custom domain CNAME verification skipped | Attacker registers `go.evil.com` as a custom domain for a different org's workspace | Require DNS TXT ownership verification before activating any custom domain |
+| Cron endpoint publicly accessible without secret | Anyone can POST to `/api/cron/activate-campaigns` and trigger mass activation | Check `Authorization: Bearer $CRON_SECRET` header on all cron endpoints; Vercel auto-injects this when configured |
 
 ---
 
-### Pitfall 13: JSON-LD Schema Inconsistency Between Pages After Adding New Pages
+## UX Pitfalls
 
-**What goes wrong:**
-The site has JSON-LD `SoftwareApplication` and `WebSite` schemas on the homepage (from v1.0 SEO work). Adding new content pages (use cases landing page, how-to guide) without per-page schemas is a missed opportunity. Worse, if the new pages copy the homepage JSON-LD block unchanged, search engines receive the same `SoftwareApplication` schema on multiple pages — the `@id` URIs will be identical, which is technically invalid and can cause Rich Results to be stripped from all pages.
-
-**Why it happens:**
-JSON-LD schemas are copy-pasted between pages. The `@id` field (which must be a unique URI per schema entity) is not updated for each new page.
-
-**Prevention:**
-1. Each page gets its own schema tailored to its content: `HowTo` schema on the how-to guide, `FAQPage` schema on pages with FAQ sections, `Article` schema on blog-style content pages.
-2. Never copy a JSON-LD block from one page to another without updating `@id`, `url`, `headline`, and `description`.
-3. Use the [Google Rich Results Test](https://search.google.com/test/rich-results) on every new page before launch.
-4. The `WebSite` with `SearchAction` schema belongs only on the homepage — not on every page.
-
-**Warning signs:**
-- Same `@id` URL appearing in JSON-LD on two different pages
-- New content pages have no JSON-LD at all (missed opportunity)
-- Rich Results Test shows errors on new pages
-
-**Phase to address:** SEO improvements phase.
+| Pitfall | User Impact | Better Approach |
+|---------|-------------|-----------------|
+| No progress feedback during bulk CSV processing | User sees spinner for 30s+ on large batch, assumes the page crashed | Show per-row progress counter ("Generating 23/100...") updated via client-side state |
+| Campaign "scheduled" but no confirmation of timezone | User in GMT+5 schedules 9 AM, fires at wrong time | Always display and store timestamps in UTC; show the user's local equivalent at the confirmation step |
+| i18n language switcher resets user's QR state | User switches language, the generator resets to defaults because URL changes unmount/remount the island | Preserve generator state in sessionStorage or URL params that survive locale navigation |
+| Custom domain "pending" shown as generic spinner | User doesn't know what DNS action to take | Show the exact CNAME target, expected TTL, and a "check again" button — not just "pending" |
+| Bulk download starts before all codes are generated | First QR code appears in ZIP, rest are missing because generation is async | Gate the download button until all generations are complete; use a progress bar |
+| Team invitation email looks like spam | Invitee doesn't join; team owner assumes it's broken | Use a recognizable From address (`noreply@qr-code-generator-app.com`) and include the inviter's name in the subject line |
 
 ---
 
-### Pitfall 14: Homepage Marketing Sections Regress LCP via Render-Blocking Images
+## "Looks Done But Isn't" Checklist
 
-**What goes wrong:**
-Adding "how-to guide with programmatic screenshots," "use cases section," and "pricing promo section" to the homepage adds image assets. If these images are not lazily loaded and properly sized, they compete with the above-the-fold content for bandwidth. A hero section that currently achieves LCP in <1s can regress to 3-4s if a large screenshot image in the how-to section is loaded eagerly.
-
-Additionally, React islands hydrating additional homepage sections (`client:visible` on new sections) add to Total Blocking Time. The current homepage has a carefully tuned set of islands. Each new island import adds to the JavaScript bundle.
-
-**Why it happens:**
-New sections are implemented as React components for interactivity (e.g., tab switching in the use cases section). Each React island adds hydration cost. Static sections that do not need interactivity are written as React components out of habit.
-
-**Prevention:**
-1. New homepage sections that do not require interactivity (pricing promo text, use cases list, static screenshots) must be **`.astro` components**, not React islands. Pure Astro components ship zero JavaScript.
-2. All images in new sections below the fold must have `loading="lazy"` and explicit `width`/`height` attributes (prevents CLS).
-3. Programmatic screenshots should be optimized to WebP at the appropriate display size before commit (no raw PNGs above 200KB for images shown at 600px width).
-4. Run Lighthouse on the full homepage after adding each new section. Catch regressions incrementally.
-
-**Warning signs:**
-- New marketing sections implemented as `QRUseCasesIsland.tsx` (React) when they have no interactive behavior
-- New images added without `loading="lazy"` or without explicit dimensions
-- Lighthouse LCP metric increases above 1.5s after a section is added
-- Bundle size increases by >50KB for a section that only shows static content
-
-**Files at risk:** `src/pages/index.astro`, new section components
-
-**Phase to address:** Homepage marketing sections phase. Conduct Lighthouse baseline before starting and treat any regression as a blocking issue.
+- [ ] **Bulk generation:** Verify the ZIP download works for exactly 51 rows (>50 threshold) on a real Vercel Pro deployment, not just local dev.
+- [ ] **REST API:** Test every API endpoint from a fresh `curl` session with no Clerk session cookie — only the bearer token should grant access.
+- [ ] **Team collaboration:** Create two organizations, add the same user to both, verify switching orgs updates all dashboard data and no cross-org data bleeds.
+- [ ] **API rate limiting:** Confirm the rate limit counter persists across multiple Vercel function invocations (not in-memory) by hitting the limit, waiting for the window, and verifying it resets.
+- [ ] **i18n:** Run `Lighthouse` on `/es/`, `/fr/`, `/de/` — confirm scores are within 5 points of the English version.
+- [ ] **i18n:** Check Google Search Console 48 hours after deploy — confirm no "Duplicate without user-selected canonical" errors for translated pages.
+- [ ] **Campaign scheduling:** Create a campaign scheduled 2 minutes in the future. Verify the QR code URL is inactive before the time and active after. Verify running the cron twice doesn't create duplicate scan events.
+- [ ] **Custom domains:** Add a custom domain, verify the DNS "pending" state is shown, verify that attempting to use the domain before verification fails gracefully (not a 500).
+- [ ] **Sentry:** Deliberately throw an error from an API route in a staging deploy. Confirm the Sentry alert shows a readable stack trace (not minified).
+- [ ] **API keys:** Verify the full key value cannot be retrieved from the dashboard or any API endpoint after initial creation.
+- [ ] **Cron security:** Confirm the cron activation endpoint returns 401 when called without the `CRON_SECRET` header.
 
 ---
 
-## Minor Pitfalls
+## Recovery Strategies
+
+| Pitfall | Recovery Cost | Recovery Steps |
+|---------|---------------|----------------|
+| Multi-tenant data leak discovered | HIGH | Rotate all affected session tokens immediately; audit query logs for cross-org accesses; notify affected users per GDPR/CCPA; add RLS-equivalent query helper and regression test before re-enabling the feature |
+| Plaintext API keys already stored | HIGH | Force-rotate all existing keys; inform all API users; rehash on reissue; cannot recover already-leaked keys |
+| Bulk endpoint hits 4.5 MB limit in production | MEDIUM | Hotfix: cap batch size at 20 rows server-side. Then rebuild with client-side ZIP assembly. Deploy within 1 release cycle |
+| Campaign scheduling missed activations | MEDIUM | Run a one-time backfill script: `UPDATE dynamicQrCodes SET isEnabled=true WHERE scheduledFor <= now() AND activatedAt IS NULL`. Add the poller idempotency fix |
+| i18n infinite redirect loop in production | MEDIUM | Revert i18n config commit immediately (Vercel instant rollback). Fix `redirectToDefaultLocale` config. Re-deploy |
+| Sentry showing minified stack traces | LOW | Add `release.name` to Vite plugin config. Source maps begin uploading on next deployment. Existing errors remain unresolvable but new ones are readable |
+| Rate limit not persisting across invocations | LOW | Add Vercel KV dependency. Migrate rate limiter from in-memory Map to KV store. No data migration needed |
 
 ---
 
-### Pitfall 15: AdSense Account Approval Requires Live Traffic — Not Just Code
+## Pitfall-to-Phase Mapping
 
-**What goes wrong:**
-AdSense account approval requires the site to have sufficient content, traffic, and policy compliance BEFORE Google approves the account. Setting up AdSense code in v1.2 does not mean ads will serve immediately. Google typically takes 2–4 weeks to approve new publishers. If the AdSense integration is built as a v1.2 feature and approval is not applied for until the feature ships, ads won't serve for a month post-launch.
-
-**Prevention:**
-Apply for AdSense account approval during the development sprint, not after. The site (which already has real traffic and substantial content from v1.0/v1.1) should be approved quickly. Have the AdSense publisher ID ready before any integration code is merged.
-
-**Phase to address:** AdSense phase, day one.
-
----
-
-### Pitfall 16: vCard LinkedIn and Website URLs Must Be Properly Encoded
-
-**What goes wrong:**
-LinkedIn URLs contain slashes, colons, and hyphens. vCard property values containing `://` (as in `https://`) are not inherently problematic in vCard 3.0 `URL` properties, but some parsers treat the colon as a property delimiter. Encoding the URL as `URL:https://linkedin.com/in/johndoe` is technically correct per RFC 6350, but older Outlook versions (2010–2016) sometimes truncate at the colon.
-
-**Prevention:**
-For the `URL` property, use the correct vCard property format (`URL:https://...`). Do not escape the `://` — it is valid in URL-type properties. Separately, add `X-SOCIALPROFILE;type=linkedin:https://...` as a supplementary property for apps that recognize it (Apple Contacts, iOS).
-
-Test against both iOS Contacts and Outlook 365 Desktop before adding LinkedIn as a supported field.
-
-**Phase to address:** vCard enhancements phase.
-
----
-
-### Pitfall 17: Register Button in Header Breaks Ad-Free Pro Experience
-
-**What goes wrong:**
-Adding a "Register" button to the header is straightforward except that the header is currently in a static Astro component (`src/components/Header.astro`) and shows the same markup to all users. Showing a "Register" button to already-logged-in users is confusing. The existing `UserMenu.tsx` React island handles the signed-in state, but its `client:visible` hydration means there's a brief FOUC where both the "Register" button and the UserMenu are visible simultaneously.
-
-**Prevention:**
-Keep the "Register" / "Login" links as static markup in `Header.astro` (they show to everyone during initial page load). Add `data-auth-hidden` attributes to these elements. The `UserMenu.tsx` island, on hydration, can add a CSS class to hide them when a user is detected. This is the existing FOGC pattern from v1.1 applied to nav elements. Do not attempt to server-render the header conditionally — the page is static.
-
-**Phase to address:** Header navigation phase.
-
----
-
-## Phase-Specific Warnings
-
-| Phase Topic | Likely Pitfall | Mitigation |
-|-------------|---------------|------------|
-| AdSense integration | CLS from unsized ad containers destroys Core Web Vitals | Pre-size every ad slot with a fixed-height container div before the script loads |
-| AdSense integration | Auto Ads injects DOM into QR generator island | Use manual ad units only; never enable Auto Ads |
-| AdSense integration | Global script tag loads on Pro/dashboard pages | Conditional island: ad script only loads when `tier === 'free'` |
-| PDF landing pages | Server upload exceeds 4.5MB Vercel limit | Client-side Vercel Blob upload with token exchange |
-| PDF landing pages | OG image not set dynamically | SSR route must query Turso for `coverPhotoUrl` and set `og:image` in `<head>` |
-| PDF landing pages | Slug collision with `/r/[slug]` redirects | Use `/p/[slug]` path prefix; separate DB table |
-| Decorative frames | Canvas CORS taint blocks PNG/copy export | Pre-inline frame SVGs as data URIs at build time |
-| Decorative frames | Frame not included in SVG export | Composite in a utility function used by both preview and export |
-| vCard enhancements | Semicolons in address corrupt the vCard | Add `escapeVCard()` before all new fields are written |
-| vCard enhancements | Long lines not folded at 75 bytes | Implement line folding in `encodeVCard()` |
-| SEO improvements | New pages target same keywords as homepage | Assign unique search intent to each page before writing copy |
-| SEO improvements | Sitemap excludes new pages (Vercel adapter bug) | Verify sitemap.xml in Vercel deployment output; add `customPages` to sitemap config |
-| Homepage sections | New React islands increase bundle size | Use Astro components for static sections; React only for interactive sections |
-| Homepage sections | Images not lazy-loaded cause LCP regression | `loading="lazy"` + explicit dimensions on all below-fold images |
-| Tier limits update | Hardcoded `3` in save.ts gets missed | Create `src/lib/tierLimits.ts` and refactor before changing values |
-| Tier limits update | Existing users blocked retroactively | Enforce cap on NEW creates only; never on read/edit operations |
+| Pitfall | Prevention Phase | Verification |
+|---------|------------------|--------------|
+| Bulk ZIP hits 4.5 MB response limit | Bulk QR generation | Integration test: generate 51 codes, verify valid ZIP received |
+| Bulk generation timeout on large CSV | Bulk QR generation | Perf test: 200-row CSV completes in <30s client-side |
+| API routes need `prerender = false` | REST API (first endpoint) | CI check: any `src/pages/api/**` file missing `prerender = false` fails build |
+| Multi-tenant data leakage via missing org scope | Team collaboration | Cross-org isolation integration test: Org A query cannot return Org B data |
+| Clerk org role not scoped to active org | Team collaboration | Integration test: admin in Org A is not admin in Org B |
+| API key stored as plaintext | REST API (schema design) | Schema review: `apiKeys` table has `keyHash`, not `keyValue` |
+| i18n infinite redirect loop | i18n (config commit) | Smoke test: no redirect chain >1 hop on `/`, `/es/`, `/fr/`, `/de/` |
+| i18n breaks sitemap / SEO | i18n | Validate hreflang tags in page source; sitemap has all locale variants |
+| Campaign scheduling misses activations | Campaign scheduling | Scheduled activation integration test with 2-minute lead time |
+| Custom domain no async state machine | Custom domains | UI shows `pending_verification` state; domain not routable until verified |
+| In-memory rate limiting resets | API rate limiting | Concurrent load test: 200 requests from fresh invocations — limit enforces correctly |
+| Sentry source maps not uploading | Error tracking (Sentry setup) | Trigger a deliberate error in staging; confirm readable stack trace in Sentry |
 
 ---
 
 ## Sources
 
-- Google AdSense CLS documentation — minimize layout shift guide — [developers.google.com/publisher-tag/guides/minimize-layout-shift](https://developers.google.com/publisher-tag/guides/minimize-layout-shift) — HIGH confidence
-- Google Publisher Ads Audits — cumulative ad shift — [developers.google.com/publisher-ads-audits/reference/audits/cumulative-ad-shift](https://developers.google.com/publisher-ads-audits/reference/audits/cumulative-ad-shift) — HIGH confidence
-- AdSense CLS community thread — ID selector min-height fix — [support.google.com/webmasters/thread/87698000](https://support.google.com/webmasters/thread/87698000) — MEDIUM confidence (community, not official docs)
-- AdSense best practices for ad placement — [support.google.com/adsense/answer/1282097](https://support.google.com/adsense/answer/1282097) — HIGH confidence
-- React AdSense SSR hydration error handling — [brandonlehr.com/blog/2024-02-25-google-adsense-ssr-react/](https://brandonlehr.com/blog/2024-02-25-google-adsense-ssr-react/) — MEDIUM confidence
-- Canvas CORS taint / toDataURL security error — MDN Web Docs — [developer.mozilla.org/en-US/docs/Web/HTML/How_to/CORS_enabled_image](https://developer.mozilla.org/en-US/docs/Web/HTML/How_to/CORS_enabled_image) — HIGH confidence
-- Tainted Canvas explainer — [corsfix.com/blog/tainted-canvas](https://corsfix.com/blog/tainted-canvas) — MEDIUM confidence
-- Drizzle ORM production migration docs — [orm.drizzle.team/docs/migrations](https://orm.drizzle.team/docs/migrations) — HIGH confidence
-- Drizzle push:sqlite bug on tables with existing data — [github.com/drizzle-team/drizzle-orm/issues/2095](https://github.com/drizzle-team/drizzle-orm/issues/2095) — HIGH confidence (filed bug)
-- Vercel Blob client upload documentation — [vercel.com/docs/vercel-blob/client-upload](https://vercel.com/docs/vercel-blob/client-upload) — HIGH confidence
-- Vercel 4.5MB serverless body limit — [vercel.com/kb/guide/how-to-bypass-vercel-body-size-limit-serverless-functions](https://vercel.com/kb/guide/how-to-bypass-vercel-body-size-limit-serverless-functions) — HIGH confidence
-- Astro sitemap + Vercel adapter missing from output — [github.com/withastro/astro/issues/12437](https://github.com/withastro/astro/issues/12437) — HIGH confidence (filed issue)
-- vCard RFC 6350 special character escaping — [correctvcf.com/help/generate-correct-vcf-files/](https://correctvcf.com/help/generate-correct-vcf-files/) — MEDIUM confidence
-- vCard Outlook encoding incompatibility — [bugzilla.mozilla.org/show_bug.cgi?id=289892](https://bugzilla.mozilla.org/show_bug.cgi?id=289892) — MEDIUM confidence (old but still relevant behavior)
-- JSON-LD schema markup mistakes — [zeo.org/resources/blog/most-common-json-ld-schema-issues-and-solutions](https://zeo.org/resources/blog/most-common-json-ld-schema-issues-and-solutions) — MEDIUM confidence
-- QR code print DPI and quiet zone requirements — [imqrscan.com/blogs/qr-codes-in-print](https://imqrscan.com/blogs/qr-codes-in-print) — MEDIUM confidence
-- qr-code-styling library npm / GitHub — [npmjs.com/package/qr-code-styling](https://www.npmjs.com/package/qr-code-styling) — HIGH confidence (first-party)
-- Keyword cannibalization and intent differentiation — [searchengineland.com/guide/keyword-cannibalization](https://searchengineland.com/guide/keyword-cannibalization) — MEDIUM confidence
+- [Vercel Functions Limits (official)](https://vercel.com/docs/functions/limitations) — authoritative; 4.5 MB body limit, 300/800s max duration, 1,024 file descriptors
+- [Vercel Cron Jobs (official)](https://vercel.com/docs/cron-jobs) — Hobby plan daily-max limit, non-precise timing, no retry behavior
+- [Vercel KB: How to bypass 4.5 MB body size limit](https://vercel.com/kb/guide/how-to-bypass-vercel-body-size-limit-serverless-functions) — streaming and Blob upload patterns
+- [Astro i18n Routing (official docs)](https://docs.astro.build/en/guides/internationalization/) — `redirectToDefaultLocale` + `prefixDefaultLocale` interaction
+- [Astro i18n issue: `redirectToDefaultLocale` defaults changed in v6](https://github.com/withastro/astro/issues/9300)
+- [Astro Endpoints (official docs)](https://docs.astro.build/en/guides/endpoints/) — static endpoints called at build time; `prerender = false` requirement
+- [Clerk Multi-Tenant Architecture (official)](https://clerk.com/docs/guides/how-clerk-works/multi-tenant-architecture) — org role/id scoping
+- [Clerk Organizations (official)](https://clerk.com/docs/guides/organizations/overview) — roles defined at application level
+- [ZenStack: Clerk multi-tenancy with Next.js](https://zenstack.dev/blog/clerk-multitenancy) — org role scoping pitfall example
+- [Turso concurrent writes / MVCC blog](https://turso.tech/blog/beyond-the-single-writer-limitation-with-tursos-concurrent-writes) — MVCC still experimental as of early 2026
+- [Sentry for Astro (official)](https://docs.sentry.io/platforms/javascript/guides/astro/) — Node-only runtime, source maps config
+- [Sentry: troubleshoot source map upload errors on Vercel](https://sentry.zendesk.com/hc/en-us/articles/26753374928155) — release name requirement
+- [Upstash Rate Limiting with Vercel Edge](https://upstash.com/blog/edge-rate-limiting) — `@upstash/ratelimit` sliding window pattern
+- [Vercel Multi-Tenant Domain Management (official)](https://vercel.com/docs/multi-tenant/domain-management) — per-tenant custom domain provisioning via API
+- [SaaS Custom Domains DNS-01 ACME](https://www.dchost.com/blog/en/bring-your-own-domain-get-auto%E2%80%91ssl-how-dns%E2%80%9101-acme-scales-multi%E2%80%91tenant-saas-without-drama/) — async verification pattern
+- [Turso Free Tier Limits 2025](https://www.freetiers.com/directory/turso) — 500M row reads / 10M writes / month
+- [Clerk Billing limitations](https://clerk.com/docs/guides/billing/overview) — USD-only, no refunds, no tax/VAT
+- [Vercel Fluid Compute](https://vercel.com/docs/fluid-compute) — cold start behavior, default enabled for new projects since April 2025
 
 ---
-*Pitfalls research for: QRCraft v1.2 — growth & content additions to existing Astro 5 + Turso + Clerk + Stripe stack*
-*Researched: 2026-03-30*
+*Pitfalls research for: QRCraft v1.3 Scale & Integrate — Astro 5 + Vercel + Turso + Clerk SaaS*
+*Researched: 2026-03-31*
