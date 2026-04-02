@@ -9,7 +9,7 @@ Requirements for v1.3 Scale & Integrate. Each maps to roadmap phases.
 
 ### Infrastructure
 
-- [ ] **INFRA-01**: All production errors are captured in Sentry with readable stack traces and source maps
+- [x] **INFRA-01**: All production errors are captured in Sentry with readable stack traces and source maps
 - [ ] **INFRA-02**: All public API endpoints are rate-limited via Upstash Redis (the /r/[slug] redirect path is excluded from rate limiting)
 - [ ] **INFRA-03**: Rate limit responses return 429 with Retry-After header
 
@@ -86,7 +86,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Phase 17 | Pending |
+| INFRA-01 | Phase 17 | Complete |
 | INFRA-02 | Phase 17 | Pending |
 | INFRA-03 | Phase 17 | Pending |
 | BULK-01 | Phase 18 | Pending |

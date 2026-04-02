@@ -105,7 +105,7 @@
   4. Sentry release is tied to the Vercel deploy SHA so errors map to the correct build
 **Plans**: 2 plans
 Plans:
-- [ ] 17-01-PLAN.md — Sentry integration with source maps and deploy-SHA release
+- [x] 17-01-PLAN.md — Sentry integration with source maps and deploy-SHA release
 - [ ] 17-02-PLAN.md — Upstash rate limiting with /r/[slug] exemption
 
 ### Phase 18: Bulk QR Generation
@@ -188,7 +188,7 @@ Phases execute in numeric order: 17 → 18 → 19 → 20 → 21 → 22 → 23
 | 1-6. Foundation through SEO | v1.0 | — | Complete | 2026-03-11 |
 | 7-11. Auth through Analytics | v1.1 | — | Complete | 2026-03-31 |
 | 12-16. Improvements through AdSense | v1.2 | — | Complete | 2026-04-02 |
-| 17. Observability Foundation | v1.3 | 0/2 | In progress | - |
+| 17. Observability Foundation | v1.3 | 1/2 | In Progress|  |
 | 18. Bulk QR Generation | v1.3 | 0/TBD | Not started | - |
 | 19. REST API + API Key Management | v1.3 | 0/TBD | Not started | - |
 | 20. Advanced Analytics | v1.3 | 0/TBD | Not started | - |
