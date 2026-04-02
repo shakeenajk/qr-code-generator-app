@@ -2,7 +2,7 @@
 
 ## What This Is
 
-QRCraft is a freemium QR code generator that lets anyone create fully customized, visually branded QR codes and download them immediately — no design software needed. Free tier works with no signup. Pro users get dynamic QR codes (destination editable post-print), saved QR library, scan analytics, and full customization — billed via Stripe subscription.
+QRCraft is a freemium QR code generator that lets anyone create fully customized, visually branded QR codes and download them immediately — no design software needed. Free tier works with no signup. Pro users get dynamic QR codes (destination editable post-print), saved QR library, scan analytics, and full customization — billed via Stripe subscription. Supports URL, text, WiFi, vCard, PDF landing page, and App Store landing page content types with decorative frames and preset templates.
 
 ## Core Value
 
@@ -30,23 +30,24 @@ Anyone can generate a visually stunning, fully customized QR code and download i
 - ✓ Dynamic QR codes with server-side redirect layer (Pro) — v1.1
 - ✓ Scan analytics: total/unique scans, 30-day chart, device/country breakdown (Pro) — v1.1
 - ✓ Pro-only customization gates (advanced shapes, logo upload for signed-in users) — v1.1
+- ✓ Fix marketing copy (hero, FAQs) for freemium accuracy — v1.2
+- ✓ SEO improvements (Search Console, meta, structured data, content pages) — v1.2
+- ✓ PDF content type with hosted landing page — v1.2
+- ✓ App Store content type with hosted landing page — v1.2
+- ✓ Pricing promotion section on homepage — v1.2
+- ✓ How-to section with programmatic screenshots — v1.2
+- ✓ QR code use cases section + dedicated landing page — v1.2
+- ✓ QR code decorative frames — v1.2
+- ✓ Preset style templates (frame + color + shape combos) — v1.2
+- ✓ vCard enhancements (Title, Company, Work Phone, Address, Website, LinkedIn) — v1.2
+- ✓ Register button + pricing navigation link in header — v1.2
+- ✓ Fix pricing page (dynamic QR limits, tier accuracy) — v1.2
+- ✓ Google AdSense ads on free tier — v1.2
+- ✓ Updated tier limits (Free: 5/3, Starter: 100/10, Pro: 250/100) — v1.2
 
 ### Active
 
-- [ ] Fix marketing copy (hero, FAQs) for freemium accuracy — v1.2
-- [ ] SEO improvements (Search Console, meta, structured data, content pages) — v1.2
-- ✓ PDF content type with hosted landing page — v1.2 (Phase 15)
-- ✓ App Store content type with hosted landing page — v1.2 (Phase 15)
-- [ ] Pricing promotion section on homepage — v1.2
-- [ ] How-to section with programmatic screenshots — v1.2
-- [ ] QR code use cases section + dedicated landing page — v1.2
-- [ ] QR code decorative frames — v1.2
-- [ ] Preset style templates (frame + color + shape combos) — v1.2
-- [ ] vCard enhancements (Title, Company, Work Phone, Address, Website, LinkedIn) — v1.2
-- [ ] Register button + pricing navigation link in header — v1.2
-- [ ] Fix pricing page (dynamic QR limits, tier accuracy) — v1.2
-- ✓ Google AdSense ads on free tier — v1.2 (Phase 16)
-- [ ] Updated tier limits (Free: 5/3, Starter: 100/10, Pro: 250/100) — v1.2
+(None — planning next milestone)
 
 ### Out of Scope
 
@@ -60,27 +61,11 @@ Anyone can generate a visually stunning, fully customized QR code and download i
 - Requiring account for static QR generation — breaks core acquisition model
 - Deleting data on subscription cancel — gate create/edit, not read
 
-## Current Milestone: v1.2 Growth & Content
-
-**Goal:** Improve SEO and discoverability, expand content types (PDF landing pages, App Store pages), add homepage marketing sections, introduce QR code frames/templates, enhance vCard, fix pricing accuracy, and add ads to free tier.
-
-**Target features:**
-- Fix marketing copy for freemium accuracy
-- SEO improvements for Google discoverability
-- PDF and App Store content types with hosted landing pages
-- Homepage sections: pricing promo, how-to guide, QR use cases
-- Decorative QR code frames and preset style templates
-- vCard field enhancements
-- Header navigation improvements (Register button, pricing link)
-- Pricing page accuracy (tier limits, ad claims)
-- Google AdSense on free tier
-- Updated tier limits: Free 5/3, Starter 100/10, Pro 250/100
-
 ## Context
 
-Shipped v1.1 Monetization with ~5,279 source LOC (TypeScript/TSX/Astro).
-Tech stack: Astro 5 + React islands + qr-code-styling + Tailwind v4 + Playwright + Vercel + Clerk + Turso/Drizzle + Stripe.
-All 62 requirements complete (36 v1.0 + 26 v1.1). Lighthouse mobile performance: 100.
+Shipped v1.2 Growth & Content with ~9,556 source LOC (TypeScript/TSX/Astro/CSS).
+Tech stack: Astro 5 + React islands + qr-code-styling + Tailwind v4 + Playwright + Vercel + Clerk + Turso/Drizzle + Stripe + Vercel Blob + Google AdSense.
+All 86 requirements complete (36 v1.0 + 26 v1.1 + 24 v1.2). Lighthouse mobile performance: 100.
 Domain: qr-code-generator-app.com (Porkbun → Vercel).
 
 ## Key Decisions
@@ -101,6 +86,10 @@ Domain: qr-code-generator-app.com (Porkbun → Vercel).
 | 307 redirect (not 301) for dynamic QR | Destination updates take effect without browser cache | ✓ Good — critical for editable URLs |
 | Recharts (not Tremor) for charts | Tremor incompatible with Tailwind v4 CSS-first setup | ✓ Good — works, lightweight |
 | Fire-and-forget scan event insert | Analytics recording doesn't block redirect latency | ✓ Good — zero impact on redirect speed |
+| Canvas 2D for frame composition | createImageBitmap() avoids canvas-taint SecurityError | ✓ Good — zero dependency, works cross-origin |
+| Vercel Blob for file uploads | Client-upload pattern bypasses 4.5MB serverless body limit | ✓ Good — handles large PDFs, no proxy needed |
+| Delayed AdSense injection | Script loads only on user interaction, not at page load | ✓ Good — Lighthouse stays 100 with ads active |
+| landingPages table with FK cascade | Clean data model, automatic cleanup on QR delete | ✓ Good — no orphaned landing pages |
 
 ## Constraints
 
@@ -108,6 +97,7 @@ Domain: qr-code-generator-app.com (Porkbun → Vercel).
 - **Accessibility**: WCAG AA contrast validation built in (color picker warns on low contrast)
 - **Auth boundary**: Anonymous static generation must never be gated — this is the acquisition funnel
 - **Deployment**: Vercel with serverless functions (not edge) — Clerk incompatible with Edge runtime
+- **Ad placement**: AdSense only on generator page for free-tier signed-in users — never in QR redirect path
 
 ---
-*Last updated: 2026-04-01 after Phase 16 (Google AdSense) complete — last phase in v1.2*
+*Last updated: 2026-04-02 after v1.2 Growth & Content milestone complete*
