@@ -47,7 +47,16 @@ Anyone can generate a visually stunning, fully customized QR code and download i
 
 ### Active
 
-(None — planning next milestone)
+- [ ] Bulk QR generation (CSV upload → ZIP download) — v1.3
+- [ ] REST API with OAuth2 for developer/agency integrations — v1.3
+- [ ] Team collaboration (workspaces, roles, shared library) — v1.3
+- [ ] Advanced analytics (custom date ranges, CSV export, UTM tracking) — v1.3
+- [ ] Internationalization — Spanish, French, German — v1.3
+- [ ] Campaign scheduling (create now, auto-enable on date) — v1.3
+- [ ] Custom short domains (go.brand.com) — v1.3
+- [ ] Seasonal/holiday template packs — v1.3
+- [ ] API rate limiting on all public endpoints — v1.3
+- [ ] Error tracking (Sentry) — v1.3
 
 ### Out of Scope
 
@@ -60,6 +69,22 @@ Anyone can generate a visually stunning, fully customized QR code and download i
 - Watermarks on free QR output — kills acquisition funnel
 - Requiring account for static QR generation — breaks core acquisition model
 - Deleting data on subscription cancel — gate create/edit, not read
+
+## Current Milestone: v1.3 Scale & Integrate
+
+**Goal:** Add bulk generation, developer API, team collaboration, advanced analytics, i18n, campaign scheduling, custom domains, seasonal templates, and critical infrastructure hardening.
+
+**Target features:**
+- Bulk QR generation (CSV → ZIP)
+- REST API with OAuth2
+- Team collaboration (workspaces, roles)
+- Advanced analytics (date ranges, export, UTM)
+- Internationalization (ES, FR, DE)
+- Campaign scheduling
+- Custom short domains
+- Seasonal/holiday templates
+- API rate limiting
+- Error tracking (Sentry)
 
 ## Context
 
@@ -100,4 +125,22 @@ Domain: qr-code-generator-app.com (Porkbun → Vercel).
 - **Ad placement**: AdSense only on generator page for free-tier signed-in users — never in QR redirect path
 
 ---
-*Last updated: 2026-04-02 after v1.2 Growth & Content milestone complete*
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `/gsd:transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `/gsd:complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
+
+---
+*Last updated: 2026-04-02 after v1.3 Scale & Integrate milestone started*
