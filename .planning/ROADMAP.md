@@ -148,7 +148,10 @@ Plans:
   2. User can click Export CSV and download a file with one row per scan event including date, device, country, and UTM parameters
   3. When a dynamic QR code destination URL contains UTM parameters, those parameters are captured at scan time and appear in the analytics dashboard
   4. Analytics dashboard shows a UTM breakdown chart (source, medium, campaign) alongside the existing device and country charts
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 20-01-PLAN.md — UTM schema columns, redirect handler UTM capture, analytics API date range + UTM queries
+- [ ] 20-02-PLAN.md — DateRangePicker, CSV export, UTM breakdown chart, AnalyticsDashboard island
 **UI hint**: yes
 
 ### Phase 21: Campaign Scheduling
@@ -198,7 +201,7 @@ Phases execute in numeric order: 17 → 18 → 19 → 20 → 21 → 22 → 23
 | 17. Observability Foundation | v1.3 | 2/2 | Complete    | 2026-04-02 |
 | 18. Bulk QR Generation | v1.3 | 2/2 | Complete    | 2026-04-03 |
 | 19. REST API + API Key Management | v1.3 | 2/3 | Complete    | 2026-04-03 |
-| 20. Advanced Analytics | v1.3 | 0/TBD | Not started | - |
+| 20. Advanced Analytics | v1.3 | 0/2 | Not started | - |
 | 21. Campaign Scheduling | v1.3 | 0/TBD | Not started | - |
 | 22. Seasonal Template Packs | v1.3 | 0/TBD | Not started | - |
 | 23. Internationalization | v1.3 | 0/TBD | Not started | - |
