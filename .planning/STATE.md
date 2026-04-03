@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Scale & Integrate
 status: Phase complete — ready for verification
-stopped_at: Completed 23-02-PLAN.md (awaiting Task 3 human-verify checkpoint)
-last_updated: "2026-04-03T16:56:17.781Z"
+stopped_at: Completed 23-02-PLAN.md
+last_updated: "2026-04-03T17:23:47.597Z"
 progress:
   total_phases: 7
   completed_phases: 3
@@ -61,6 +61,7 @@ Plan: 2 of 2
 | Phase 22-seasonal-template-packs P01 | 8 | 2 tasks | 4 files |
 | Phase 23-internationalization P01 | 6 | 2 tasks | 9 files |
 | Phase 23-internationalization P02 | 10 | 2 tasks | 10 files |
+| Phase 23-internationalization P02 | 15 | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -108,6 +109,8 @@ Recent decisions affecting current work:
 - [Phase 23-internationalization]: Sitemap i18n config must be set separately inside sitemap() call — does not auto-detect from top-level i18n block
 - [Phase 23-internationalization]: Inline translated sections in locale pages — components don't accept lang prop; inline avoids patching 6 components
 - [Phase 23-internationalization]: use-cases index links to English slug pages — no translated slug pages per Research Pitfall 6
+- [Phase 23-internationalization]: Inline translated sections in locale pages — components (Hero, Features, etc.) don't accept lang prop; inline approach avoids patching 6 components with zero risk to English pages
+- [Phase 23-internationalization]: use-cases index links to English slug pages — no translated [slug].astro pages to avoid content duplication (Research Pitfall 6)
 
 ### Pending Todos
 
@@ -121,6 +124,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-03T16:56:17.777Z
-Stopped at: Completed 23-02-PLAN.md (awaiting Task 3 human-verify checkpoint)
+Last session: 2026-04-03T17:23:47.592Z
+Stopped at: Completed 23-02-PLAN.md
 Resume file: None

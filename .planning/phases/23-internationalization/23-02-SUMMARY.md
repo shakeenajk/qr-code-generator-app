@@ -28,9 +28,9 @@ decisions:
   - "use-cases index links to English slug pages — Research Pitfall 6: no translated [slug].astro pages to avoid duplication"
   - "SeasonalTemplates and FAQ rendered in English on locale homepages — data files are English-only; component structure unchanged"
 metrics:
-  duration: 10m
+  duration: 15m
   completed: 2026-04-03
-  tasks_completed: 2
+  tasks_completed: 3
   files_changed: 10
 ---
 
@@ -73,12 +73,14 @@ None — all 9 pages are fully wired with real t() calls from the translation di
 
 ## Checkpoint Status
 
-Task 3 (`checkpoint:human-verify`) is pending. The user must visually verify:
-1. http://localhost:4323/ — English homepage + language switcher
+Task 3 (`checkpoint:human-verify`) — APPROVED by user on 2026-04-03.
+
+Visual verification confirmed:
+1. English homepage + language switcher renders correctly
 2. /es/, /fr/, /de/ — locale pages with correct translated content
-3. /es/pricing, /fr/use-cases/ — spot-check translated sub-pages
-4. Page source on /es/ — verify hreflang="x-default" and html lang="es"
-5. Translation quality check (natural-sounding Spanish/French/German)
+3. /es/pricing, /fr/use-cases/ — translated sub-pages load correctly
+4. hreflang="x-default" and html lang="es" confirmed in page source
+5. Translation quality approved — natural-sounding Spanish/French/German
 
 ## Self-Check
 
