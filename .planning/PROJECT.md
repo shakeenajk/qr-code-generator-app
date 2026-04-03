@@ -45,18 +45,18 @@ Anyone can generate a visually stunning, fully customized QR code and download i
 - ✓ Google AdSense ads on free tier — v1.2
 - ✓ Updated tier limits (Free: 5/3, Starter: 100/10, Pro: 250/100) — v1.2
 
+- ✓ Sentry error tracking with source maps — v1.3
+- ✓ Upstash rate limiting on all public API endpoints — v1.3
+- ✓ Bulk QR generation (CSV upload → ZIP download) — v1.3
+- ✓ REST API with API key auth for developer integrations — v1.3
+- ✓ Advanced analytics (custom date ranges, CSV export, UTM tracking) — v1.3
+- ✓ Campaign scheduling (auto-activate/deactivate on date) — v1.3
+- ✓ Seasonal/holiday template packs (22 presets, 7 categories) — v1.3
+- ✓ Internationalization — Spanish, French, German with hreflang — v1.3
+
 ### Active
 
-- [ ] Bulk QR generation (CSV upload → ZIP download) — v1.3
-- [ ] REST API with OAuth2 for developer/agency integrations — v1.3
-- [ ] Team collaboration (workspaces, roles, shared library) — v1.3
-- [ ] Advanced analytics (custom date ranges, CSV export, UTM tracking) — v1.3
-- [ ] Internationalization — Spanish, French, German — v1.3
-- [ ] Campaign scheduling (create now, auto-enable on date) — v1.3
-- [ ] Custom short domains (go.brand.com) — v1.3
-- [ ] Seasonal/holiday template packs — v1.3
-- [ ] API rate limiting on all public endpoints — v1.3
-- [ ] Error tracking (Sentry) — v1.3
+(None — planning next milestone)
 
 ### Out of Scope
 
@@ -70,27 +70,11 @@ Anyone can generate a visually stunning, fully customized QR code and download i
 - Requiring account for static QR generation — breaks core acquisition model
 - Deleting data on subscription cancel — gate create/edit, not read
 
-## Current Milestone: v1.3 Scale & Integrate
-
-**Goal:** Add bulk generation, developer API, team collaboration, advanced analytics, i18n, campaign scheduling, custom domains, seasonal templates, and critical infrastructure hardening.
-
-**Target features:**
-- Bulk QR generation (CSV → ZIP)
-- REST API with OAuth2
-- Team collaboration (workspaces, roles)
-- Advanced analytics (date ranges, export, UTM)
-- Internationalization (ES, FR, DE)
-- Campaign scheduling
-- Custom short domains
-- Seasonal/holiday templates
-- API rate limiting
-- Error tracking (Sentry)
-
 ## Context
 
-Shipped v1.2 Growth & Content with ~9,556 source LOC (TypeScript/TSX/Astro/CSS).
-Tech stack: Astro 5 + React islands + qr-code-styling + Tailwind v4 + Playwright + Vercel + Clerk + Turso/Drizzle + Stripe + Vercel Blob + Google AdSense.
-All 86 requirements complete (36 v1.0 + 26 v1.1 + 24 v1.2). Lighthouse mobile performance: 100.
+Shipped v1.3 Scale & Integrate with ~15,013 source LOC (TypeScript/TSX/Astro/CSS).
+Tech stack: Astro 5 + React islands + qr-code-styling + Tailwind v4 + Playwright + Vercel + Clerk + Turso/Drizzle + Stripe + Vercel Blob + Google AdSense + Sentry + Upstash Redis.
+All 109 requirements complete (36 v1.0 + 26 v1.1 + 24 v1.2 + 23 v1.3). Lighthouse mobile performance: 100.
 Domain: qr-code-generator-app.com (Porkbun → Vercel).
 
 ## Key Decisions
@@ -115,6 +99,11 @@ Domain: qr-code-generator-app.com (Porkbun → Vercel).
 | Vercel Blob for file uploads | Client-upload pattern bypasses 4.5MB serverless body limit | ✓ Good — handles large PDFs, no proxy needed |
 | Delayed AdSense injection | Script loads only on user interaction, not at page load | ✓ Good — Lighthouse stays 100 with ads active |
 | landingPages table with FK cascade | Clean data model, automatic cleanup on QR delete | ✓ Good — no orphaned landing pages |
+| Opaque API keys (SHA-256 hash) | Raw key shown once, only hash stored; no JWT complexity | ✓ Good — simple, secure, no token expiry management |
+| Per-key Upstash rate limiting | Separate prefix from IP limiter; both layers protect /api/v1/* | ✓ Good — granular abuse prevention per developer |
+| Client-side bulk ZIP (JSZip) | Avoids Vercel 4.5MB body limit; no server-side generation | ✓ Good — handles 500 QR codes without timeout |
+| Astro native i18n (not Paraglide) | Paraglide requires output: "server"; native i18n works with static | ✓ Good — zero new deps, correct for hybrid output |
+| Vercel Cron for campaign scheduling | Idempotent WHERE clause prevents double-fire; Pro plan supports */15 | ✓ Good — simple, reliable, no external queue service |
 
 ## Constraints
 
@@ -143,4 +132,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-02 after v1.3 Scale & Integrate milestone started*
+*Last updated: 2026-04-03 after v1.3 Scale & Integrate milestone complete*

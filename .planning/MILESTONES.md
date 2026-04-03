@@ -1,5 +1,23 @@
 # Milestones
 
+## v1.3 Scale & Integrate (Shipped: 2026-04-03)
+
+**Phases completed:** 7 phases, 14 plans, 12 tasks
+
+**Key accomplishments:**
+
+- One-liner:
+- One-liner:
+- One-liner:
+- One-liner:
+- API key management dashboard — list/create/copy-once/revoke UI with Pro gate, sidebar nav update, and human-verified end-to-end flow
+- Dashboard QR cards extended with purple/green/amber/gray schedule badges, live countdown timers, and datetime-local schedule editor wired to PATCH /api/qr/[id]
+- One-liner:
+- One-liner:
+- One-liner:
+
+---
+
 ## v1.2 Growth & Content (Shipped: 2026-04-02)
 
 **Phases completed:** 5 phases, 16 plans, 32 tasks
