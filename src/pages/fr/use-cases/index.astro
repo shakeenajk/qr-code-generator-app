@@ -8,6 +8,15 @@ import { USE_CASES } from '../../../data/useCases';
 
 const t = useTranslations('fr');
 
+const slugToKey: Record<string, string> = {
+  'restaurant-menu': 'restaurant',
+  'business-cards': 'business',
+  'product-packaging': 'product',
+  'event-invitations': 'event',
+  'wifi-sharing': 'wifi',
+  'social-media': 'social',
+};
+
 const canonicalUrl = new URL('/fr/use-cases/', Astro.site).toString();
 
 const breadcrumbSchema = {
@@ -49,21 +58,26 @@ const breadcrumbSchema = {
           {t('usecases.page.subheading')}
         </p>
         <ul class="grid grid-cols-1 sm:grid-cols-2 gap-6" role="list">
-          {USE_CASES.map((useCase) => (
+          {USE_CASES.map((useCase) => {
+            const key = slugToKey[useCase.slug] || useCase.slug;
+            const title = t(`usecases.teaser.${key}` as any) || useCase.title;
+            const desc = t(`usecases.teaser.${key}.desc` as any) || useCase.excerpt;
+            return (
             <li>
               <a
                 href={`/use-cases/${useCase.slug}/`}
                 class="block bg-gray-50 dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-6 hover:border-[#2563EB] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
               >
                 <h2 class="text-base font-bold text-gray-900 dark:text-white mb-2">
-                  {useCase.title}
+                  {title}
                 </h2>
                 <p class="text-sm text-gray-600 dark:text-slate-400 leading-relaxed">
-                  {useCase.excerpt}
+                  {desc}
                 </p>
               </a>
             </li>
-          ))}
+            );
+          })}
         </ul>
       </div>
     </section>
