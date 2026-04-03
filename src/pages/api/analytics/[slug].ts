@@ -3,14 +3,14 @@ export const prerender = false;
 import type { APIRoute } from 'astro';
 import { db } from '../../../db/index';
 import { scanEvents, dynamicQrCodes, savedQrCodes, subscriptions } from '../../../db/schema';
-import { and, eq, gte, desc, count, sql } from 'drizzle-orm';
+import { and, eq, gte, lte, isNotNull, desc, count, sql } from 'drizzle-orm';
 
 function dayBucketToLabel(bucket: number): string {
   const date = new Date(bucket * 86400 * 1000);
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-export const GET: APIRoute = async ({ locals, params }) => {
+export const GET: APIRoute = async ({ locals, params, request }) => {
   // Auth check
   const { userId } = locals.auth();
   if (!userId) {
@@ -42,6 +42,50 @@ export const GET: APIRoute = async ({ locals, params }) => {
     });
   }
 
+  // Parse optional from/to query params (Unix timestamps in seconds)
+  const url = new URL(request.url);
+  const fromParam = url.searchParams.get('from');
+  const toParam = url.searchParams.get('to');
+
+  const nowSec = Math.floor(Date.now() / 1000);
+  let from: number;
+  let to: number;
+
+  if (fromParam !== null) {
+    const parsed = Number(fromParam);
+    if (!Number.isFinite(parsed)) {
+      return new Response(JSON.stringify({ error: 'invalid_from' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    from = Math.floor(parsed);
+  } else {
+    from = nowSec - 30 * 24 * 60 * 60;
+  }
+
+  if (toParam !== null) {
+    const parsed = Number(toParam);
+    if (!Number.isFinite(parsed)) {
+      return new Response(JSON.stringify({ error: 'invalid_to' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    to = Math.floor(parsed);
+  } else {
+    to = nowSec;
+  }
+
+  // Cap to 365-day range
+  const rangeDays = Math.ceil((to - from) / 86400);
+  if (rangeDays > 365) {
+    return new Response(JSON.stringify({ error: 'date_range_too_large' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   // Ownership check: verify slug belongs to userId (IDOR prevention)
   const [dynamicQr] = await db
     .select({
@@ -61,57 +105,88 @@ export const GET: APIRoute = async ({ locals, params }) => {
     });
   }
 
-  const thirtyDaysAgo = Math.floor(Date.now() / 1000) - 30 * 24 * 60 * 60;
-  const nowBucket = Math.floor(Date.now() / 1000 / 86400);
+  const nowBucket = Math.floor(to / 86400);
+  const dateRangeFilter = and(
+    eq(scanEvents.dynamicQrCodeId, dynamicQr.id),
+    gte(scanEvents.scannedAt, from),
+    lte(scanEvents.scannedAt, to),
+  );
 
-  // Batched queries (per D-15) — all 4 dimensions in one request
-  const [totalRows, uniqueRows, timeSeriesRows, deviceRows, countryRows] = await Promise.all([
-    // Total scans (all time)
+  // Batched queries — all dimensions in one request
+  const [
+    totalRows,
+    uniqueRows,
+    timeSeriesRows,
+    deviceRows,
+    countryRows,
+    utmSourceRows,
+    utmMediumRows,
+    utmCampaignRows,
+  ] = await Promise.all([
+    // Total scans (all time — not date-filtered per original behavior)
     db.select({ count: count() })
       .from(scanEvents)
       .where(eq(scanEvents.dynamicQrCodeId, dynamicQr.id)),
 
-    // ~Unique scans (distinct day+device+country combos, last 30 days) per D-16
+    // ~Unique scans (distinct day+device+country combos, within date range) per D-16
     db.select({
       unique: sql<number>`count(distinct (cast(${scanEvents.scannedAt} / 86400 as int) || coalesce(${scanEvents.device},'') || coalesce(${scanEvents.country},'')))`,
     })
       .from(scanEvents)
-      .where(and(
-        eq(scanEvents.dynamicQrCodeId, dynamicQr.id),
-        gte(scanEvents.scannedAt, thirtyDaysAgo),
-      )),
+      .where(dateRangeFilter),
 
-    // 30-day time series: GROUP BY day bucket
+    // Time series: GROUP BY day bucket within date range
     db.select({
       day: sql<number>`cast(${scanEvents.scannedAt} / 86400 as int)`,
       scans: count(),
     })
       .from(scanEvents)
-      .where(and(
-        eq(scanEvents.dynamicQrCodeId, dynamicQr.id),
-        gte(scanEvents.scannedAt, thirtyDaysAgo),
-      ))
+      .where(dateRangeFilter)
       .groupBy(sql`cast(${scanEvents.scannedAt} / 86400 as int)`),
 
-    // Device breakdown (all time)
+    // Device breakdown within date range
     db.select({ device: scanEvents.device, scans: count() })
       .from(scanEvents)
-      .where(eq(scanEvents.dynamicQrCodeId, dynamicQr.id))
+      .where(dateRangeFilter)
       .groupBy(scanEvents.device),
 
-    // Top 5 countries (all time)
+    // Top 5 countries within date range
     db.select({ country: scanEvents.country, scans: count() })
       .from(scanEvents)
-      .where(eq(scanEvents.dynamicQrCodeId, dynamicQr.id))
+      .where(dateRangeFilter)
       .groupBy(scanEvents.country)
       .orderBy(desc(count()))
       .limit(5),
+
+    // UTM source breakdown (top 10, non-null, within date range)
+    db.select({ value: scanEvents.utmSource, scans: count() })
+      .from(scanEvents)
+      .where(and(dateRangeFilter, isNotNull(scanEvents.utmSource)))
+      .groupBy(scanEvents.utmSource)
+      .orderBy(desc(count()))
+      .limit(10),
+
+    // UTM medium breakdown (top 10, non-null, within date range)
+    db.select({ value: scanEvents.utmMedium, scans: count() })
+      .from(scanEvents)
+      .where(and(dateRangeFilter, isNotNull(scanEvents.utmMedium)))
+      .groupBy(scanEvents.utmMedium)
+      .orderBy(desc(count()))
+      .limit(10),
+
+    // UTM campaign breakdown (top 10, non-null, within date range)
+    db.select({ value: scanEvents.utmCampaign, scans: count() })
+      .from(scanEvents)
+      .where(and(dateRangeFilter, isNotNull(scanEvents.utmCampaign)))
+      .groupBy(scanEvents.utmCampaign)
+      .orderBy(desc(count()))
+      .limit(10),
   ]);
 
-  // Fill missing days in 30-day window (Pitfall 6: GROUP BY returns 0 rows for days with no scans)
+  // Fill missing days in the selected range
   const timeSeriesMap = new Map(timeSeriesRows.map(r => [r.day, r.scans]));
-  const timeSeries = Array.from({ length: 30 }, (_, i) => {
-    const bucket = nowBucket - 29 + i;
+  const timeSeries = Array.from({ length: rangeDays }, (_, i) => {
+    const bucket = nowBucket - (rangeDays - 1) + i;
     return {
       date: dayBucketToLabel(bucket),
       scans: timeSeriesMap.get(bucket) ?? 0,
@@ -135,6 +210,11 @@ export const GET: APIRoute = async ({ locals, params }) => {
       country: r.country ?? 'unknown',
       scans: r.scans,
     })),
+    utm: {
+      sources: utmSourceRows.map(r => ({ value: r.value ?? '', scans: r.scans })),
+      mediums: utmMediumRows.map(r => ({ value: r.value ?? '', scans: r.scans })),
+      campaigns: utmCampaignRows.map(r => ({ value: r.value ?? '', scans: r.scans })),
+    },
   };
 
   return new Response(JSON.stringify(payload), {
