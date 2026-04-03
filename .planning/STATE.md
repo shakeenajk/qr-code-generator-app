@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Scale & Integrate
-status: Ready to plan
-stopped_at: Completed 19-03-PLAN.md
-last_updated: "2026-04-03T03:44:04.919Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 20-02-PLAN.md
+last_updated: "2026-04-03T04:04:51.654Z"
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 7
-  completed_plans: 5
+  total_plans: 9
+  completed_plans: 6
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-02)
 
 **Core value:** Anyone can generate a visually stunning, fully customized QR code and download it immediately — no signup, no friction.
-**Current focus:** Phase 19 — rest-api-api-key-management
+**Current focus:** Phase 20 — advanced-analytics
 
 ## Current Position
 
-Phase: 20
-Plan: Not started
+Phase: 20 (advanced-analytics) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -54,6 +54,8 @@ Plan: Not started
 | Phase 19 P02 | 2m | 1 tasks | 1 files |
 | Phase 19 P03 | 3 | 1 tasks | 4 files |
 | Phase 19-rest-api-api-key-management P03 | 20 | 2 tasks | 4 files |
+| Phase 20-advanced-analytics P01 | 3 | 2 tasks | 3 files |
+| Phase 20-advanced-analytics P02 | 3 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -85,6 +87,10 @@ Recent decisions affecting current work:
 - [Phase 19]: Raw key shown in yellow warning card exactly once — cleared on Done click, never refetched
 - [Phase 19-rest-api-api-key-management]: Raw key stored in React state only (newKeyRaw); cleared on Done click — never re-fetched from API
 - [Phase 19-rest-api-api-key-management]: Pro gate enforced server-side in api-keys.astro before island mounts — non-Pro users see upgrade prompt
+- [Phase 20-advanced-analytics]: UTM params extracted from destination URL at redirect time; malformed URL try/catch isolates failure from redirect flow
+- [Phase 20-advanced-analytics]: Analytics API from/to params default to last-30-days when absent (backward compatible); 365-day cap prevents runaway queries
+- [Phase 20-advanced-analytics]: Analytics page refactored from server-rendered to client:only React island — enables reactive date range updates without page reloads
+- [Phase 20-advanced-analytics]: CSV export uses native JS with 10,000-row cap; no library needed for header + ISO date + field escaping
 
 ### Pending Todos
 
@@ -98,6 +104,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-03T03:39:50.953Z
-Stopped at: Completed 19-03-PLAN.md
+Last session: 2026-04-03T04:04:51.650Z
+Stopped at: Completed 20-02-PLAN.md
 Resume file: None
