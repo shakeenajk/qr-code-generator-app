@@ -29,10 +29,10 @@ Requirements for v1.3 Scale & Integrate. Each maps to roadmap phases.
 
 ### Advanced Analytics
 
-- [ ] **ANALYTICS-01**: User can select a custom date range for scan analytics (not just last 30 days)
-- [ ] **ANALYTICS-02**: User can export scan data as CSV (date, device, country, UTM parameters)
-- [ ] **ANALYTICS-03**: Dynamic QR scans capture UTM parameters (source, medium, campaign) from the redirect URL
-- [ ] **ANALYTICS-04**: Analytics dashboard shows UTM breakdown chart alongside device and country charts
+- [x] **ANALYTICS-01**: User can select a custom date range for scan analytics (not just last 30 days)
+- [x] **ANALYTICS-02**: User can export scan data as CSV (date, device, country, UTM parameters)
+- [x] **ANALYTICS-03**: Dynamic QR scans capture UTM parameters (source, medium, campaign) from the redirect URL
+- [x] **ANALYTICS-04**: Analytics dashboard shows UTM breakdown chart alongside device and country charts
 
 ### Campaign Scheduling
 
@@ -97,10 +97,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | API-02 | Phase 19 | Complete |
 | API-03 | Phase 19 | Complete |
 | API-04 | Phase 19 | Complete |
-| ANALYTICS-01 | Phase 20 | Pending |
-| ANALYTICS-02 | Phase 20 | Pending |
-| ANALYTICS-03 | Phase 20 | Pending |
-| ANALYTICS-04 | Phase 20 | Pending |
+| ANALYTICS-01 | Phase 20 | Complete |
+| ANALYTICS-02 | Phase 20 | Complete |
+| ANALYTICS-03 | Phase 20 | Complete |
+| ANALYTICS-04 | Phase 20 | Complete |
 | CAMPAIGN-01 | Phase 21 | Pending |
 | CAMPAIGN-02 | Phase 21 | Pending |
 | CAMPAIGN-03 | Phase 21 | Pending |
