@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Scale & Integrate
-status: Ready to plan
-stopped_at: Completed 22-01-PLAN.md
-last_updated: "2026-04-03T12:37:25.370Z"
+status: Ready to execute
+stopped_at: Completed 23-01-PLAN.md
+last_updated: "2026-04-03T16:45:53.364Z"
 progress:
   total_phases: 7
   completed_phases: 2
-  total_plans: 12
-  completed_plans: 8
+  total_plans: 14
+  completed_plans: 9
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-02)
 
 **Core value:** Anyone can generate a visually stunning, fully customized QR code and download it immediately — no signup, no friction.
-**Current focus:** Phase 22 — seasonal-template-packs
+**Current focus:** Phase 23 — internationalization
 
 ## Current Position
 
-Phase: 23
-Plan: Not started
+Phase: 23 (internationalization) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -59,6 +59,7 @@ Plan: Not started
 | Phase 21-campaign-scheduling P01 | 3 | 2 tasks | 7 files |
 | Phase 21-campaign-scheduling P02 | checkpoint | 2 tasks | 1 files |
 | Phase 22-seasonal-template-packs P01 | 8 | 2 tasks | 4 files |
+| Phase 23-internationalization P01 | 6 | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -101,6 +102,9 @@ Recent decisions affecting current work:
 - [Phase 21-campaign-scheduling]: datetime-local inputs rely on browser native local timezone conversion via Math.floor(new Date(inputValue).getTime() / 1000)
 - [Phase 22-seasonal-template-packs]: TemplatePreset category union extended inline rather than using a separate SeasonalCategory type — keeps types co-located and simpler
 - [Phase 22-seasonal-template-packs]: Calendar month mapping hardcoded as Record<number,string[]> in Astro frontmatter — SSR build-time evaluation, zero JS shipped to client
+- [Phase 23-internationalization]: Astro native i18n routing + TypeScript dictionaries chosen over Paraglide (requires output:server, incompatible with static output)
+- [Phase 23-internationalization]: showHreflang opt-in prop on Layout.astro — hreflang only on marketing pages, not dashboard/auth
+- [Phase 23-internationalization]: Sitemap i18n config must be set separately inside sitemap() call — does not auto-detect from top-level i18n block
 
 ### Pending Todos
 
@@ -114,6 +118,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-03T12:33:37.070Z
-Stopped at: Completed 22-01-PLAN.md
+Last session: 2026-04-03T16:45:53.359Z
+Stopped at: Completed 23-01-PLAN.md
 Resume file: None
