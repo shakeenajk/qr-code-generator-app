@@ -1,0 +1,294 @@
+---
+// src/pages/de/pricing.astro
+import { useTranslations } from '../../i18n/utils';
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+
+const t = useTranslations('de');
+---
+
+<Layout
+  title={t('meta.pricingTitle')}
+  description={t('meta.pricingDescription')}
+  lang="de"
+  showHreflang={true}
+>
+  <Header lang="de" />
+
+  <!-- Hero: heading + toggle -->
+  <section class="bg-white dark:bg-[#0f172a] py-16 sm:py-24">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mb-4">
+        {t('pricing.heading')}
+      </h1>
+      <p class="text-lg text-gray-600 dark:text-slate-300 mb-8">
+        {t('pricing.subheading')}
+      </p>
+
+      <!-- Monthly/annual toggle -->
+      <div
+        data-testid="billing-toggle"
+        class="inline-flex items-center gap-1 bg-gray-100 dark:bg-slate-800 rounded-full p-1 mb-12"
+      >
+        <button
+          id="toggle-monthly"
+          class="px-5 py-2 rounded-full text-sm font-semibold transition-colors bg-[#2563EB] text-white"
+        >
+          {t('pricing.toggle.monthly')}
+        </button>
+        <button
+          id="toggle-annual"
+          class="px-5 py-2 rounded-full text-sm font-semibold transition-colors text-gray-500 dark:text-slate-400"
+        >
+          {t('pricing.toggle.annual')} <span class="text-green-600 dark:text-green-400 text-xs font-bold">{t('pricing.toggle.save')}</span>
+        </button>
+      </div>
+
+      <!-- Pricing cards grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+
+        <!-- Free card -->
+        <div class="pricing-card relative rounded-2xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 flex flex-col gap-4">
+          <div>
+            <h2 class="text-xl font-bold text-gray-900 dark:text-white">{t('pricing.free.name')}</h2>
+            <p class="text-sm text-gray-500 dark:text-slate-400 mt-1">{t('pricing.free.tagline')}</p>
+          </div>
+
+          <div class="flex items-end gap-1">
+            <span class="text-4xl font-extrabold text-gray-900 dark:text-white">{t('pricing.free.price')}</span>
+            <span class="text-sm text-gray-500 dark:text-slate-400 mb-1">{t('pricing.free.period')}</span>
+          </div>
+
+          <ul class="flex flex-col gap-2 text-sm text-gray-700 dark:text-slate-300 flex-1">
+            <li class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              {t('pricing.free.feat1')}
+            </li>
+            <li class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              {t('pricing.free.feat2')}
+            </li>
+            <li class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              {t('pricing.free.feat3')}
+            </li>
+            <li class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              {t('pricing.free.feat4')}
+            </li>
+            <li class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              {t('pricing.free.feat5')}
+            </li>
+            <li class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              {t('pricing.free.feat6')}
+            </li>
+          </ul>
+
+          <a
+            href="/de/"
+            class="block w-full text-center py-3 px-6 rounded-xl border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-300 font-semibold text-sm hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+          >
+            {t('pricing.free.cta')}
+          </a>
+        </div>
+
+        <!-- Starter card -->
+        <div class="pricing-card relative rounded-2xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 flex flex-col gap-4">
+          <div>
+            <h2 class="text-xl font-bold text-gray-900 dark:text-white">{t('pricing.starter.name')}</h2>
+            <p class="text-sm text-gray-500 dark:text-slate-400 mt-1">{t('pricing.starter.tagline')}</p>
+          </div>
+
+          <div>
+            <div class="flex items-end gap-1">
+              <span class="monthly-price text-4xl font-extrabold text-gray-900 dark:text-white">$3.99<span class="text-base font-normal text-gray-500 dark:text-slate-400">/mo</span></span>
+              <span class="annual-price hidden text-4xl font-extrabold text-gray-900 dark:text-white">$39<span class="text-base font-normal text-gray-500 dark:text-slate-400">/yr</span></span>
+            </div>
+            <span class="annual-savings hidden text-xs text-green-600 dark:text-green-400 font-medium mt-1 block">Save $8.88/yr</span>
+          </div>
+
+          <ul class="flex flex-col gap-2 text-sm text-gray-700 dark:text-slate-300 flex-1">
+            <li class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              {t('pricing.starter.feat1')}
+            </li>
+            <li class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              {t('pricing.starter.feat2')}
+            </li>
+            <li class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              {t('pricing.starter.feat3')}
+            </li>
+            <li class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              {t('pricing.starter.feat4')}
+            </li>
+            <li class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              {t('pricing.starter.feat5')}
+            </li>
+          </ul>
+
+          <button
+            id="starter-cta"
+            class="w-full py-3 px-6 rounded-xl border border-[#2563EB] text-[#2563EB] dark:text-blue-400 dark:border-blue-400 font-semibold text-sm hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {t('pricing.starter.cta')}
+          </button>
+        </div>
+
+        <!-- Pro card (highlighted) -->
+        <div class="pricing-card relative rounded-2xl border-2 border-blue-500 dark:border-blue-600 bg-white dark:bg-slate-900 ring-2 ring-blue-500 p-6 flex flex-col gap-4">
+          <!-- Most Popular badge -->
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#2563EB] text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
+            {t('pricing.pro.badge')}
+          </div>
+
+          <div>
+            <h2 class="text-xl font-bold text-gray-900 dark:text-white">{t('pricing.pro.name')}</h2>
+            <p class="text-sm text-gray-500 dark:text-slate-400 mt-1">{t('pricing.pro.tagline')}</p>
+          </div>
+
+          <div>
+            <div class="flex items-end gap-1">
+              <span class="monthly-price text-4xl font-extrabold text-gray-900 dark:text-white">$7.99<span class="text-base font-normal text-gray-500 dark:text-slate-400">/mo</span></span>
+              <span class="annual-price hidden text-4xl font-extrabold text-gray-900 dark:text-white">$79<span class="text-base font-normal text-gray-500 dark:text-slate-400">/yr</span></span>
+            </div>
+            <span class="annual-savings hidden text-xs text-green-600 dark:text-green-400 font-medium mt-1 block">Save $16.88/yr</span>
+          </div>
+
+          <ul class="flex flex-col gap-2 text-sm text-gray-700 dark:text-slate-300 flex-1">
+            <li class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              {t('pricing.pro.feat1')}
+            </li>
+            <li class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              {t('pricing.pro.feat2')}
+            </li>
+            <li class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              {t('pricing.pro.feat3')}
+            </li>
+            <li class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              {t('pricing.pro.feat4')}
+            </li>
+            <li class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              {t('pricing.pro.feat5')}
+            </li>
+            <li class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              {t('pricing.pro.feat6')}
+            </li>
+            <li class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-blue-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              {t('pricing.pro.feat7')} <span class="text-xs text-gray-400 dark:text-slate-500 ml-1">{t('pricing.pro.feat7sub')}</span>
+            </li>
+          </ul>
+
+          <button
+            id="pro-cta"
+            class="w-full py-3 px-6 rounded-xl bg-[#2563EB] text-white font-semibold text-sm hover:bg-blue-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {t('pricing.pro.cta')}
+          </button>
+        </div>
+
+      </div><!-- /grid -->
+
+      <!-- Small print -->
+      <p class="mt-10 text-xs text-gray-400 dark:text-slate-500 max-w-xl mx-auto">
+        {t('pricing.smallprint')}
+      </p>
+
+    </div>
+  </section>
+
+  <Footer />
+
+  <script>
+    (function() {
+      const PRICES = {
+        starter: {
+          monthly: import.meta.env.PUBLIC_STRIPE_PRICE_STARTER_MONTHLY,
+          annual:  import.meta.env.PUBLIC_STRIPE_PRICE_STARTER_ANNUAL,
+        },
+        pro: {
+          monthly: import.meta.env.PUBLIC_STRIPE_PRICE_PRO_MONTHLY,
+          annual:  import.meta.env.PUBLIC_STRIPE_PRICE_PRO_ANNUAL,
+        },
+      };
+
+      let cadence = 'monthly';
+
+      const toggleMonthly = document.getElementById('toggle-monthly') as HTMLButtonElement;
+      const toggleAnnual  = document.getElementById('toggle-annual') as HTMLButtonElement;
+
+      function setToggle(selected: string) {
+        cadence = selected;
+        const activeClass = ['bg-[#2563EB]', 'text-white'];
+        const inactiveClass = ['text-gray-500', 'dark:text-slate-400'];
+        if (selected === 'monthly') {
+          toggleMonthly.classList.add(...activeClass);
+          toggleMonthly.classList.remove(...inactiveClass);
+          toggleAnnual.classList.remove(...activeClass);
+          toggleAnnual.classList.add(...inactiveClass);
+        } else {
+          toggleAnnual.classList.add(...activeClass);
+          toggleAnnual.classList.remove(...inactiveClass);
+          toggleMonthly.classList.remove(...activeClass);
+          toggleMonthly.classList.add(...inactiveClass);
+        }
+        document.querySelectorAll('.monthly-price').forEach(el => (el as HTMLElement).classList.toggle('hidden', selected !== 'monthly'));
+        document.querySelectorAll('.annual-price').forEach(el => (el as HTMLElement).classList.toggle('hidden', selected !== 'annual'));
+        document.querySelectorAll('.annual-savings').forEach(el => (el as HTMLElement).classList.toggle('hidden', selected !== 'annual'));
+      }
+
+      toggleMonthly.addEventListener('click', () => setToggle('monthly'));
+      toggleAnnual.addEventListener('click',  () => setToggle('annual'));
+
+      async function startCheckout(tier: string, btn: HTMLButtonElement) {
+        const priceId = PRICES[tier as keyof typeof PRICES][cadence as 'monthly' | 'annual'];
+        btn.disabled = true;
+        const originalText = btn.textContent;
+        btn.textContent = 'Loading...';
+        try {
+          const res = await fetch('/api/checkout/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ priceId }),
+          });
+          if (res.status === 401) {
+            window.location.href = '/login?redirect=/de/pricing';
+            return;
+          }
+          if (res.status === 409) {
+            alert('You already have an active subscription. Manage it from your dashboard.');
+            btn.disabled = false;
+            btn.textContent = originalText;
+            return;
+          }
+          if (!res.ok) throw new Error('checkout failed');
+          const { url } = await res.json();
+          window.location.href = url;
+        } catch {
+          btn.disabled = false;
+          btn.textContent = originalText;
+        }
+      }
+
+      document.getElementById('starter-cta')!.addEventListener('click', function() {
+        startCheckout('starter', this as HTMLButtonElement);
+      });
+      document.getElementById('pro-cta')!.addEventListener('click', function() {
+        startCheckout('pro', this as HTMLButtonElement);
+      });
+    })();
+  </script>
+</Layout>
