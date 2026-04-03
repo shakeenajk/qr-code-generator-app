@@ -38,7 +38,7 @@ const t = useTranslations(lang);
         {t('nav.usecases')}
       </a>
 
-      <LanguageSwitcher currentLang={lang} currentPath={Astro.url.pathname} />
+      <LanguageSwitcher currentLang={lang} currentPath={Astro.url.pathname.replace(/^\/(es|fr|de)(\/|$)/, '/')} />
     </div>
 
     <div class="flex items-center gap-3">
