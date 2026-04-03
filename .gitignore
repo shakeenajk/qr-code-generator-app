@@ -33,3 +33,4 @@ pnpm-debug.log*
 
 # Lighthouse CI reports (generated output, not source)
 .lighthouseci/
+.claude/worktrees/
