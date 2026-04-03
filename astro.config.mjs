@@ -10,10 +10,27 @@ export default defineConfig({
   site: 'https://qr-code-generator-app.com',
   output: 'static',
   adapter: vercel(),
+  i18n: {
+    defaultLocale: 'en',
+    locales: ['en', 'es', 'fr', 'de'],
+    routing: {
+      prefixDefaultLocale: false,
+    },
+  },
   integrations: [
     clerk(),
     react(),
-    sitemap(),
+    sitemap({
+      i18n: {
+        defaultLocale: 'en',
+        locales: {
+          en: 'en-US',
+          es: 'es-ES',
+          fr: 'fr-FR',
+          de: 'de-DE',
+        },
+      },
+    }),
     sentry({
       sourceMapsUploadOptions: {
         project: 'qrcraft',
