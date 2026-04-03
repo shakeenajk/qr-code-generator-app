@@ -42,9 +42,9 @@ Requirements for v1.3 Scale & Integrate. Each maps to roadmap phases.
 
 ### Internationalization
 
-- [ ] **I18N-01**: Marketing pages (homepage, pricing, use cases) are available in Spanish, French, and German
-- [ ] **I18N-02**: Language switcher is accessible in the site header; selection persists across page navigation
-- [ ] **I18N-03**: Each translated page has correct hreflang tags for SEO; sitemap includes all language variants
+- [x] **I18N-01**: Marketing pages (homepage, pricing, use cases) are available in Spanish, French, and German
+- [x] **I18N-02**: Language switcher is accessible in the site header; selection persists across page navigation
+- [x] **I18N-03**: Each translated page has correct hreflang tags for SEO; sitemap includes all language variants
 
 ### Seasonal Templates
 
@@ -106,9 +106,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CAMPAIGN-03 | Phase 21 | Complete |
 | TEMPLATE-01 | Phase 22 | Complete |
 | TEMPLATE-02 | Phase 22 | Complete |
-| I18N-01 | Phase 23 | Pending |
-| I18N-02 | Phase 23 | Pending |
-| I18N-03 | Phase 23 | Pending |
+| I18N-01 | Phase 23 | Complete |
+| I18N-02 | Phase 23 | Complete |
+| I18N-03 | Phase 23 | Complete |
 
 **Coverage:**
 - v1.3 requirements: 23 total

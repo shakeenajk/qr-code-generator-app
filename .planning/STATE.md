@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Scale & Integrate
-status: Ready to execute
-stopped_at: Completed 23-01-PLAN.md
-last_updated: "2026-04-03T16:45:53.364Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 23-02-PLAN.md (awaiting Task 3 human-verify checkpoint)
+last_updated: "2026-04-03T16:56:17.781Z"
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 14
-  completed_plans: 9
+  completed_plans: 10
 ---
 
 # Project State
@@ -60,6 +60,7 @@ Plan: 2 of 2
 | Phase 21-campaign-scheduling P02 | checkpoint | 2 tasks | 1 files |
 | Phase 22-seasonal-template-packs P01 | 8 | 2 tasks | 4 files |
 | Phase 23-internationalization P01 | 6 | 2 tasks | 9 files |
+| Phase 23-internationalization P02 | 10 | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -105,6 +106,8 @@ Recent decisions affecting current work:
 - [Phase 23-internationalization]: Astro native i18n routing + TypeScript dictionaries chosen over Paraglide (requires output:server, incompatible with static output)
 - [Phase 23-internationalization]: showHreflang opt-in prop on Layout.astro — hreflang only on marketing pages, not dashboard/auth
 - [Phase 23-internationalization]: Sitemap i18n config must be set separately inside sitemap() call — does not auto-detect from top-level i18n block
+- [Phase 23-internationalization]: Inline translated sections in locale pages — components don't accept lang prop; inline avoids patching 6 components
+- [Phase 23-internationalization]: use-cases index links to English slug pages — no translated slug pages per Research Pitfall 6
 
 ### Pending Todos
 
@@ -118,6 +121,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-03T16:45:53.359Z
-Stopped at: Completed 23-01-PLAN.md
+Last session: 2026-04-03T16:56:17.777Z
+Stopped at: Completed 23-02-PLAN.md (awaiting Task 3 human-verify checkpoint)
 Resume file: None

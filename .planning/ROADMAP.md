@@ -189,7 +189,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 23-01-PLAN.md — i18n config, translation dictionaries, hreflang tags, language switcher, Header updates
-- [ ] 23-02-PLAN.md — 9 translated marketing pages (3 pages x 3 languages) + Playwright i18n tests
+- [x] 23-02-PLAN.md — 9 translated marketing pages (3 pages x 3 languages) + Playwright i18n tests
 **UI hint**: yes
 
 ## Progress
@@ -208,4 +208,4 @@ Phases execute in numeric order: 17 → 18 → 19 → 20 → 21 → 22 → 23
 | 20. Advanced Analytics | v1.3 | 1/2 | Complete    | 2026-04-03 |
 | 21. Campaign Scheduling | v1.3 | 1/2 | Complete    | 2026-04-03 |
 | 22. Seasonal Template Packs | v1.3 | 1/1 | Complete    | 2026-04-03 |
-| 23. Internationalization | v1.3 | 1/2 | In Progress|  |
+| 23. Internationalization | v1.3 | 2/2 | Complete   | 2026-04-03 |
