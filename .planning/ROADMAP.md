@@ -174,8 +174,9 @@ Plans:
   1. Template picker contains 20 or more seasonal/holiday presets covering Christmas, Halloween, Valentine's Day, Easter, Black Friday, Summer, and Back to School
   2. Homepage displays a seasonal collection section that shows templates matching the current calendar period (e.g., Christmas templates appear in December)
   3. Applying a seasonal template updates the QR code preview with the correct frame, colors, and dot style — no page reload required
-**Plans**: TBD
-**UI hint**: yes
+**Plans**: 1 plan
+Plans:
+- [ ] 22-01-PLAN.md — 22 seasonal template presets + homepage seasonal collection section
 
 ### Phase 23: Internationalization
 **Goal**: Marketing pages are available in Spanish, French, and German with correct hreflang tags and a persistent language switcher — no duplicate content SEO penalty
@@ -203,5 +204,5 @@ Phases execute in numeric order: 17 → 18 → 19 → 20 → 21 → 22 → 23
 | 19. REST API + API Key Management | v1.3 | 2/3 | Complete    | 2026-04-03 |
 | 20. Advanced Analytics | v1.3 | 1/2 | Complete    | 2026-04-03 |
 | 21. Campaign Scheduling | v1.3 | 1/2 | Complete    | 2026-04-03 |
-| 22. Seasonal Template Packs | v1.3 | 0/TBD | Not started | - |
+| 22. Seasonal Template Packs | v1.3 | 0/1 | Not started | - |
 | 23. Internationalization | v1.3 | 0/TBD | Not started | - |
