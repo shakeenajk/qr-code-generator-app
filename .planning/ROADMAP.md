@@ -117,7 +117,10 @@ Plans:
   2. User can download all generated QR codes as a single ZIP file assembled entirely in the browser
   3. User sees a clear error message if the batch row count would exceed their tier limit before the download is triggered
   4. Batches up to 500 rows complete without a server timeout or 4.5 MB response body error
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 18-01-PLAN.md — Dependencies, bulk limits, CSV upload page with tier enforcement
+- [ ] 18-02-PLAN.md — QR generation loop, thumbnail preview grid, ZIP download
 **UI hint**: yes
 
 ### Phase 19: REST API + API Key Management
@@ -189,7 +192,7 @@ Phases execute in numeric order: 17 → 18 → 19 → 20 → 21 → 22 → 23
 | 7-11. Auth through Analytics | v1.1 | — | Complete | 2026-03-31 |
 | 12-16. Improvements through AdSense | v1.2 | — | Complete | 2026-04-02 |
 | 17. Observability Foundation | v1.3 | 2/2 | Complete    | 2026-04-02 |
-| 18. Bulk QR Generation | v1.3 | 0/TBD | Not started | - |
+| 18. Bulk QR Generation | v1.3 | 0/2 | Planning complete | - |
 | 19. REST API + API Key Management | v1.3 | 0/TBD | Not started | - |
 | 20. Advanced Analytics | v1.3 | 0/TBD | Not started | - |
 | 21. Campaign Scheduling | v1.3 | 0/TBD | Not started | - |
