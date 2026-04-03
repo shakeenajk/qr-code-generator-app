@@ -2,12 +2,11 @@
 export const prerender = false;
 
 import DashboardLayout from '../../../components/dashboard/DashboardLayout.astro';
-import ScanChart from '../../../components/analytics/ScanChart';
-import ProgressBarList from '../../../components/analytics/ProgressBarList';
+import AnalyticsDashboard from '../../../components/analytics/AnalyticsDashboard';
 import { Toaster } from 'sonner';
 import { db } from '../../../db/index';
-import { subscriptions, scanEvents, dynamicQrCodes, savedQrCodes } from '../../../db/schema';
-import { eq, and, gte, desc, count, sql } from 'drizzle-orm';
+import { subscriptions, dynamicQrCodes, savedQrCodes } from '../../../db/schema';
+import { eq, and } from 'drizzle-orm';
 
 const { userId } = Astro.locals.auth();
 if (!userId) {
@@ -31,16 +30,7 @@ if (tier !== 'pro') {
   return Astro.redirect('/pricing');
 }
 
-// Query analytics data directly (avoids self-fetch which fails without PUBLIC_BASE_URL in production)
-function dayBucketToLabel(bucket: number): string {
-  const date = new Date(bucket * 86400 * 1000);
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-}
-
-let analyticsData: any = null;
-let analyticsError = false;
-
-// Ownership check: verify slug belongs to userId
+// Ownership check: verify slug belongs to userId (IDOR prevention)
 const [dynamicQr] = await db
   .select({ id: dynamicQrCodes.id, name: savedQrCodes.name, qrSlug: dynamicQrCodes.slug })
   .from(dynamicQrCodes)
@@ -51,72 +41,11 @@ const [dynamicQr] = await db
 if (!dynamicQr) {
   return Astro.redirect('/dashboard');
 }
-
-try {
-  const thirtyDaysAgo = Math.floor(Date.now() / 1000) - 30 * 24 * 60 * 60;
-  const nowBucket = Math.floor(Date.now() / 1000 / 86400);
-
-  const [totalRows, uniqueRows, timeSeriesRows, deviceRows, countryRows] = await Promise.all([
-    db.select({ count: count() }).from(scanEvents).where(eq(scanEvents.dynamicQrCodeId, dynamicQr.id)),
-    db.select({ unique: sql<number>`count(distinct (cast(${scanEvents.scannedAt} / 86400 as int) || coalesce(${scanEvents.device},'') || coalesce(${scanEvents.country},'')))` })
-      .from(scanEvents).where(and(eq(scanEvents.dynamicQrCodeId, dynamicQr.id), gte(scanEvents.scannedAt, thirtyDaysAgo))),
-    db.select({ day: sql<number>`cast(${scanEvents.scannedAt} / 86400 as int)`, scans: count() })
-      .from(scanEvents).where(and(eq(scanEvents.dynamicQrCodeId, dynamicQr.id), gte(scanEvents.scannedAt, thirtyDaysAgo)))
-      .groupBy(sql`cast(${scanEvents.scannedAt} / 86400 as int)`),
-    db.select({ device: scanEvents.device, scans: count() }).from(scanEvents)
-      .where(eq(scanEvents.dynamicQrCodeId, dynamicQr.id)).groupBy(scanEvents.device),
-    db.select({ country: scanEvents.country, scans: count() }).from(scanEvents)
-      .where(eq(scanEvents.dynamicQrCodeId, dynamicQr.id)).groupBy(scanEvents.country)
-      .orderBy(desc(count())).limit(5),
-  ]);
-
-  const timeSeriesMap = new Map(timeSeriesRows.map(r => [r.day, r.scans]));
-  const timeSeries = Array.from({ length: 30 }, (_, i) => {
-    const bucket = nowBucket - 29 + i;
-    return { date: dayBucketToLabel(bucket), scans: timeSeriesMap.get(bucket) ?? 0 };
-  });
-
-  analyticsData = {
-    name: dynamicQr.name,
-    slug: dynamicQr.qrSlug,
-    total: totalRows[0]?.count ?? 0,
-    unique: uniqueRows[0]?.unique ?? 0,
-    timeSeries,
-    devices: deviceRows.map(r => ({ device: r.device ?? 'unknown', scans: r.scans })),
-    countries: countryRows.map(r => ({ country: r.country ?? 'unknown', scans: r.scans })),
-  };
-} catch {
-  analyticsError = true;
-}
-
-// Pre-compute percentage values for progress-bar lists (avoid division in template)
-function toPct(n: number, total: number): number {
-  if (total === 0) return 0;
-  return Math.round((n / total) * 100);
-}
-
-const deviceItems = analyticsError ? [] : analyticsData.devices.map((d: { device: string; scans: number }) => ({
-  label: d.device === 'ios' ? 'iOS' : d.device === 'android' ? 'Android' : d.device === 'desktop' ? 'Desktop' : 'Other',
-  scans: d.scans,
-  pct: toPct(d.scans, analyticsData.total),
-}));
-
-const COUNTRY_NAMES: Record<string, string> = {
-  US: 'United States', GB: 'United Kingdom', CA: 'Canada', AU: 'Australia',
-  DE: 'Germany', FR: 'France', IN: 'India', BR: 'Brazil', MX: 'Mexico',
-  JP: 'Japan', KR: 'South Korea', CN: 'China', SG: 'Singapore', NL: 'Netherlands',
-};
-
-const countryItems = analyticsError ? [] : analyticsData.countries.map((c: { country: string; scans: number }) => {
-  const code = c.country === 'unknown' || !c.country ? null : c.country.toUpperCase();
-  const name = code ? (COUNTRY_NAMES[code] ? `${code} — ${COUNTRY_NAMES[code]}` : code) : 'Unknown';
-  return { label: name, scans: c.scans, pct: toPct(c.scans, analyticsData.total) };
-});
 ---
 
 <DashboardLayout
   activeSection="my-qr-codes"
-  title={analyticsData ? `Analytics: ${analyticsData.name} — QRCraft` : 'Analytics — QRCraft'}
+  title={`Analytics: ${dynamicQr.name} — QRCraft`}
   tier={tier}
 >
   <div class="p-6 md:p-8">
@@ -129,73 +58,11 @@ const countryItems = analyticsError ? [] : analyticsData.countries.map((c: { cou
       ← My QR Codes
     </a>
 
-    {analyticsError && (
-      <div class="text-center py-16">
-        <p class="text-base font-semibold text-red-600 dark:text-red-400">Could not load analytics</p>
-        <p class="text-sm text-gray-500 dark:text-slate-400 mt-2">
-          Something went wrong fetching your scan data. Try refreshing the page.
-        </p>
-        <a
-          href={Astro.request.url}
-          class="mt-4 inline-block text-sm text-indigo-600 dark:text-indigo-400 hover:underline"
-        >
-          Refresh
-        </a>
-      </div>
-    )}
-
-    {!analyticsError && analyticsData && (
-      <>
-        {/* Page header (per D-03, UI-SPEC AnalyticsPage component) */}
-        <div class="mb-8">
-          <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">
-            Analytics: {analyticsData.name}
-          </h1>
-          <p class="text-xs text-gray-500 dark:text-slate-400 mt-1">{analyticsData.slug}</p>
-        </div>
-
-        {/* Stat cards row (per D-04, UI-SPEC StatCard component) */}
-        <div class="grid grid-cols-2 gap-4 md:gap-6 mb-6">
-          <div class="bg-white dark:bg-slate-800 rounded-xl p-5 border border-gray-200 dark:border-slate-700">
-            <p class="text-xs font-semibold text-gray-500 dark:text-slate-400 mb-1">Total Scans</p>
-            <p class="text-xl font-semibold text-gray-900 dark:text-white" aria-live="polite">
-              {analyticsData.total}
-            </p>
-          </div>
-          <div class="bg-white dark:bg-slate-800 rounded-xl p-5 border border-gray-200 dark:border-slate-700">
-            <p class="text-xs font-semibold text-gray-500 dark:text-slate-400 mb-1">~Unique Scans</p>
-            <p class="text-xl font-semibold text-gray-900 dark:text-white" aria-live="polite">
-              {analyticsData.unique}
-            </p>
-            <p class="text-xs text-gray-400 dark:text-slate-500 mt-1">
-              Approximated by distinct day + device + country
-            </p>
-          </div>
-        </div>
-
-        {/* 30-day area chart panel (per D-04, ANAL-02) */}
-        <div class="bg-white dark:bg-slate-800 rounded-xl p-5 border border-gray-200 dark:border-slate-700 mb-6">
-          <h2 class="text-sm font-semibold text-gray-700 dark:text-slate-300 mb-4">Scans — Last 30 Days</h2>
-          <ScanChart data={analyticsData.timeSeries} client:only="react" />
-        </div>
-
-        {/* Device breakdown (per D-04, D-05, ANAL-03) */}
-        <div class="mb-6">
-          <ProgressBarList
-            heading="Device Breakdown"
-            items={deviceItems}
-            client:only="react"
-          />
-        </div>
-
-        {/* Top countries (per D-04, D-05, ANAL-04) */}
-        <ProgressBarList
-          heading="Top Countries"
-          items={countryItems}
-          client:only="react"
-        />
-      </>
-    )}
+    <AnalyticsDashboard
+      slug={dynamicQr.qrSlug}
+      name={dynamicQr.name}
+      client:only="react"
+    />
   </div>
   <Toaster client:only="react" theme="system" position="bottom-right" />
 </DashboardLayout>
