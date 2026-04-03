@@ -28,6 +28,8 @@ export const GET: APIRoute = async ({ locals }) => {
       slug: dynamicQrCodes.slug,
       destinationUrl: dynamicQrCodes.destinationUrl,
       isPaused: dynamicQrCodes.isPaused,
+      scheduledEnableAt: dynamicQrCodes.scheduledEnableAt,
+      scheduledPauseAt: dynamicQrCodes.scheduledPauseAt,
       // Landing page fields (null for QRs without landing pages)
       landingPageId: landingPages.id,
       landingPageSlug: landingPages.slug,

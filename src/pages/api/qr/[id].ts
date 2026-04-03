@@ -39,6 +39,8 @@ export const GET: APIRoute = async ({ locals, params }) => {
       slug: dynamicQrCodes.slug,
       destinationUrl: dynamicQrCodes.destinationUrl,
       isPaused: dynamicQrCodes.isPaused,
+      scheduledEnableAt: dynamicQrCodes.scheduledEnableAt,
+      scheduledPauseAt: dynamicQrCodes.scheduledPauseAt,
     })
     .from(savedQrCodes)
     .leftJoin(dynamicQrCodes, eq(savedQrCodes.id, dynamicQrCodes.savedQrCodeId))
@@ -67,6 +69,8 @@ export const GET: APIRoute = async ({ locals, params }) => {
       slug: row.slug ?? null,
       destinationUrl: row.destinationUrl ?? null,
       isPaused: row.isPaused ?? null,
+      scheduledEnableAt: row.scheduledEnableAt ?? null,
+      scheduledPauseAt: row.scheduledPauseAt ?? null,
     }),
     { status: 200, headers: { 'Content-Type': 'application/json' } }
   );
@@ -167,14 +171,19 @@ export const PATCH: APIRoute = async ({ locals, request, params }) => {
     });
   }
 
-  const { destinationUrl, isPaused } = body as {
+  const { destinationUrl, isPaused, scheduledEnableAt, scheduledPauseAt } = body as {
     destinationUrl?: string;
     isPaused?: boolean;
+    scheduledEnableAt?: number | null;
+    scheduledPauseAt?: number | null;
   };
 
   // Verify the dynamic QR row exists and belongs to this user (IDOR prevention)
   const [existing] = await db
-    .select({ id: dynamicQrCodes.id })
+    .select({
+      id: dynamicQrCodes.id,
+      scheduledEnableAt: dynamicQrCodes.scheduledEnableAt,
+    })
     .from(dynamicQrCodes)
     .where(and(eq(dynamicQrCodes.savedQrCodeId, id), eq(dynamicQrCodes.userId, userId)))
     .limit(1);
@@ -186,9 +195,39 @@ export const PATCH: APIRoute = async ({ locals, request, params }) => {
     });
   }
 
+  // Validate scheduledEnableAt — must be a future Unix epoch timestamp if provided and not null
+  if (scheduledEnableAt !== undefined && scheduledEnableAt !== null) {
+    const nowEpoch = Math.floor(Date.now() / 1000);
+    if (typeof scheduledEnableAt !== 'number' || scheduledEnableAt <= nowEpoch) {
+      return new Response(
+        JSON.stringify({ error: 'scheduledEnableAt must be a future Unix epoch timestamp' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+  }
+
+  // Validate scheduledPauseAt — must be after scheduledEnableAt (either in this request or persisted)
+  if (scheduledPauseAt !== undefined && scheduledPauseAt !== null) {
+    const enableAt = scheduledEnableAt !== undefined ? scheduledEnableAt : existing.scheduledEnableAt;
+    if (typeof scheduledPauseAt !== 'number') {
+      return new Response(
+        JSON.stringify({ error: 'scheduledPauseAt must be a number' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+    if (enableAt !== null && enableAt !== undefined && scheduledPauseAt <= enableAt) {
+      return new Response(
+        JSON.stringify({ error: 'scheduledPauseAt must be after scheduledEnableAt' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+  }
+
   const updates: Partial<{
     destinationUrl: string;
     isPaused: boolean;
+    scheduledEnableAt: number | null;
+    scheduledPauseAt: number | null;
     updatedAt: number;
   }> = {
     updatedAt: Math.floor(Date.now() / 1000),
@@ -206,6 +245,19 @@ export const PATCH: APIRoute = async ({ locals, request, params }) => {
 
   if (isPaused !== undefined) {
     updates.isPaused = isPaused;
+  }
+
+  // When setting a future scheduledEnableAt, also pause the QR code
+  // (it should remain paused until the scheduled activation time)
+  if (scheduledEnableAt !== undefined) {
+    updates.scheduledEnableAt = scheduledEnableAt;
+    if (scheduledEnableAt !== null) {
+      updates.isPaused = true;
+    }
+  }
+
+  if (scheduledPauseAt !== undefined) {
+    updates.scheduledPauseAt = scheduledPauseAt;
   }
 
   await db
