@@ -83,6 +83,9 @@ export const scanEvents = sqliteTable('scan_events', {
   userAgent: text('user_agent'),
   country: text('country'),
   device: text('device'),
+  utmSource: text('utm_source'),
+  utmMedium: text('utm_medium'),
+  utmCampaign: text('utm_campaign'),
 }, (table) => [
   index('scan_events_qr_id_scanned_at_idx').on(table.dynamicQrCodeId, table.scannedAt),
 ]);

@@ -46,11 +46,28 @@ export const GET: APIRoute = async ({ params, request }) => {
   if (!isBot(ua)) {
     const country = request.headers.get('x-vercel-ip-country') ?? null;
     const device = classifyDevice(ua);
+
+    // Extract UTM params from the destination URL (malformed URLs must not break redirects)
+    let utmSource: string | null = null;
+    let utmMedium: string | null = null;
+    let utmCampaign: string | null = null;
+    try {
+      const destUrl = new URL(row.destinationUrl);
+      utmSource = destUrl.searchParams.get('utm_source') || null;
+      utmMedium = destUrl.searchParams.get('utm_medium') || null;
+      utmCampaign = destUrl.searchParams.get('utm_campaign') || null;
+    } catch {
+      // malformed URL — leave UTM values as null
+    }
+
     db.insert(scanEvents).values({
       dynamicQrCodeId: row.id,
       userAgent: ua,
       country,
       device,
+      utmSource,
+      utmMedium,
+      utmCampaign,
     }).catch(() => { /* silent — analytics must not break redirects */ });
   }
 
