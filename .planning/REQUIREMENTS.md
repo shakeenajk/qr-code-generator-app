@@ -15,10 +15,10 @@ Requirements for v1.3 Scale & Integrate. Each maps to roadmap phases.
 
 ### Bulk Generation
 
-- [ ] **BULK-01**: User can upload a CSV file with URL, text, or WiFi columns to generate QR codes in batch (up to 500 per batch)
-- [ ] **BULK-02**: User can download all generated QR codes as a single ZIP file (client-side assembly via JSZip)
-- [ ] **BULK-03**: Bulk generation respects tier limits (total QR count); user sees clear error if batch would exceed limit
-- [ ] **BULK-04**: User can preview the batch before downloading (thumbnail grid of generated QR codes)
+- [x] **BULK-01**: User can upload a CSV file with URL, text, or WiFi columns to generate QR codes in batch (up to 500 per batch)
+- [x] **BULK-02**: User can download all generated QR codes as a single ZIP file (client-side assembly via JSZip)
+- [x] **BULK-03**: Bulk generation respects tier limits (total QR count); user sees clear error if batch would exceed limit
+- [x] **BULK-04**: User can preview the batch before downloading (thumbnail grid of generated QR codes)
 
 ### REST API
 
@@ -89,10 +89,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INFRA-01 | Phase 17 | Complete |
 | INFRA-02 | Phase 17 | Complete |
 | INFRA-03 | Phase 17 | Complete |
-| BULK-01 | Phase 18 | Pending |
-| BULK-02 | Phase 18 | Pending |
-| BULK-03 | Phase 18 | Pending |
-| BULK-04 | Phase 18 | Pending |
+| BULK-01 | Phase 18 | Complete |
+| BULK-02 | Phase 18 | Complete |
+| BULK-03 | Phase 18 | Complete |
+| BULK-04 | Phase 18 | Complete |
 | API-01 | Phase 19 | Pending |
 | API-02 | Phase 19 | Pending |
 | API-03 | Phase 19 | Pending |
