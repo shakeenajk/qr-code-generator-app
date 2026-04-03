@@ -186,7 +186,10 @@ Plans:
   1. Homepage, pricing page, and use cases page are fully readable in Spanish, French, and German at /es/, /fr/, and /de/ URL prefixes
   2. Language switcher in the site header changes the language and the selection persists when navigating between marketing pages
   3. Every translated page has hreflang link tags (including x-default) and the sitemap includes all language variants — no duplicate content warning in Google Search Console
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 23-01-PLAN.md — i18n config, translation dictionaries, hreflang tags, language switcher, Header updates
+- [ ] 23-02-PLAN.md — 9 translated marketing pages (3 pages x 3 languages) + Playwright i18n tests
 **UI hint**: yes
 
 ## Progress
@@ -205,4 +208,4 @@ Phases execute in numeric order: 17 → 18 → 19 → 20 → 21 → 22 → 23
 | 20. Advanced Analytics | v1.3 | 1/2 | Complete    | 2026-04-03 |
 | 21. Campaign Scheduling | v1.3 | 1/2 | Complete    | 2026-04-03 |
 | 22. Seasonal Template Packs | v1.3 | 1/1 | Complete    | 2026-04-03 |
-| 23. Internationalization | v1.3 | 0/TBD | Not started | - |
+| 23. Internationalization | v1.3 | 0/2 | Not started | - |
