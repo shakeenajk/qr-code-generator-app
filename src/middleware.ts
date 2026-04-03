@@ -5,6 +5,7 @@ import { getRateLimiter } from './lib/rateLimit';
 const isProtectedRoute = createRouteMatcher(['/dashboard(.*)']);
 const isWebhookRoute = createRouteMatcher(['/api/webhooks/(.*)']);
 const isPublicApiRoute = createRouteMatcher(['/api/v1/(.*)']);
+const isCronRoute = createRouteMatcher(['/api/cron/(.*)']);
 
 // Routes EXEMPT from rate limiting:
 // - /r/[slug] — QR code redirects must never return 429 (end-user scans)
@@ -15,6 +16,8 @@ function shouldRateLimit(pathname: string): boolean {
   if (pathname.startsWith('/r/')) return false;
   // Exempt: webhook routes
   if (pathname.startsWith('/api/webhooks/')) return false;
+  // Exempt: cron routes (authenticated via CRON_SECRET, not rate limited)
+  if (pathname.startsWith('/api/cron/')) return false;
   // Rate-limit: all other API routes
   if (pathname.startsWith('/api/')) return true;
   // Don't rate-limit static pages
@@ -79,6 +82,8 @@ const clerkAuth = clerkMiddleware((auth, context) => {
   if (isWebhookRoute(context.request)) return;
   // /api/v1/* routes handle their own auth via API key verification
   if (isPublicApiRoute(context.request)) return;
+  // Cron routes handle their own auth via CRON_SECRET Bearer token
+  if (isCronRoute(context.request)) return;
 
   const { userId } = auth();
   if (!userId && isProtectedRoute(context.request)) {

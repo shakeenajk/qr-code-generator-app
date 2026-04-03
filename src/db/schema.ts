@@ -39,6 +39,8 @@ export const dynamicQrCodes = sqliteTable('dynamic_qr_codes', {
   slug: text('slug').notNull().unique(),
   destinationUrl: text('destination_url').notNull(),
   isPaused: integer('is_paused', { mode: 'boolean' }).notNull().default(false),
+  scheduledEnableAt: integer('scheduled_enable_at'),  // unix epoch; null = no schedule
+  scheduledPauseAt: integer('scheduled_pause_at'),    // unix epoch; null = no auto-pause
   createdAt: integer('created_at').notNull().$defaultFn(() => Math.floor(Date.now() / 1000)),
   updatedAt: integer('updated_at').notNull().$defaultFn(() => Math.floor(Date.now() / 1000)),
 }, (table) => [
