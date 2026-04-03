@@ -1,0 +1,39 @@
+---
+export const prerender = false;
+import DashboardLayout from '../../components/dashboard/DashboardLayout.astro';
+import BulkGenerateIsland from '../../components/BulkGenerateIsland';
+import { Toaster } from 'sonner';
+import { db } from '../../db/index';
+import { subscriptions } from '../../db/schema';
+import { eq } from 'drizzle-orm';
+
+// Middleware (src/middleware.ts) already redirects unauthenticated users to /login.
+// This is a belt-and-suspenders check in case middleware is misconfigured.
+const { userId } = Astro.locals.auth();
+if (!userId) {
+  return Astro.redirect('/login');
+}
+
+// Query subscription status directly (avoids self-fetch which can fail in SSR)
+const sub = await db.query.subscriptions.findFirst({
+  where: eq(subscriptions.userId, userId),
+});
+const status = sub?.status ?? 'inactive';
+const rawTier = status === 'active' || status === 'past_due' ? (sub?.tier ?? 'free') : 'free';
+const tier = rawTier as 'free' | 'starter' | 'pro';
+---
+
+<DashboardLayout activeSection="bulk" title="Bulk Generate — QRCraft" tier={tier}>
+  <div class="p-6 md:p-8">
+    <!-- Page header -->
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Bulk Generate</h1>
+      <p class="mt-1 text-sm text-gray-500 dark:text-slate-400">
+        Upload a CSV file to generate multiple QR codes and download them as a ZIP.
+      </p>
+    </div>
+
+    <BulkGenerateIsland client:only="react" tier={tier} />
+    <Toaster client:only="react" theme="system" position="bottom-right" />
+  </div>
+</DashboardLayout>

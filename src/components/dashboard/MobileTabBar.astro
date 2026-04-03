@@ -1,5 +1,5 @@
 ---
-import { LayoutGrid, BarChart2, Settings } from 'lucide-astro';
+import { LayoutGrid, BarChart2, Layers, Settings } from 'lucide-astro';
 
 interface Props {
   activeSection?: string;
@@ -10,6 +10,7 @@ const { activeSection = 'my-qr-codes' } = Astro.props;
 const tabs = [
   { href: '/dashboard', id: 'my-qr-codes', label: 'QR Codes', Icon: LayoutGrid },
   { href: '/dashboard/analytics', id: 'analytics', label: 'Analytics', Icon: BarChart2 },
+  { href: '/dashboard/bulk', id: 'bulk', label: 'Bulk', Icon: Layers },
   { href: '/dashboard/settings', id: 'settings', label: 'Settings', Icon: Settings },
 ];
 ---

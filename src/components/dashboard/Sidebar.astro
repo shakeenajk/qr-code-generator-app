@@ -1,5 +1,5 @@
 ---
-import { LayoutGrid, BarChart2, Settings } from 'lucide-astro';
+import { LayoutGrid, BarChart2, Layers, Settings } from 'lucide-astro';
 import UpgradeCTAPanel from '../billing/UpgradeCTAPanel.astro';
 
 interface Props {
@@ -12,6 +12,7 @@ const { activeSection = 'my-qr-codes', tier = 'free' } = Astro.props;
 const navItems = [
   { href: '/dashboard', label: 'My QR Codes', id: 'my-qr-codes', Icon: LayoutGrid },
   { href: '/dashboard/analytics', label: 'Analytics', id: 'analytics', Icon: BarChart2 },
+  { href: '/dashboard/bulk', label: 'Bulk Generate', id: 'bulk', Icon: Layers },
   { href: '/dashboard/settings', label: 'Settings', id: 'settings', Icon: Settings },
 ];
 ---
