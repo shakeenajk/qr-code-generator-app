@@ -132,7 +132,11 @@ Plans:
   2. User can create, revoke, and view API keys in the dashboard; the full key value is shown exactly once at creation time
   3. Each API key has a visible usage counter in the dashboard that increments with every request
   4. An API request that exceeds the per-key rate limit returns 429; the raw key value is never stored in the database
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 19-01-PLAN.md — Schema, middleware exemption, auth/rate-limit helpers, dashboard CRUD routes
+- [ ] 19-02-PLAN.md — POST /api/v1/generate endpoint with QR generation
+- [ ] 19-03-PLAN.md — Dashboard API key management UI with create/copy/revoke
 **UI hint**: yes
 
 ### Phase 20: Advanced Analytics
@@ -193,7 +197,7 @@ Phases execute in numeric order: 17 → 18 → 19 → 20 → 21 → 22 → 23
 | 12-16. Improvements through AdSense | v1.2 | — | Complete | 2026-04-02 |
 | 17. Observability Foundation | v1.3 | 2/2 | Complete    | 2026-04-02 |
 | 18. Bulk QR Generation | v1.3 | 2/2 | Complete    | 2026-04-03 |
-| 19. REST API + API Key Management | v1.3 | 0/TBD | Not started | - |
+| 19. REST API + API Key Management | v1.3 | 0/3 | Not started | - |
 | 20. Advanced Analytics | v1.3 | 0/TBD | Not started | - |
 | 21. Campaign Scheduling | v1.3 | 0/TBD | Not started | - |
 | 22. Seasonal Template Packs | v1.3 | 0/TBD | Not started | - |
