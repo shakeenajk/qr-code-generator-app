@@ -37,7 +37,7 @@ export interface FrameDefinition {
 export interface TemplatePreset {
   id: string;
   name: string;
-  category: "Minimal" | "Bold" | "Business" | "Vibrant";
+  category: "Minimal" | "Bold" | "Business" | "Vibrant" | "Christmas" | "Halloween" | "Valentine's Day" | "Easter" | "Black Friday" | "Summer" | "Back to School";
   frameType: FrameType;
   dotColor: string;
   bgColor: string;
