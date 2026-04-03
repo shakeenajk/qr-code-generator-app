@@ -36,9 +36,9 @@ Requirements for v1.3 Scale & Integrate. Each maps to roadmap phases.
 
 ### Campaign Scheduling
 
-- [ ] **CAMPAIGN-01**: User can set a future activation date and optional deactivation date on a dynamic QR code
+- [x] **CAMPAIGN-01**: User can set a future activation date and optional deactivation date on a dynamic QR code
 - [ ] **CAMPAIGN-02**: Dashboard shows scheduled QR codes with countdown to activation and current status (scheduled/active/expired)
-- [ ] **CAMPAIGN-03**: Scheduled QR codes activate and deactivate automatically via background job (QStash or Vercel Cron)
+- [x] **CAMPAIGN-03**: Scheduled QR codes activate and deactivate automatically via background job (QStash or Vercel Cron)
 
 ### Internationalization
 
@@ -101,9 +101,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ANALYTICS-02 | Phase 20 | Complete |
 | ANALYTICS-03 | Phase 20 | Complete |
 | ANALYTICS-04 | Phase 20 | Complete |
-| CAMPAIGN-01 | Phase 21 | Pending |
+| CAMPAIGN-01 | Phase 21 | Complete |
 | CAMPAIGN-02 | Phase 21 | Pending |
-| CAMPAIGN-03 | Phase 21 | Pending |
+| CAMPAIGN-03 | Phase 21 | Complete |
 | TEMPLATE-01 | Phase 22 | Pending |
 | TEMPLATE-02 | Phase 22 | Pending |
 | I18N-01 | Phase 23 | Pending |

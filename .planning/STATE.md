@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Scale & Integrate
-status: Ready to plan
-stopped_at: Completed 20-02-PLAN.md
-last_updated: "2026-04-03T04:09:06.702Z"
+status: Ready to execute
+stopped_at: Completed 21-01-PLAN.md
+last_updated: "2026-04-03T06:35:33.913Z"
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 9
+  total_plans: 11
   completed_plans: 6
 ---
 
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-02)
 
 **Core value:** Anyone can generate a visually stunning, fully customized QR code and download it immediately — no signup, no friction.
-**Current focus:** Phase 20 — advanced-analytics
+**Current focus:** Phase 21 — campaign-scheduling
 
 ## Current Position
 
-Phase: 21
-Plan: Not started
+Phase: 21 (campaign-scheduling) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -56,6 +56,7 @@ Plan: Not started
 | Phase 19-rest-api-api-key-management P03 | 20 | 2 tasks | 4 files |
 | Phase 20-advanced-analytics P01 | 3 | 2 tasks | 3 files |
 | Phase 20-advanced-analytics P02 | 3 | 2 tasks | 5 files |
+| Phase 21-campaign-scheduling P01 | 3 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -91,6 +92,8 @@ Recent decisions affecting current work:
 - [Phase 20-advanced-analytics]: Analytics API from/to params default to last-30-days when absent (backward compatible); 365-day cap prevents runaway queries
 - [Phase 20-advanced-analytics]: Analytics page refactored from server-rendered to client:only React island — enables reactive date range updates without page reloads
 - [Phase 20-advanced-analytics]: CSV export uses native JS with 10,000-row cap; no library needed for header + ISO date + field escaping
+- [Phase 21-campaign-scheduling]: Cron sweep clears schedule column after processing — idempotent pattern ensures double-run safety without extra state
+- [Phase 21-campaign-scheduling]: Setting scheduledEnableAt auto-sets isPaused: true — QR must be paused while awaiting its activation date
 
 ### Pending Todos
 
@@ -104,6 +107,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-03T04:04:51.650Z
-Stopped at: Completed 20-02-PLAN.md
+Last session: 2026-04-03T06:35:33.909Z
+Stopped at: Completed 21-01-PLAN.md
 Resume file: None
