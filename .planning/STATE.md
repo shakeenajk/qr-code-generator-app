@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Scale & Integrate
-status: Ready to plan
-stopped_at: Completed 17-02-PLAN.md
-last_updated: "2026-04-02T23:07:09.110Z"
+status: Phase complete — ready for Phase 19
+stopped_at: "Completed 18-02-PLAN.md"
+last_updated: "2026-04-03T01:00:00.000Z"
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 4
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-02)
 
 **Core value:** Anyone can generate a visually stunning, fully customized QR code and download it immediately — no signup, no friction.
-**Current focus:** Phase 17 — observability-foundation
+**Current focus:** Phase 18 — bulk-qr-generation
 
 ## Current Position
 
-Phase: 18
-Plan: Not started
+Phase: 18 (bulk-qr-generation) — COMPLETE
+Plan: 2 of 2 — COMPLETE
 
 ## Performance Metrics
 
@@ -48,6 +48,8 @@ Plan: Not started
 *Updated after each plan completion*
 | Phase 17 P01 | 5m | 2 tasks | 6 files |
 | Phase 17 P02 | 5m | 2 tasks | 5 files |
+| Phase 18-bulk-qr-generation P01 | 5 | 2 tasks | 6 files |
+| Phase 18 P02 | 8m | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -65,6 +67,11 @@ Recent decisions affecting current work:
 - [Phase 17]: @sentry/astro integration added to astro.config.mjs with sourceMapsUploadOptions tied to VERCEL_GIT_COMMIT_SHA for deploy-mapped source maps
 - [Phase 17]: Sentry SDK silently no-ops when PUBLIC_SENTRY_DSN is undefined — build and local dev unaffected until DSN is configured
 - [Phase 17]: Sliding window rate limit (60 req/60s) via Upstash Redis — module-level singleton with null fallback for dev; /r/ redirect path exempt via shouldRateLimit(); sequence() chains rate limit before Clerk auth
+- [Phase 18-bulk-qr-generation]: BULK_TIER_LIMITS in separate bulkLimits.ts keeps single source of truth for row caps without modifying tierLimits.ts shape
+- [Phase 18-bulk-qr-generation]: Tier cast pattern: rawTier as 'free'|'starter'|'pro' — Drizzle text() returns string; mirrors workaround needed by dashboard/index.astro
+- [Phase 18-bulk-qr-generation]: generatedBlobs/isGenerating/progress stubbed in Plan 01; Plan 02 wires the qr-code-styling generation loop and ZIP assembly
+- [Phase 18]: Used status enum ('generating'/'complete') instead of separate isGenerating boolean — single source of truth for generation state
+- [Phase 18]: Dynamic import of qr-code-styling inside generation function — prevents SSR failure in Astro
 
 ### Pending Todos
 
@@ -78,6 +85,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-02T23:03:24.046Z
-Stopped at: Completed 17-02-PLAN.md
+Last session: 2026-04-03T01:00:00.000Z
+Stopped at: Completed 18-02-PLAN.md
 Resume file: None
