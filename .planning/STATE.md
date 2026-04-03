@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Scale & Integrate
-status: Ready to plan
-stopped_at: Completed 18-02-PLAN.md
-last_updated: "2026-04-03T02:51:26.571Z"
+status: Ready to execute
+stopped_at: Completed 19-01-PLAN.md
+last_updated: "2026-04-03T03:24:27.320Z"
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 4
-  completed_plans: 3
+  total_plans: 7
+  completed_plans: 4
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-02)
 
 **Core value:** Anyone can generate a visually stunning, fully customized QR code and download it immediately — no signup, no friction.
-**Current focus:** Phase 18 — bulk-qr-generation
+**Current focus:** Phase 19 — rest-api-api-key-management
 
 ## Current Position
 
-Phase: 19
-Plan: Not started
+Phase: 19 (rest-api-api-key-management) — EXECUTING
+Plan: 2 of 3
 
 ## Performance Metrics
 
@@ -50,6 +50,7 @@ Plan: Not started
 | Phase 17 P02 | 5m | 2 tasks | 5 files |
 | Phase 18-bulk-qr-generation P01 | 5 | 2 tasks | 6 files |
 | Phase 18 P02 | 8m | 2 tasks | 1 files |
+| Phase 19 P01 | 3m | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,9 @@ Recent decisions affecting current work:
 - [Phase 18-bulk-qr-generation]: generatedBlobs/isGenerating/progress stubbed in Plan 01; Plan 02 wires the qr-code-styling generation loop and ZIP assembly
 - [Phase 18]: Used status enum ('generating'/'complete') instead of separate isGenerating boolean — single source of truth for generation state
 - [Phase 18]: Dynamic import of qr-code-styling inside generation function — prevents SSR failure in Astro
+- [Phase 19]: SHA-256 hash for API key storage — keys are 256-bit entropy (SHA-256 sufficient; bcrypt overkill for high-entropy inputs)
+- [Phase 19]: Opaque API keys (not JWTs) — instant revocation, no signing secret, matches Stripe/GitHub/Vercel pattern
+- [Phase 19]: Pro-only API key creation with max 10 active keys per account; dual rate limit (IP + per-key) intentional for v1.3
 
 ### Pending Todos
 
@@ -85,6 +89,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-03T01:00:00.000Z
-Stopped at: Completed 18-02-PLAN.md
+Last session: 2026-04-03T03:24:27.316Z
+Stopped at: Completed 19-01-PLAN.md
 Resume file: None
