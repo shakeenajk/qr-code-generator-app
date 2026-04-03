@@ -48,8 +48,8 @@ Requirements for v1.3 Scale & Integrate. Each maps to roadmap phases.
 
 ### Seasonal Templates
 
-- [ ] **TEMPLATE-01**: 20+ seasonal/holiday template presets are available (Christmas, Halloween, Valentine's, Easter, Black Friday, Summer, Back to School, etc.)
-- [ ] **TEMPLATE-02**: Homepage features a seasonal collection section that highlights currently relevant templates based on the calendar
+- [x] **TEMPLATE-01**: 20+ seasonal/holiday template presets are available (Christmas, Halloween, Valentine's, Easter, Black Friday, Summer, Back to School, etc.)
+- [x] **TEMPLATE-02**: Homepage features a seasonal collection section that highlights currently relevant templates based on the calendar
 
 ## v2 Requirements
 
@@ -104,8 +104,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CAMPAIGN-01 | Phase 21 | Complete |
 | CAMPAIGN-02 | Phase 21 | Complete |
 | CAMPAIGN-03 | Phase 21 | Complete |
-| TEMPLATE-01 | Phase 22 | Pending |
-| TEMPLATE-02 | Phase 22 | Pending |
+| TEMPLATE-01 | Phase 22 | Complete |
+| TEMPLATE-02 | Phase 22 | Complete |
 | I18N-01 | Phase 23 | Pending |
 | I18N-02 | Phase 23 | Pending |
 | I18N-03 | Phase 23 | Pending |

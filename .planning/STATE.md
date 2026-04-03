@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Scale & Integrate
-status: Ready to plan
-stopped_at: Completed 21-02-PLAN.md
-last_updated: "2026-04-03T12:21:14.723Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 22-01-PLAN.md
+last_updated: "2026-04-03T12:33:37.074Z"
 progress:
   total_phases: 7
-  completed_phases: 1
-  total_plans: 11
-  completed_plans: 7
+  completed_phases: 2
+  total_plans: 12
+  completed_plans: 8
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-02)
 
 **Core value:** Anyone can generate a visually stunning, fully customized QR code and download it immediately — no signup, no friction.
-**Current focus:** Phase 21 — campaign-scheduling
+**Current focus:** Phase 22 — seasonal-template-packs
 
 ## Current Position
 
-Phase: 22
-Plan: Not started
+Phase: 22 (seasonal-template-packs) — EXECUTING
+Plan: 1 of 1
 
 ## Performance Metrics
 
@@ -58,6 +58,7 @@ Plan: Not started
 | Phase 20-advanced-analytics P02 | 3 | 2 tasks | 5 files |
 | Phase 21-campaign-scheduling P01 | 3 | 2 tasks | 7 files |
 | Phase 21-campaign-scheduling P02 | checkpoint | 2 tasks | 1 files |
+| Phase 22-seasonal-template-packs P01 | 8 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -98,6 +99,8 @@ Recent decisions affecting current work:
 - [Phase 21-campaign-scheduling]: Status badge colors: Scheduled=purple, Active=green, Paused=amber, Expired=gray — consistent with design system
 - [Phase 21-campaign-scheduling]: useCountdown hook with setInterval(60000) updates countdown every minute — avoids excessive re-renders while staying current
 - [Phase 21-campaign-scheduling]: datetime-local inputs rely on browser native local timezone conversion via Math.floor(new Date(inputValue).getTime() / 1000)
+- [Phase 22-seasonal-template-packs]: TemplatePreset category union extended inline rather than using a separate SeasonalCategory type — keeps types co-located and simpler
+- [Phase 22-seasonal-template-packs]: Calendar month mapping hardcoded as Record<number,string[]> in Astro frontmatter — SSR build-time evaluation, zero JS shipped to client
 
 ### Pending Todos
 
@@ -111,6 +114,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-03T12:14:48.308Z
-Stopped at: Completed 21-02-PLAN.md
+Last session: 2026-04-03T12:33:37.070Z
+Stopped at: Completed 22-01-PLAN.md
 Resume file: None
