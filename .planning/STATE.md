@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Scale & Integrate
-status: Ready to execute
-stopped_at: Completed 21-01-PLAN.md
-last_updated: "2026-04-03T06:35:33.913Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 21-02-PLAN.md
+last_updated: "2026-04-03T12:14:48.314Z"
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 11
-  completed_plans: 6
+  completed_plans: 7
 ---
 
 # Project State
@@ -57,6 +57,7 @@ Plan: 2 of 2
 | Phase 20-advanced-analytics P01 | 3 | 2 tasks | 3 files |
 | Phase 20-advanced-analytics P02 | 3 | 2 tasks | 5 files |
 | Phase 21-campaign-scheduling P01 | 3 | 2 tasks | 7 files |
+| Phase 21-campaign-scheduling P02 | checkpoint | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -94,6 +95,9 @@ Recent decisions affecting current work:
 - [Phase 20-advanced-analytics]: CSV export uses native JS with 10,000-row cap; no library needed for header + ISO date + field escaping
 - [Phase 21-campaign-scheduling]: Cron sweep clears schedule column after processing — idempotent pattern ensures double-run safety without extra state
 - [Phase 21-campaign-scheduling]: Setting scheduledEnableAt auto-sets isPaused: true — QR must be paused while awaiting its activation date
+- [Phase 21-campaign-scheduling]: Status badge colors: Scheduled=purple, Active=green, Paused=amber, Expired=gray — consistent with design system
+- [Phase 21-campaign-scheduling]: useCountdown hook with setInterval(60000) updates countdown every minute — avoids excessive re-renders while staying current
+- [Phase 21-campaign-scheduling]: datetime-local inputs rely on browser native local timezone conversion via Math.floor(new Date(inputValue).getTime() / 1000)
 
 ### Pending Todos
 
@@ -107,6 +111,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-03T06:35:33.909Z
-Stopped at: Completed 21-01-PLAN.md
+Last session: 2026-04-03T12:14:48.308Z
+Stopped at: Completed 21-02-PLAN.md
 Resume file: None
