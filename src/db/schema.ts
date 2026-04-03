@@ -86,3 +86,18 @@ export const scanEvents = sqliteTable('scan_events', {
 }, (table) => [
   index('scan_events_qr_id_scanned_at_idx').on(table.dynamicQrCodeId, table.scannedAt),
 ]);
+
+export const apiKeys = sqliteTable('api_keys', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id').notNull(),
+  name: text('name').notNull(),
+  keyHash: text('key_hash').notNull().unique(),
+  keyPrefix: text('key_prefix').notNull(),
+  usageCount: integer('usage_count').notNull().default(0),
+  lastUsedAt: integer('last_used_at'),
+  revokedAt: integer('revoked_at'),
+  createdAt: integer('created_at').notNull().$defaultFn(() => Math.floor(Date.now() / 1000)),
+}, (table) => [
+  index('api_keys_user_id_idx').on(table.userId),
+  index('api_keys_key_hash_idx').on(table.keyHash),
+]);

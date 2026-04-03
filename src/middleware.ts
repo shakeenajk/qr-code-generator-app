@@ -4,6 +4,7 @@ import { getRateLimiter } from './lib/rateLimit';
 
 const isProtectedRoute = createRouteMatcher(['/dashboard(.*)']);
 const isWebhookRoute = createRouteMatcher(['/api/webhooks/(.*)']);
+const isPublicApiRoute = createRouteMatcher(['/api/v1/(.*)']);
 
 // Routes EXEMPT from rate limiting:
 // - /r/[slug] — QR code redirects must never return 429 (end-user scans)
@@ -76,6 +77,8 @@ const rateLimitMiddleware = async (context: any, next: any) => {
 const clerkAuth = clerkMiddleware((auth, context) => {
   // Webhooks must bypass auth — Stripe sends unauthenticated POST requests
   if (isWebhookRoute(context.request)) return;
+  // /api/v1/* routes handle their own auth via API key verification
+  if (isPublicApiRoute(context.request)) return;
 
   const { userId } = auth();
   if (!userId && isProtectedRoute(context.request)) {
