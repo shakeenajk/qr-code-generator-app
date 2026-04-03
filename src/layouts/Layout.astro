@@ -2,18 +2,28 @@
 // src/layouts/Layout.astro
 import '../styles/global.css';
 import { FAQ_ITEMS } from '../data/faq';
+import { getAbsoluteLocaleUrl } from 'astro:i18n';
 
 interface Props {
   title: string;
   description: string;
   ogImage?: string;
+  lang?: string;
+  showHreflang?: boolean;
 }
 
 const {
   title,
   description,
   ogImage = '/og-image.png',
+  lang = 'en',
+  showHreflang = false,
 } = Astro.props;
+
+// Strip locale prefix to get the canonical path for hreflang URL generation
+const currentPath =
+  Astro.url.pathname.replace(/^\/(es|fr|de)/, '') || '/';
+const hreflangLocales = ['en', 'es', 'fr', 'de'] as const;
 
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
 const ogImageUrl = new URL(ogImage, Astro.site);
@@ -50,13 +60,29 @@ const faqSchema = {
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={lang}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalUrl} />
+
+    <!-- Hreflang alternate links for i18n SEO (marketing pages only) -->
+    {showHreflang && hreflangLocales.map((loc) => (
+      <link
+        rel="alternate"
+        hreflang={loc}
+        href={getAbsoluteLocaleUrl(loc, currentPath)}
+      />
+    ))}
+    {showHreflang && (
+      <link
+        rel="alternate"
+        hreflang="x-default"
+        href={getAbsoluteLocaleUrl('en', currentPath)}
+      />
+    )}
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />

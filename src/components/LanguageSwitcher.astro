@@ -1,0 +1,52 @@
+---
+// src/components/LanguageSwitcher.astro
+// Language selector with locale persistence via cookie
+import { getRelativeLocaleUrl } from 'astro:i18n';
+
+interface Props {
+  currentLang?: string;
+  currentPath?: string;
+}
+
+const { currentLang = 'en', currentPath = '/' } = Astro.props;
+
+const langs = [
+  { code: 'en', label: 'EN' },
+  { code: 'es', label: 'ES' },
+  { code: 'fr', label: 'FR' },
+  { code: 'de', label: 'DE' },
+] as const;
+---
+
+<nav aria-label="Language selection" class="flex items-center gap-1">
+  {langs.map(({ code, label }) => (
+    <a
+      href={getRelativeLocaleUrl(code, currentPath)}
+      hreflang={code}
+      aria-current={currentLang === code ? 'true' : undefined}
+      data-locale-link
+      data-locale={code}
+      class:list={[
+        'text-xs font-medium px-1.5 py-0.5 rounded transition-colors',
+        currentLang === code
+          ? 'text-gray-900 dark:text-white font-bold underline underline-offset-2'
+          : 'text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white',
+      ]}
+    >
+      {label}
+    </a>
+  ))}
+</nav>
+
+<script>
+  // Write locale cookie on language link click so the preference persists across sessions
+  document.querySelectorAll('[data-locale-link]').forEach((link) => {
+    link.addEventListener('click', () => {
+      const locale = link.getAttribute('data-locale');
+      if (locale) {
+        document.cookie = `locale=${locale};path=/;max-age=31536000;SameSite=Lax`;
+      }
+      // Navigation proceeds normally via href
+    });
+  });
+</script>
