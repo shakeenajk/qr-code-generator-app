@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Grid2X2, List, Pencil, Trash2, QrCode, Pause, Play, BarChart2 } from 'lucide-react';
+import { Grid2X2, List, Pencil, Trash2, QrCode, Pause, Play, BarChart2, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface SavedQR {
@@ -16,6 +16,8 @@ interface SavedQR {
   destinationUrl?: string | null;
   isPaused?: boolean | null;
   isDynamic?: boolean;
+  scheduledEnableAt?: number | null;
+  scheduledPauseAt?: number | null;
   landingPageId?: string | null;
   landingPageSlug?: string | null;
   landingPageTitle?: string | null;
@@ -26,6 +28,38 @@ interface SavedQR {
 type ViewMode = 'grid' | 'list';
 
 const VIEW_MODE_KEY = 'qrlibrary-view-mode';
+
+function getScheduleStatus(qr: SavedQR): 'scheduled' | 'active' | 'paused' | 'expired' | null {
+  if (!qr.isDynamic) return null;
+  const now = Math.floor(Date.now() / 1000);
+  if (qr.scheduledEnableAt && qr.scheduledEnableAt > now) return 'scheduled';
+  if (qr.scheduledPauseAt && qr.scheduledPauseAt <= now) return 'expired';
+  if (!qr.isPaused && qr.scheduledPauseAt && qr.scheduledPauseAt > now) return 'active';
+  if (qr.isPaused && !qr.scheduledEnableAt) return 'paused';
+  if (!qr.isPaused && !qr.scheduledPauseAt) return 'active';
+  return qr.isPaused ? 'paused' : 'active';
+}
+
+function useCountdown(targetEpoch: number | null): string {
+  const [text, setText] = useState('');
+  useEffect(() => {
+    if (!targetEpoch) { setText(''); return; }
+    const tick = () => {
+      const diff = targetEpoch - Math.floor(Date.now() / 1000);
+      if (diff <= 0) { setText('activating soon'); return; }
+      const d = Math.floor(diff / 86400);
+      const h = Math.floor((diff % 86400) / 3600);
+      const m = Math.floor((diff % 3600) / 60);
+      if (d > 0) setText(`${d}d ${h}h`);
+      else if (h > 0) setText(`${h}h ${m}m`);
+      else setText(`${m}m`);
+    };
+    tick();
+    const id = setInterval(tick, 60000); // update every minute
+    return () => clearInterval(id);
+  }, [targetEpoch]);
+  return text;
+}
 
 function ThumbnailPlaceholder({ className }: { className?: string }) {
   return (
@@ -237,11 +271,20 @@ interface DynamicCardBodyProps {
   editingDestValue: string;
   savingDestId: string | null;
   togglingPauseId: string | null;
+  schedulingQrId: string | null;
+  scheduleEnableInput: string;
+  schedulePauseInput: string;
+  savingScheduleId: string | null;
   onEditingDestValueChange: (value: string) => void;
   onStartEditingDest: (id: string, currentUrl: string) => void;
   onSaveDestination: (id: string) => void;
   onDiscardDest: () => void;
   onTogglePause: (id: string, currentlyPaused: boolean) => void;
+  onToggleScheduleEditor: (id: string) => void;
+  onScheduleEnableInputChange: (value: string) => void;
+  onSchedulePauseInputChange: (value: string) => void;
+  onSaveSchedule: (id: string) => void;
+  onClearSchedule: (id: string) => void;
 }
 
 function DynamicCardBody({
@@ -250,25 +293,62 @@ function DynamicCardBody({
   editingDestValue,
   savingDestId,
   togglingPauseId,
+  schedulingQrId,
+  scheduleEnableInput,
+  schedulePauseInput,
+  savingScheduleId,
   onEditingDestValueChange,
   onStartEditingDest,
   onSaveDestination,
   onDiscardDest,
   onTogglePause,
+  onToggleScheduleEditor,
+  onScheduleEnableInputChange,
+  onSchedulePauseInputChange,
+  onSaveSchedule,
+  onClearSchedule,
 }: DynamicCardBodyProps) {
   const isPaused = Boolean(qr.isPaused);
+  const scheduleStatus = getScheduleStatus(qr);
+  const countdown = useCountdown(scheduleStatus === 'scheduled' ? (qr.scheduledEnableAt ?? null) : null);
+  const isScheduleOpen = schedulingQrId === qr.id;
+
+  // Badge config per status
+  const badgeConfig = {
+    scheduled: { dot: 'bg-purple-500', text: 'text-purple-700 dark:text-purple-400', label: 'Scheduled' },
+    active: { dot: 'bg-green-500', text: 'text-green-600 dark:text-green-400', label: 'Active' },
+    paused: { dot: 'bg-amber-400', text: 'text-amber-600 dark:text-amber-400', label: 'Paused' },
+    expired: { dot: 'bg-gray-400', text: 'text-gray-500 dark:text-gray-400', label: 'Expired' },
+  };
+
+  const badge = scheduleStatus ? badgeConfig[scheduleStatus] : badgeConfig[isPaused ? 'paused' : 'active'];
 
   return (
     <>
       {/* Status indicator */}
-      <div className="flex items-center gap-1.5 mt-1">
+      <div className="flex items-center gap-1.5 mt-1 flex-wrap">
         <span
-          className={`w-2 h-2 rounded-full inline-block ${isPaused ? 'bg-amber-400' : 'bg-green-500'}`}
+          className={`w-2 h-2 rounded-full inline-block ${badge.dot}`}
           aria-hidden="true"
         />
-        <span className={`text-xs ${isPaused ? 'text-amber-600 dark:text-amber-400' : 'text-green-600 dark:text-green-400'}`}>
-          {isPaused ? 'Paused' : 'Active'}
+        <span className={`text-xs font-medium ${badge.text}`}>
+          {badge.label}
+          {scheduleStatus === 'scheduled' && countdown && (
+            <span className="ml-1 font-normal opacity-75">in {countdown}</span>
+          )}
         </span>
+        {/* Scheduled activation date */}
+        {scheduleStatus === 'scheduled' && qr.scheduledEnableAt && (
+          <span className="text-xs text-gray-400 dark:text-slate-500">
+            {new Date(qr.scheduledEnableAt * 1000).toLocaleDateString()}
+          </span>
+        )}
+        {/* Active with upcoming pause */}
+        {scheduleStatus === 'active' && qr.scheduledPauseAt && qr.scheduledPauseAt > Math.floor(Date.now() / 1000) && (
+          <span className="text-xs text-gray-400 dark:text-slate-500">
+            Pauses {new Date(qr.scheduledPauseAt * 1000).toLocaleDateString()}
+          </span>
+        )}
       </div>
 
       {/* Destination URL display or inline editor */}
@@ -315,8 +395,8 @@ function DynamicCardBody({
         )
       )}
 
-      {/* Pause/Activate toggle */}
-      <div className="mt-2">
+      {/* Pause/Activate + Schedule buttons */}
+      <div className="mt-2 flex items-center gap-2 flex-wrap">
         <button
           onClick={() => onTogglePause(qr.id, isPaused)}
           disabled={togglingPauseId === qr.id}
@@ -332,7 +412,70 @@ function DynamicCardBody({
           {isPaused ? <Play className="w-3 h-3" /> : <Pause className="w-3 h-3" />}
           {isPaused ? 'Activate' : 'Pause'}
         </button>
+
+        {/* Schedule button */}
+        <button
+          onClick={() => onToggleScheduleEditor(qr.id)}
+          aria-label="Set schedule"
+          className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-full border transition-colors min-h-[44px] sm:min-h-0 ${
+            isScheduleOpen
+              ? 'border-purple-400 bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-700'
+              : 'border-gray-200 dark:border-slate-600 text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700'
+          }`}
+        >
+          <Calendar className="w-3 h-3" />
+          Schedule
+        </button>
       </div>
+
+      {/* Schedule editor (inline expandable) */}
+      {isScheduleOpen && (
+        <div className="mt-3 p-3 rounded-lg border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/40 space-y-3">
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">
+              Activate on
+            </label>
+            <input
+              type="datetime-local"
+              value={scheduleEnableInput}
+              onChange={e => onScheduleEnableInputChange(e.target.value)}
+              aria-label="Activation date and time"
+              className="w-full px-2 py-1.5 text-xs border border-gray-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500 dark:bg-slate-800 dark:text-slate-100"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-slate-300 mb-1">
+              Deactivate on <span className="font-normal text-gray-400">(optional)</span>
+            </label>
+            <input
+              type="datetime-local"
+              value={schedulePauseInput}
+              onChange={e => onSchedulePauseInputChange(e.target.value)}
+              aria-label="Deactivation date and time"
+              className="w-full px-2 py-1.5 text-xs border border-gray-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500 dark:bg-slate-800 dark:text-slate-100"
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => onSaveSchedule(qr.id)}
+              disabled={savingScheduleId === qr.id}
+              className={`text-xs px-3 py-1.5 rounded-md bg-purple-600 text-white hover:bg-purple-700 transition-colors font-medium ${
+                savingScheduleId === qr.id ? 'opacity-60 cursor-wait' : ''
+              }`}
+            >
+              Save Schedule
+            </button>
+            {(qr.scheduledEnableAt || qr.scheduledPauseAt) && (
+              <button
+                onClick={() => onClearSchedule(qr.id)}
+                className="text-xs text-gray-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 underline transition-colors"
+              >
+                Clear Schedule
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }
@@ -346,6 +489,10 @@ export default function QRLibrary() {
   const [editingDestValue, setEditingDestValue] = useState('');
   const [savingDestId, setSavingDestId] = useState<string | null>(null);
   const [togglingPauseId, setTogglingPauseId] = useState<string | null>(null);
+  const [schedulingQrId, setSchedulingQrId] = useState<string | null>(null);
+  const [scheduleEnableInput, setScheduleEnableInput] = useState('');
+  const [schedulePauseInput, setSchedulePauseInput] = useState('');
+  const [savingScheduleId, setSavingScheduleId] = useState<string | null>(null);
 
   // Load persisted view mode preference
   useEffect(() => {
@@ -459,6 +606,111 @@ export default function QRLibrary() {
     }
   };
 
+  function toggleScheduleEditor(id: string) {
+    if (schedulingQrId === id) {
+      setSchedulingQrId(null);
+      setScheduleEnableInput('');
+      setSchedulePauseInput('');
+    } else {
+      // Pre-populate inputs with existing schedule if any
+      const qr = qrCodes.find(q => q.id === id);
+      if (qr?.scheduledEnableAt) {
+        const dt = new Date(qr.scheduledEnableAt * 1000);
+        // Format as datetime-local value: "YYYY-MM-DDTHH:MM"
+        const pad = (n: number) => String(n).padStart(2, '0');
+        setScheduleEnableInput(
+          `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`
+        );
+      } else {
+        setScheduleEnableInput('');
+      }
+      if (qr?.scheduledPauseAt) {
+        const dt = new Date(qr.scheduledPauseAt * 1000);
+        const pad = (n: number) => String(n).padStart(2, '0');
+        setSchedulePauseInput(
+          `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`
+        );
+      } else {
+        setSchedulePauseInput('');
+      }
+      setSchedulingQrId(id);
+    }
+  }
+
+  const saveSchedule = async (id: string) => {
+    const enableEpoch = scheduleEnableInput
+      ? Math.floor(new Date(scheduleEnableInput).getTime() / 1000)
+      : null;
+    const pauseEpoch = schedulePauseInput
+      ? Math.floor(new Date(schedulePauseInput).getTime() / 1000)
+      : null;
+
+    // Validate
+    const now = Math.floor(Date.now() / 1000);
+    if (enableEpoch && enableEpoch <= now) {
+      toast.error('Activation date must be in the future');
+      return;
+    }
+    if (enableEpoch && pauseEpoch && pauseEpoch <= enableEpoch) {
+      toast.error('Deactivation date must be after activation date');
+      return;
+    }
+    if (!enableEpoch && pauseEpoch) {
+      toast.error('Set an activation date first');
+      return;
+    }
+
+    setSavingScheduleId(id);
+    try {
+      const res = await fetch(`/api/qr/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scheduledEnableAt: enableEpoch,
+          scheduledPauseAt: pauseEpoch,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error((err as { error?: string }).error || 'Failed to save schedule');
+      }
+      setQrCodes(prev => prev.map(qr =>
+        qr.id === id
+          ? { ...qr, scheduledEnableAt: enableEpoch, scheduledPauseAt: pauseEpoch, isPaused: enableEpoch ? true : qr.isPaused }
+          : qr
+      ));
+      setSchedulingQrId(null);
+      toast.success('Schedule saved');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not save schedule. Please try again.');
+    } finally {
+      setSavingScheduleId(null);
+    }
+  };
+
+  const clearSchedule = async (id: string) => {
+    setSavingScheduleId(id);
+    try {
+      const res = await fetch(`/api/qr/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scheduledEnableAt: null, scheduledPauseAt: null }),
+      });
+      if (!res.ok) throw new Error();
+      setQrCodes(prev => prev.map(qr =>
+        qr.id === id ? { ...qr, scheduledEnableAt: null, scheduledPauseAt: null } : qr
+      ));
+      setSchedulingQrId(null);
+      setScheduleEnableInput('');
+      setSchedulePauseInput('');
+      toast.success('Schedule cleared');
+    } catch {
+      toast.error('Could not clear schedule. Please try again.');
+    } finally {
+      setSavingScheduleId(null);
+    }
+  };
+
   function renderCardBody(qr: SavedQR) {
     if (qr.isLandingPage && qr.landingPageType === 'pdf') {
       return <PdfCardBody qr={qr} />;
@@ -474,11 +726,20 @@ export default function QRLibrary() {
           editingDestValue={editingDestValue}
           savingDestId={savingDestId}
           togglingPauseId={togglingPauseId}
+          schedulingQrId={schedulingQrId}
+          scheduleEnableInput={scheduleEnableInput}
+          schedulePauseInput={schedulePauseInput}
+          savingScheduleId={savingScheduleId}
           onEditingDestValueChange={setEditingDestValue}
           onStartEditingDest={startEditingDest}
           onSaveDestination={saveDestination}
           onDiscardDest={discardDest}
           onTogglePause={togglePause}
+          onToggleScheduleEditor={toggleScheduleEditor}
+          onScheduleEnableInputChange={setScheduleEnableInput}
+          onSchedulePauseInputChange={setSchedulePauseInput}
+          onSaveSchedule={saveSchedule}
+          onClearSchedule={clearSchedule}
         />
       );
     }
