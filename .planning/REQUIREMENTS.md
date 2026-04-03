@@ -22,10 +22,10 @@ Requirements for v1.3 Scale & Integrate. Each maps to roadmap phases.
 
 ### REST API
 
-- [ ] **API-01**: Developer can create a QR code via POST /api/v1/generate with JSON body (URL, text, WiFi, vCard content types)
+- [x] **API-01**: Developer can create a QR code via POST /api/v1/generate with JSON body (URL, text, WiFi, vCard content types)
 - [x] **API-02**: Developer can manage API keys in the dashboard (create, revoke, view usage)
 - [x] **API-03**: API requests are rate-limited per key with usage tracking visible in dashboard
-- [ ] **API-04**: API returns QR code as base64 PNG or SVG in JSON response
+- [x] **API-04**: API returns QR code as base64 PNG or SVG in JSON response
 
 ### Advanced Analytics
 
@@ -93,10 +93,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BULK-02 | Phase 18 | Complete |
 | BULK-03 | Phase 18 | Complete |
 | BULK-04 | Phase 18 | Complete |
-| API-01 | Phase 19 | Pending |
+| API-01 | Phase 19 | Complete |
 | API-02 | Phase 19 | Complete |
 | API-03 | Phase 19 | Complete |
-| API-04 | Phase 19 | Pending |
+| API-04 | Phase 19 | Complete |
 | ANALYTICS-01 | Phase 20 | Pending |
 | ANALYTICS-02 | Phase 20 | Pending |
 | ANALYTICS-03 | Phase 20 | Pending |
