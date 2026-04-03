@@ -1,0 +1,111 @@
+---
+// src/components/SeasonalTemplates.astro
+import { TEMPLATES } from '../data/templateData';
+
+// Calendar mapping: month (1-12) → active seasonal categories
+const MONTH_CATEGORY_MAP: Record<number, string[]> = {
+  1:  ["Valentine's Day"],          // January — Valentine's Day upcoming
+  2:  ["Valentine's Day"],          // February — Valentine's Day
+  3:  ["Easter", "Back to School"], // March — Easter + spring semester
+  4:  ["Easter", "Back to School"], // April — Easter + spring semester
+  5:  ["Summer"],                   // May — Summer upcoming
+  6:  ["Summer"],                   // June — Summer
+  7:  ["Summer"],                   // July — Summer
+  8:  ["Summer", "Back to School"], // August — Summer + Back to School
+  9:  ["Back to School"],           // September — Back to School
+  10: ["Halloween"],                // October — Halloween
+  11: ["Black Friday", "Christmas"],// November — Black Friday + Christmas upcoming
+  12: ["Christmas"],                // December — Christmas
+};
+
+// Human-readable section title for the primary season
+const PRIMARY_TITLE_MAP: Record<number, string> = {
+  1:  "Valentine's Day Templates",
+  2:  "Valentine's Day Templates",
+  3:  "Easter Templates",
+  4:  "Easter Templates",
+  5:  "Summer Templates",
+  6:  "Summer Templates",
+  7:  "Summer Templates",
+  8:  "Summer & Back to School Templates",
+  9:  "Back to School Templates",
+  10: "Halloween Templates",
+  11: "Black Friday & Holiday Templates",
+  12: "Christmas Templates",
+};
+
+const month = new Date().getMonth() + 1; // 1-based
+const activeCategories = MONTH_CATEGORY_MAP[month] ?? ["Christmas"];
+const sectionTitle = PRIMARY_TITLE_MAP[month] ?? "Seasonal Templates";
+
+const seasonalTemplates = TEMPLATES.filter((t) => activeCategories.includes(t.category));
+
+// Subtitle based on primary season
+const subtitles: Record<number, string> = {
+  1:  "Create romantic QR codes for Valentine's Day campaigns and gifts.",
+  2:  "Send love with custom Valentine's Day QR codes.",
+  3:  "Celebrate spring with pastel Easter-themed QR designs.",
+  4:  "Share Easter greetings with festive QR code designs.",
+  5:  "Get ready for summer with bright, breezy QR codes.",
+  6:  "Sun-soaked designs for your summer promotions.",
+  7:  "Keep the good times rolling with summer QR codes.",
+  8:  "Kick off the new school year and summer send-off.",
+  9:  "Make back-to-school season smarter with custom QR codes.",
+  10: "Spook up your marketing with Halloween-themed QR codes.",
+  11: "Black Friday deals and holiday campaigns start here.",
+  12: "Spread holiday cheer with festive Christmas QR codes.",
+};
+const subtitle = subtitles[month] ?? "Seasonal QR code templates for every occasion.";
+---
+
+<section class="bg-white dark:bg-slate-900 py-16 sm:py-20">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <h2 class="text-3xl font-bold text-center mb-4 text-gray-900 dark:text-white">
+      {sectionTitle}
+    </h2>
+    <p class="text-base text-gray-600 dark:text-slate-400 text-center mb-12">
+      {subtitle}
+    </p>
+
+    <ul
+      role="list"
+      class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"
+    >
+      {seasonalTemplates.map((template) => (
+        <li>
+          <a
+            href="/#qr-generator"
+            class="flex flex-col items-center p-4 rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-blue-500 dark:hover:border-blue-400 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+            title={`Apply ${template.name} template`}
+          >
+            {/* Color swatch preview — bg color outer, dot color inner */}
+            <div
+              class="w-16 h-16 rounded-lg flex items-center justify-center mb-3 flex-shrink-0"
+              style={`background-color: ${template.bgColor};`}
+            >
+              <div
+                class="w-10 h-10 rounded-md"
+                style={`background-color: ${template.dotColor};`}
+              />
+            </div>
+            <span class="text-sm font-medium text-gray-800 dark:text-slate-200 text-center leading-tight">
+              {template.name}
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
+
+    <div class="text-center mt-8">
+      <a
+        href="/#qr-generator"
+        class="inline-flex items-center gap-2 text-[#2563EB] text-sm font-bold hover:underline focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
+      >
+        Browse all templates
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      </a>
+    </div>
+  </div>
+</section>
