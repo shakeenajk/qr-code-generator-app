@@ -274,10 +274,12 @@ const t = useTranslations('de');
             btn.textContent = originalText;
             return;
           }
-          if (!res.ok) throw new Error('checkout failed');
+          if (!res.ok) throw new Error(`checkout failed: ${res.status}`);
           const { url } = await res.json();
           window.location.href = url;
-        } catch {
+        } catch (err) {
+          console.error('Checkout error:', err);
+          alert('Beim Starten des Bezahlvorgangs ist ein Fehler aufgetreten. Bitte versuche es erneut oder kontaktiere den Support, falls das Problem weiterhin besteht.');
           btn.disabled = false;
           btn.textContent = originalText;
         }
