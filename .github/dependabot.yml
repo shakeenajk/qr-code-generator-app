@@ -18,6 +18,15 @@ updates:
     commit-message:
       prefix: chore
       include: scope
+    ignore:
+      # Astro 6 ecosystem migration deferred — see closed PRs #2, #3, #4.
+      # Remove these entries when ready to plan the migration phase.
+      - dependency-name: "astro"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@astrojs/vercel"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@astrojs/react"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: "/"
